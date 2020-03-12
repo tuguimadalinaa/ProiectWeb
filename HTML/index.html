@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../CSS/index.css">
+    <title>STOL</title>
+</head>
+<body class="indexBody">
+    <div id="shownMenu" class="shownMenu" hidden>
+        <span id="closeMenu" onclick="closeMenu()">&rArr;</span><br>
+        <div >
+            <a href="about.html">
+                <div>About</div>
+            </a>
+        </div>
+        <div>
+            <a href="#"><div>All my Files</div></a>
+        </div>
+        <div>
+            <a href="login.html"><div id="logOut">LogOut</div></a>
+        </div>
+      </div>
+    <div class="sideMenu">
+        <span class="spanForMenu" onclick="openMenu()">&#9776;</span>
+    </div>
+    <h1 class="welcome">Upload Your Files</h1>
+    <a href="#">
+        <img id="googleDrive" src="../IMAGES/google-drive.png" alt="google-drive">
+    </a>
+    <a href="#">
+        <img id="dropBox" src="../IMAGES/dropbox.png" alt="dropBox">
+    </a>
+    <a href="#">
+        <img id="oneDrive" src="../IMAGES/OneDrive-icon.png" alt="oneDrive"><br>
+    </a>
+    <h3 class="description1">Google Drive</h3>
+    <h3 class="description2">Drop Box</h3>
+    <h3 class="description3">One Drive</h3>
+    <button id="allCloudMethods" onclick="uploadAllDrivers()">Upload on all cloud options</button>
+    <script src="../JS/index.js"></script>
+</html>
+<!--https://stackoverflow.com/questions/10671174/changing-button-text-onclick-->

@@ -1,0 +1,23 @@
+.registerMain{
+    background-image: url('../IMAGES/login.jpg');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-attachment: fixed;
+}
+.registerMain h1{
+    margin-left: 35%;
+    margin-top: 15%;
+    transition-duration: 1s;
+}
+.registerMain  button{
+    margin-top: 10%;
+    margin-left: 47.5%;
+    background-color: grey; 
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 20px;
+    transition-duration: 1s;
+    border-radius: 25px;
+}

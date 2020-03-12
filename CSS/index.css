@@ -1,0 +1,104 @@
+.spanForMenu{
+    font-size:30px;
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+}
+.sideMenu{
+    height: 100%;
+    width: 3%;
+    position: fixed; 
+    top: 0;
+    left: 0; 
+    background-color:black;
+}
+.indexBody{
+    background-color: #d0cfcd;
+}
+.shownMenu{
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition-duration: 1s;
+    padding-top: 60px;
+}
+.shownMenu a{
+    text-decoration: none;
+}
+#closeMenu{
+    font-size:30px;
+    color: white;
+    margin-left: 50px;
+    margin-top: 100px;
+    cursor: pointer;
+}
+.shownMenu div a{
+    margin-top: 5%;
+    padding: 10px;
+    font-size: 30px;
+    text-decoration: none;
+    color: white;
+}
+#googleDrive{
+    width: 200px;
+    height: 200px;
+    margin-left: 15%;
+}
+#dropBox{
+    width: 180px;
+    height: 180px;
+    margin-left: 15%;
+}
+#oneDrive{
+    width: 200px;
+    height: 200px;
+    margin-left: 15%;
+}
+#allCloudMethods{
+    margin-left: 40%;
+    margin-top: 8%;
+    background-color: grey; 
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 20px;
+    transition-duration: 1s;
+    border-radius: 25px;
+    outline: none;
+}
+.welcome{
+    margin-top: 100px;
+    color:black;
+    text-align: center;
+    transition-duration: 1s;
+}
+.description1{
+    margin-left: 18%;
+    display: inline;
+}
+.description2{
+    margin-left:22%;
+    display: inline;
+}
+.description3{
+    margin-left:22%;
+    display: inline;
+}
+#logOut{
+    font-size: 30px;
+    text-decoration: none;
+    color: white;
+    padding: 10px;
+    margin-top: 130%;
+}
+@media screen and (max-width: 768px) {
+    .description1 { width:100%; }
+    .description2 { width:100%; }
+    .description3 {width: 100%;}
+}
