@@ -7,6 +7,35 @@
     <title>STOL</title>
 </head>
 <body>
-    <h1 class="welcome">About our App</h1>
+    <div class="contaierFlex">
+        <div id="shownMenu" class="shownMenu" hidden>
+            <span id="closeMenu" onclick="closeMenu()">&rArr;</span><br>
+            <div>
+                <a href="index.html">
+                    <div>Home</div>
+                </a>
+            </div>
+            <div >
+                <a href="about.html">
+                    <div>About</div>
+                </a>
+            </div>
+            <div>
+                <a href="#"><div>All my Files</div></a>
+            </div>
+            <div>
+                <a href="login.html"><div id="logOut">LogOut</div></a>
+            </div>
+        </div>
+
+        <div class="sideMenu">
+            <span class="spanForMenu" onclick="openMenu()">&#9776;</span>
+        </div>
+        <h1 class="welcome">About our App</h1>
+        <ul class="whatWeDoList">
+            <li>We bring a new way for you to upload your files on different cloud storage tools</li>
+        </ul>
+    </div>
+    <script src="../JS/index.js"></script>
 </body>
 </html>

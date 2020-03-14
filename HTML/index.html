@@ -7,37 +7,57 @@
     <title>STOL</title>
 </head>
 <body class="indexBody">
-    <div id="shownMenu" class="shownMenu" hidden>
-        <span id="closeMenu" onclick="closeMenu()">&rArr;</span><br>
-        <div >
-            <a href="about.html">
-                <div>About</div>
-            </a>
+    <div class="containerFlex">
+        <div id="shownMenu" class="shownMenu" hidden>
+            <span id="closeMenu" onclick="closeMenu()">&rArr;</span><br>
+            <div>
+                <a href="index.html">
+                    <div>Home</div>
+                </a>
+            </div>
+            <div >
+                <a href="about.html">
+                    <div>About</div>
+                </a>
+            </div>
+            <div>
+                <a href="#"><div>All my Files</div></a>
+            </div>
+            <div>
+                <a href="login.html"><div id="logOut">LogOut</div></a>
+            </div>
         </div>
-        <div>
-            <a href="#"><div>All my Files</div></a>
+        
+        <div class="sideMenu">
+            <span class="spanForMenu" onclick="openMenu()">&#9776;</span>
         </div>
-        <div>
-            <a href="login.html"><div id="logOut">LogOut</div></a>
+
+        <h1 class="welcome">Upload Your Files</h1>
+        <div class="imgWrapper">
+            <div id="googleDrive">
+                <a href="#">
+                    <img src="../IMAGES/google-drive.png" alt="google-drive" >
+                </a>
+                <h3 class="description1">Google Drive</h3>
+            </div>
+            <div id="dropBox">
+                <a href="#">
+                    <img  src="../IMAGES/dropbox.png" alt="dropBox">
+                </a>
+                <h3 class="description2">Drop Box</h3>
+            </div>
+            <div id="oneDrive">
+                <a href="#">
+                    <img src="../IMAGES/OneDrive-icon.png" alt="oneDrive"><br>
+                </a>
+                <h3 class="description3">One Drive</h3>
+            </div>
         </div>
-      </div>
-    <div class="sideMenu">
-        <span class="spanForMenu" onclick="openMenu()">&#9776;</span>
+        <button id="allCloudMethods" onclick="uploadAllDrivers()">Upload on all cloud options</button>  
     </div>
-    <h1 class="welcome">Upload Your Files</h1>
-    <a href="#">
-        <img id="googleDrive" src="../IMAGES/google-drive.png" alt="google-drive">
-    </a>
-    <a href="#">
-        <img id="dropBox" src="../IMAGES/dropbox.png" alt="dropBox">
-    </a>
-    <a href="#">
-        <img id="oneDrive" src="../IMAGES/OneDrive-icon.png" alt="oneDrive"><br>
-    </a>
-    <h3 class="description1">Google Drive</h3>
-    <h3 class="description2">Drop Box</h3>
-    <h3 class="description3">One Drive</h3>
-    <button id="allCloudMethods" onclick="uploadAllDrivers()">Upload on all cloud options</button>
+ </body>   
+    
+    
     <script src="../JS/index.js"></script>
 </html>
 <!--https://stackoverflow.com/questions/10671174/changing-button-text-onclick-->
