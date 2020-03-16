@@ -4,10 +4,15 @@
     background-size: 100% 100%;
     background-attachment: fixed;
 }
+.containerFlex{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
 .containerForLogin{
     padding: 20px;
     border-radius: 5px;
-    margin-top: 100px;
+    margin-top: 80px;
     margin-left: 38%;
     margin-right: 600px;
 }
@@ -16,7 +21,6 @@
     color:black;
     text-align: center;
     transition-duration: 1s;
-
 }
 input[type=email]:focus, input[type="password"]:focus {
 width: 250px;
@@ -27,7 +31,7 @@ width: 250px;
     font-size: x-large;
 }
  .containerForLogin form input{
-     width: 180px;
+    width: 180px;
     transition: width .35s ease-in-out;
     margin-top: 20px;
     margin-bottom: 20px;
@@ -38,8 +42,8 @@ width: 250px;
     outline: none; 
     padding: 3%;
 } 
-.containerForLogin h4{
-    margin-left: 40%;
+.containerFlex h4{
+    margin-left: 46%;
 }
 .containerForLogin button{
     margin-left: 35%;
@@ -54,4 +58,176 @@ width: 250px;
 }
 .containerForLogin button:hover{
     background-color: #d0cfcd;
+}
+#signUpButton{
+    margin-left: 46%;
+    background-color: grey; 
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 10px;
+    transition-duration: 0.4s;
+    border-radius: 25px;
+    width: 100%;
+    min-width: 100px; 
+    max-width: 100px;
+}
+@media (max-width: 375px) and (min-width:100px){
+    .containerForLogin{
+        margin-left: 25%;
+    }
+    input[type=email]:focus, input[type="password"]:focus {
+        width: 130px;
+    }
+    .containerFlex h4{
+        margin-left: 33%;
+    }
+    .containerForLogin form input{
+        width: 180px;
+        transition: width .35s ease-in-out;
+        margin-top: 30px;
+        margin-bottom: 40px;
+        margin-left:32%;
+        border-radius: 25px;
+        border: 2px solid black;
+        outline: none; 
+        padding: 5px;
+        margin-right: 40%;
+        width: 100%;
+        min-width: 100px; 
+        max-width: 300px;
+   } 
+   .containerForLogin button{
+        margin-left: 40%;
+        background-color: grey; 
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 10px;
+        transition-duration: 0.4s;
+        border-radius: 25px;
+    }
+    #signUpButton{
+        margin-left: 30%;
+        background-color: grey; 
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 10px;
+        transition-duration: 0.4s;
+        border-radius: 25px;
+        width: 100%;
+        max-width: 100px;
+        min-width: 100px;
+    }
+
+}
+@media (max-width: 767px) and (min-width:376px){
+    .containerForLogin{
+        margin-left: 30%;
+    }
+    input[type=email]:focus, input[type="password"]:focus {
+        width: 130px;
+    }
+    .containerFlex h4{
+        margin-left: 37%;
+    }
+    .containerForLogin form input{
+        transition: width .35s ease-in-out;
+        margin-top: 30px;
+        margin-bottom: 40px;
+        margin-left:22%;
+        border-radius: 25px;
+        border: 2px solid black;
+        outline: none; 
+        padding: 5px;
+        margin-right: 40%;
+        width: 100%;
+        min-width: 100px; 
+        max-width: 120px;
+   } 
+   .containerForLogin button{
+        margin-left: 40%;
+        background-color: grey; 
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 10px;
+        transition-duration: 0.4s;
+        border-radius: 25px;
+    }
+    #signUpButton{
+        margin-left: 35%;
+        background-color: grey; 
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 10px;
+        transition-duration: 0.4s;
+        border-radius: 25px;
+        width: 100%;
+        max-width: 100px;
+        min-width: 100px;
+    }
+}
+@media (max-width: 1200px) and (min-width:768px)
+{
+    .containerForLogin{
+        margin-left: 37%;
+    }
+    input[type=email]:focus, input[type="password"]:focus {
+        width: 130px;
+    }
+    .containerFlex h4{
+        margin-left: 40%;
+    }
+    .containerForLogin form label{
+        margin-left: 30%;
+        font-style: normal;
+        font-size: xx-large;
+    }
+    .containerForLogin form input{
+        transition: width .35s ease-in-out;
+        margin-top: 30px;
+        margin-bottom: 40px;
+        margin-left:22%;
+        border-radius: 25px;
+        border: 2px solid black;
+        outline: none; 
+        padding: 7px;
+        margin-right: 40%;
+        width: 100%;
+        min-width: 100px; 
+        max-width: 120px;
+   } 
+   .containerForLogin button{
+        margin-left: 40%;
+        background-color: grey; 
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 10px;
+        transition-duration: 0.4s;
+        border-radius: 25px;
+    }
+    #signUpButton{
+         margin-left: 39%;
+        background-color: grey; 
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 10px;
+        transition-duration: 0.4s;
+        border-radius: 25px;
+        width: 100%;
+        max-width: 100px;
+        min-width: 100px; 
+    }
 }

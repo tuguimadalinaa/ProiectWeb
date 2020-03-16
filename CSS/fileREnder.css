@@ -1,0 +1,122 @@
+.containerFlex{
+    display: flex;
+    justify-content: start;
+    flex-direction: column;
+    flex-wrap: wrap;
+    flex-flow: column wrap;
+}
+.fileRegisterBody{
+    background-color: #d0cfcd;
+}
+.spanForMenu{
+    font-size:30px;
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+}
+.sideMenu{
+    height: 100%;
+    float:left;
+    position: fixed; 
+    top: 0;
+    left: 0; 
+    background-color:black;
+}
+.shownMenu{
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition-duration: 1s;
+    padding-top: 60px;
+}
+.shownMenu a{
+    text-decoration: none;
+}
+.shownMenu div a{
+    margin-top: 20%;
+    padding: 10px;
+    font-size: 30px;
+    text-decoration: none;
+    color: white;
+}
+#closeMenu{
+    font-size:30px;
+    color: white;
+    margin-left: 50px;
+    margin-top: 100px;
+    cursor: pointer;
+}
+#logOut{
+    font-size: 30px;
+    text-decoration: none;
+    color: white;
+    padding: 10px;
+    margin-top: 90%;
+}
+.folderIcon{
+    width: 100px;
+    height: 100px;
+}
+.folder{
+     margin-left: 100px;
+     flex-direction: row;
+}
+.folder h4{
+    margin-left: 5%;
+}
+.folderContainer{
+    margin-left: 5%;
+    margin-top: 5%;
+    margin-bottom: 5%;
+    margin-right: 5%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: center;
+}
+@media (max-width: 800px) and (min-width: 375px)
+{
+    .containerFlex{
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        flex-wrap: wrap;
+    }
+    .folderContainer{
+        flex-direction: column;
+        flex-wrap: wrap;
+        display: table;
+        justify-content: space-between;
+    }
+    .folder h4{
+        width: 100%;
+        max-width: 100px;
+        min-width: 100px;
+    }
+}
+@media (max-width: 375px) and (min-width:100px){
+    .containerFlex{
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        flex-wrap: wrap;
+    }
+    .folderContainer{
+        flex-direction: column;
+        flex-wrap: wrap;
+        display: table;
+        justify-content: space-between;
+    }
+    .folder h4{
+        width: 100%;
+        max-width: 100px;
+        min-width: 100px;
+    }
+}

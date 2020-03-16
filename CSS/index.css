@@ -63,6 +63,11 @@ section{
 }
 .imgWrapper{
     display: inherit;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    align-content: center;
 }
 #googleDrive{
     width: 210px;
@@ -70,9 +75,10 @@ section{
     margin-left: 12%;
 }
 #dropBox{
-    margin-left: 12%;
+    margin-left: 15%;
 }
 #dropBox img{
+    margin-top:7%;
     width: 230px;
     height: 230px;
     margin-left: 12%;
@@ -94,7 +100,6 @@ section{
     padding: 15px 32px;
     text-align: center;
     text-decoration: none;
-    font-size: 20px;
     border-radius: 25px;
     outline: none;
 }

@@ -2,7 +2,7 @@ function registerUser()
 {
     let pathName=window.location.pathname; 
     let directory = pathName.substring(0, pathName.lastIndexOf('/'));
-    let newPage  = directory + "/login.html";
+    let newPage  = directory + "/registrationConfirmed.html";
     let userName = document.getElementById("usernameInput").value;
     let password = document.getElementById("passwordInput").value;
     let passwordCheck = document.getElementById("passwordCheck").value;

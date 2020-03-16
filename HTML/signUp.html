@@ -7,18 +7,20 @@
     <title>STOL</title>
 </head>
 <body class="signUpMain">
-    <h1 class="signUpMessage">Sign Up</h1>
-    <div class="containerSignUp">
-        <form onsubmit="return registerUser()">
-            <label >Username</label><br>
-            <input id="usernameInput" type="email" name="username" placeholder="Your email" required><br>
-            <label >Password</label><br>
-            <input id="passwordInput" type="password" name="password" placeholder="Your password" required><br>
-            <label style="margin-left: 38%;">Check</label><br>
-            <label style="margin-left: 33%;">Password</label><br>
-            <input id="passwordCheck" type="password" name="password" placeholder="Repeat Password" required><br>
-            <button id="signUpButton" type="submit">SignUp</button>
-        </form>
+    <div class="containerFlex">
+        <h1 class="signUpMessage">Sign Up</h1>
+        <div class="containerSignUp">
+            <form onsubmit="return registerUser()">
+                <label >Username</label><br>
+                <input id="usernameInput" type="email" name="username" placeholder="Your email" required><br>
+                <label >Password</label><br>
+                <input id="passwordInput" type="password" name="password" placeholder="Your password" required><br>
+                <label style="margin-left: 38%;">Check</label><br>
+                <label style="margin-left: 33%;">Password</label><br>
+                <input id="passwordCheck" type="password" name="password" placeholder="Repeat Password" required><br>
+                <button id="signUpButton" type="submit">SignUp</button>
+            </form>
+        </div>
     </div>
     <script src="../JS/signUp.js"></script>
 </body>
