@@ -2,6 +2,8 @@ function goToIndex()
 {
     let userName = document.getElementById("usernameInput").value;
     let password = document.getElementById("passwordInput").value;
+
+    
     var objPeople=[
         {
             username:"a@gmail.com",

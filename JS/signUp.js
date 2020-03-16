@@ -23,11 +23,6 @@ function registerUser()
         alert("You must enter a password with minimum of 5 characters.");
         return true;
     }
-    else if(passwordCheck=="")
-    {
-        alert("You must enter the password again!");
-        return true;
-    }
    else if(password!=passwordCheck)
    {
     alert("Both password don't match!");
