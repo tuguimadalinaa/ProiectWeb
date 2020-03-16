@@ -29,12 +29,10 @@ function goToIndex()
             alert("You logged well. You will be redirected to the next page.");
             return false;
         }
-        else
-        {
-            alert("Wrong username or password!");
-            return true;
-        }
+ 
     }
+    alert("Wrong username or password!");
+    return true;
 }
 function goToSignUp()
 {
