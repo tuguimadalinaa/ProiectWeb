@@ -1,15 +1,38 @@
 function goToIndex()
 {
-    let pathName=window.location.pathname; 
-    let directory = pathName.substring(0, pathName.lastIndexOf('/'));
-    let newPage  = directory + "/index.html";
     let userName = document.getElementById("usernameInput").value;
     let password = document.getElementById("passwordInput").value;
-    window.location.href= newPage;
-    return false;
-    //https://stackoverflow.com/questions/16562577/how-can-i-make-a-button-redirect-my-page-to-another-page
-    //https://stackoverflow.com/questions/3151436/how-can-i-get-the-current-directory-name-in-javascript
-    //https://stackoverflow.com/questions/6109527/window-location-href-not-working-in-form-onsubmit
+    var objPeople=[
+        {
+            username:"a@gmail.com",
+            password:"blablabla"
+        },
+        {
+            username:"b@gmail.com",
+            password:"tucu"
+        },
+        {
+            username:"c@gmail.com",
+            password:"ex"
+        }
+    ]
+    for(i=0;i<objPeople.length;i++)
+    {
+        if(userName==objPeople[i].username && password==objPeople[i].password)
+        {
+            let pathName=window.location.pathname; 
+            let directory = pathName.substring(0, pathName.lastIndexOf('/'));
+            let newPage  = directory + "/index.html";
+            window.location.href= newPage;
+            alert("You logged well. You will be redirected to the next page.");
+            return false;
+        }
+        else
+        {
+            alert("Wrong username or password!");
+            return true;
+        }
+    }
 }
 function goToSignUp()
 {
