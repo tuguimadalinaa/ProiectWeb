@@ -13,3 +13,18 @@ function uploadAllDrivers()
 {
     alert("pressed button");
 }
+function triggerLoadOnGoogleDrive()
+{
+    var link = document.getElementById("uploadGoogleDrive");
+    link.click();
+}
+function triggerLoadOnDropBox()
+{
+    var link = document.getElementById("uploadDropBox");
+    link.click();
+}
+function triggerLoadOnOneDrive()
+{
+    var link = document.getElementById("uploadOneDrive");
+    link.click();
+}

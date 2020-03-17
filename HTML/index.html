@@ -35,19 +35,22 @@
         <h1 class="welcome">Upload Your Files</h1>
         <div class="imgWrapper">
             <div id="googleDrive">
-                <a href="#">
+                <input id="uploadGoogleDrive" type="file"/>
+                <a href="#"  onclick="triggerLoadOnGoogleDrive()">
                     <img src="../IMAGES/google-drive.png" alt="google-drive" >
                 </a>
                 <h3 class="description1">Google Drive</h3>
             </div>
             <div id="dropBox">
-                <a href="#">
+                <input id="uploadDropBox" type="file"/>
+                <a href="#" onclick="triggerLoadOnDropBox()">
                     <img  src="../IMAGES/dropbox.png" alt="dropBox">
                 </a>
                 <h3 class="description2">Drop Box</h3>
             </div>
             <div id="oneDrive">
-                <a href="#">
+                <input id="uploadOneDrive" type="file"/>
+                <a href="#"onclick="triggerLoadOnOneDrive()">
                     <img src="../IMAGES/OneDrive-icon.png" alt="oneDrive"><br>
                 </a>
                 <h3 class="description3">One Drive</h3>

@@ -25,8 +25,8 @@ function registerUser()
     }
    else if(password!=passwordCheck)
    {
-    alert("Both password don't match!");
-    return true ;
+        alert("Both password don't match!");
+        return true ;
    }
    for(i=0;i<objPeople.length;i++)
    {
@@ -36,10 +36,10 @@ function registerUser()
            return true;
        }
    }
-        let pathName=window.location.pathname; 
-        let directory = pathName.substring(0, pathName.lastIndexOf('/'));
-        let newPage  = directory + "/registrationConfirmed.html";
-        window.location.href= newPage;
-        alert("You sign-uped well. You will be redirected to registration page.");
-        return false;
+    let pathName=window.location.pathname; 
+    let directory = pathName.substring(0, pathName.lastIndexOf('/'));
+    let newPage  = directory + "/registrationConfirmed.html";
+    window.location.href= newPage;
+    alert("You sign-uped well. You will be redirected to registration page.");
+    return false;
 }
