@@ -11,20 +11,26 @@ function closeMenu()
 }
 function uploadAllDrivers()
 {
-    alert("pressed button");
-}
-function triggerLoadOnGoogleDrive()
-{
-    var link = document.getElementById("uploadGoogleDrive");
-    link.click();
-}
-function triggerLoadOnDropBox()
-{
-    var link = document.getElementById("uploadDropBox");
-    link.click();
-}
-function triggerLoadOnOneDrive()
-{
-    var link = document.getElementById("uploadOneDrive");
-    link.click();
+    let oneDrive = document.getElementById("one-drive");
+    let googleDrive = document.getElementById("google-drive");
+    let dropBox = document.getElementById("drop-box");
+    let allCloudMethods = document.getElementById("allCloudMethods");
+
+    var htmlString = "";
+    htmlString = "<input id='fileid' type='file' hidden/>";
+    googleDrive.insertAdjacentHTML('beforebegin',htmlString);
+
+    allCloudMethods.addEventListener('click', function(){
+        document.getElementById('fileid').click();
+    });
+    oneDrive.addEventListener('click', function(){
+        document.getElementById('fileid').click();
+    });
+    googleDrive.addEventListener('click', function(){
+        document.getElementById('fileid').click();
+    });
+    dropBox.addEventListener('click', function(){
+        document.getElementById('fileid').click();
+    });
+
 }

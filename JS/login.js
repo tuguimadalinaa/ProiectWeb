@@ -30,7 +30,7 @@ function goToIndex()
             alert("You logged well. You will be redirected to the next page.");
             return false;
         }
-        
+
     }
     alert("Wrong username or password!");
     return true;
