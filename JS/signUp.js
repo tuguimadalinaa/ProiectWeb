@@ -34,24 +34,23 @@ async function registerUser()
     }
     else if(password!=passwordCheck)
    {
-        alert("Both password don't match!");
+        alert("Both passwords don't match!");
         return true ;
    }
     let jsonResponse = await waitForResponse();
     let response = JSON.parse(jsonResponse);
-    if(response.status=='1'){
+    if(response.status=='0'){
         alert("User already exists");
         return true;
     }
-    else{
-        alert(response.status);
+    else if(response.status=='1'){
         let pathName=window.location.pathname; 
         let directory = pathName.substring(0, pathName.lastIndexOf('/'));
         directory = directory.substring(0, directory.lastIndexOf('/'));
         let newPage  = directory + "/HTML/registrationConfirmed.html";
-        alert(newPage);
         window.location.href= newPage;
-        alert(jsonResponse);
         return false;
     }
+    alert("Error");
+    return true;
 }

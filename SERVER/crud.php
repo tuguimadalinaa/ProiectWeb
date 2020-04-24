@@ -46,13 +46,12 @@ class CRUD{
         $connection->execute();
         $result = $connection -> fetchAll();
         if(empty($result)==true){
-
-            $checkUser = "INSERT INTO users(username,password,logged) values("."'".$userName."'".','."'".$password."'".",'"."no"."')";
+            $checkUser = 'INSERT INTO users(username,password,logged) values('."'".$userName."'".','."'".$password."'".",'"."no"."')";
             $connection = BD::getConnection()->prepare($checkUser);
             $connection->execute();
-            return json_encode(array("status"=>'0'));
+            return json_encode(array("status"=>'1'));
         }
-        return json_encode(array("status"=>'1'));
+        return json_encode(array("status"=>'0'));
     }
 }
 $username = $_REQUEST["username"];
