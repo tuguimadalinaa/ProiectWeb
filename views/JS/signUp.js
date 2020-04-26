@@ -4,11 +4,7 @@ function makeRequest() {
         let password = document.getElementById("passwordInput").value;
         let dataString = 'username=' + userName + '&password=' +password + '&method=SIGN_UP';
         let xhr = new XMLHttpRequest();
-        let pathName=window.location.pathname; 
-        let directory = pathName.substring(0, pathName.lastIndexOf('/'));
-        directory =  directory.substring(0, directory.lastIndexOf('/'));
-        let newPage  = directory + "/SERVER/crud.php";
-        xhr.open('POST', newPage+'?'+dataString, true);
+        xhr.open('POST', 'signUp?'+dataString, true);
         xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
@@ -23,8 +19,6 @@ async function waitForResponse() {
 }
 async function registerUser()
 {
-
-    let userName = document.getElementById("usernameInput").value;
     let password = document.getElementById("passwordInput").value;
     let passwordCheck = document.getElementById("passwordCheck").value;
     if(password.length<5)
@@ -39,21 +33,13 @@ async function registerUser()
    }
     let jsonResponse = await waitForResponse();
     let response = JSON.parse(jsonResponse);
-    alert(response.status);
     if(response.status=='0'){
         alert("User already exists");
+        location.assign('signUp');
         return true;
     }
     else if(response.status=='1'){
-        alert("am ajuns");
-        let pathName=window.location.pathname; 
-        let directory = pathName.substring(0, pathName.lastIndexOf('/'));
-        directory = directory.substring(0, directory.lastIndexOf('/'));
-        let newPage  = directory + "/HTML/registrationConfirmed.html";
-        alert(newPage);
-        window.location.href= newPage;
+        location.assign('registrationConfirmed');
         return false;
     }
-    alert("Error");
-    return true;
 }

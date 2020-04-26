@@ -36,5 +36,18 @@ class DataBase{
         $jsonResponse = json_encode(array("status"=>'1'));
         return $jsonResponse;
     }
+    public static function addUser($userName, $password){
+        $checkUser = 'SELECT * from users where username='."'".$userName."'";
+        $connection  = DataBase::connect()->prepare($checkUser);
+        $connection->execute();
+        $result = $connection -> fetchAll();
+        if(empty($result)==true){
+            $checkUser = 'INSERT INTO users(username,password,logged) values('."'".$userName."'".','."'".$password."'".",'"."no"."')";
+            $connection = DataBase::connect()->prepare($checkUser);
+            $connection->execute();
+            return json_encode(array("status"=>'1'));
+        }
+        return json_encode(array("status"=>'0'));
+    }
 }
 ?>

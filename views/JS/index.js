@@ -37,11 +37,6 @@ function uploadAllDrivers()
 function logOutUser(){
     let xhr = new XMLHttpRequest();
     xhr.open('GET', 'logOut', true);
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == XMLHttpRequest.DONE) {
-            resolve(xhr.response);
-            alert(xhr.response);
-        }
-    };
-    xhr.send(dataString);
+    alert("Your session has ended.");
+    xhr.send();
 }
