@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="../views/CSS/login.css">
+    <title>STOL</title>
+</head>
+<body class="loginMain">
+    <div class="containerFlex">
+        <h1 class="welcome">Welcome to STOL</h1>
+        <div class="containerForLogin">
+            <form onsubmit="return goToIndex()"> 
+                <label id="username">Username</label><br>
+                <input id="usernameInput" type="email" name="username" placeholder="Your email" required><br>
+                <label id="password">Password</label><br>
+                <input id="passwordInput" type="password" name="password" placeholder="Your password" required><br>
+                <button class="buttonStyle" id="loginButton" type="submit">Login</button>
+            </form>         
+        </div>
+        <h4>Or SignUp?</h4>
+        <div class="containerFlex">
+            <button id="signUpButton" type="submit" value="SignUp" onclick="goToSignUp()">SignUp</button> 
+        </div>
+    </div>
+    <script src="../views/JS/login.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.13.0/js/md5.min.js"></script>
+</body>
+</html>
