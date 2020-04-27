@@ -32,7 +32,6 @@ Route::set('your-files',function(){
     Home::CreateView('fileRender');
 });
 Route::set('logOut',function(){
-    $response  = Home::LogOutUser();
-    echo $response;
-})
+    Login::EndSession();
+});
 ?>

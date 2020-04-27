@@ -39,4 +39,5 @@ function logOutUser(){
     xhr.open('GET', 'logOut', true);
     alert("Your session has ended.");
     xhr.send();
+    location.assign('login');
 }
