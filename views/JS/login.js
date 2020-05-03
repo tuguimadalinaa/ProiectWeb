@@ -29,7 +29,6 @@ async function goToIndex(callback)
         alert("User is not valid");
         return true;
     }else if(response.status== '0'){
-        alert(md5("dada"));
         alert("You logged well. You will be redirected to the next page.");
         location.assign('home');
         return false;

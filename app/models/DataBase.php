@@ -49,5 +49,8 @@ class DataBase{
         }
         return json_encode(array("status"=>'0'));
     }
+    public static function addAccessToken(){
+            
+    }
 }
 ?>
