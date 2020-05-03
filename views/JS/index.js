@@ -95,13 +95,24 @@ function logOutUser(){
     location.assign('login');
 }
 async function checkUrl(){
-    var urlParams = new URLSearchParams(window.location.search); 
-    if(urlParams.get('code')!=null)
+    var urlParams = new URLSearchParams(window.location.search);
+    if(urlParams.get('code')!=null && urlParams.get('scope')!=null)
+    {
+        let responseJson = await waitForResponse('Token','GoogleDrive'); 
+        alert('GoogleDrive');
+        let response = JSON.parse(responseJson);
+        if(response.status =='200'){
+            alert("Okey");
+        }else if(response.status=='401'){
+            alert("Authorization failed");
+        }
+    } 
+    else
     {
         if(urlParams.get('code')[0] == 'M'){
             let responseJson = await waitForResponse('Token','OneDrive'); 
             alert('OneDrive'); 
-        } else if(urlParams.get('code')[0] == 'k'){
+        } else {
             let responseJson = await waitForResponse('Token','DropBox');
             alert('DropBox');  
         }

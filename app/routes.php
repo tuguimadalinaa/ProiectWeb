@@ -48,6 +48,9 @@ Route::set('getCode', function(){
     } else if($drive_type == 'DropBox'){
         $response = Dropbox::GetCode();
     }
+    else{
+        $response= GoogleDrive::GetCode();
+    }
     echo $response;
 });
 Route::set('getToken',function(){
@@ -60,6 +63,10 @@ Route::set('getToken',function(){
             echo $response;
         } else if($drive_type ='DropBox'){
             $response = DropBox::GetToken($_REQUEST['code']);
+            echo $response;
+        }
+        else{
+            $respone=GoogleDrive::GetToken($_REQUEST['code']);
             echo $response;
         }
     }
