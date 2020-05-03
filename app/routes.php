@@ -10,9 +10,16 @@ Route::set('login',function(){
     else{
         $response = Login::getApprovalFromDB($_REQUEST['username'],$_REQUEST['password']);
         if(empty($_SESSION["loggedIn"])){
-            Login::StartSession();
+            $json_response = json_decode($response,true);
+            if($json_response['status']=='0'){
+                Login::StartSession();
+                echo $response;
+            }else{
+                echo $response;
+            }
+        }else{
+            echo $response;
         }
-        echo $response;
     }
 });
 Route::set('signUp', function(){
@@ -38,8 +45,10 @@ Route::set('getCode', function(){
     $drive_type = $_REQUEST['drive'];
     if($drive_type =='OneDrive'){
         $response = OneDrive::GetCode();
-    echo $response;
+    } else if($drive_type == 'DropBox'){
+        $response = Dropbox::GetCode();
     }
+    echo $response;
 });
 Route::set('getToken',function(){
     if(empty($_REQUEST['code'])){
@@ -48,6 +57,9 @@ Route::set('getToken',function(){
         $drive_type = $_REQUEST['drive'];
         if($drive_type =='OneDrive'){
             $response = OneDrive::GetToken($_REQUEST['code']);
+            echo $response;
+        } else if($drive_type ='DropBox'){
+            $response = DropBox::GetToken($_REQUEST['code']);
             echo $response;
         }
     }

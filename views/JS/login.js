@@ -27,15 +27,14 @@ async function goToIndex(callback)
     let response = JSON.parse(jsonResponse);
     if(response.status == '1'){
         alert("User is not valid");
-        return true;
+        location.assign('login');
     }else if(response.status== '0'){
         alert("You logged well. You will be redirected to the next page.");
         location.assign('home');
-        return false;
     }
     else if(response.status== '2'){
         alert("Password is not corect");
-        return true;
+        location.assign('login');
     }
 }
 function goToSignUp()

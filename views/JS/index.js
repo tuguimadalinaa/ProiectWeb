@@ -33,32 +33,49 @@ async function waitForResponse(reason,drive) {
     }
     
 }
+
+async function uploadOneDrive(){
+    response = await waitForResponse('Code','OneDrive');
+    location.assign(response);
+}
+async function uploadGoogleDrive(){
+    response = await waitForResponse('Code','GoogleDrive');
+    location.assign(response);
+}
+
+async function uploadDropBox(){
+    response = await waitForResponse('Code','DropBox');
+    location.assign(response);
+}
+
  async function uploadAllDrivers()
 {
-    let oneDrive = document.getElementById("one-drive");
-    let googleDrive = document.getElementById("google-drive");
-    let dropBox = document.getElementById("drop-box");
+    //let oneDrive = document.getElementById("one-drive");
+    //let googleDrive = document.getElementById("google-drive");
+    //let dropBox = document.getElementById("drop-box");
     let allCloudMethods = document.getElementById("allCloudMethods");
-
     var htmlString = "";
     htmlString = "<input id='fileid' type='file' hidden/>";
     googleDrive.insertAdjacentHTML('beforebegin',htmlString);
 
-    allCloudMethods.addEventListener('click', function(){
-        document.getElementById('fileid').click();
-    });
-    oneDrive.addEventListener('click', async function(){
+    //allCloudMethods.addEventListener('click', function(){
+       // document.getElementById('fileid').click();
+   // });
+   // oneDrive.addEventListener('click', async function(){
         //document.getElementById('fileid').click();
-        response = await waitForResponse('Code','OneDrive');
-        location.assign(response);
-    });
-    googleDrive.addEventListener('click', function(){
-        document.getElementById('fileid').click();
-    });
-    dropBox.addEventListener('click', function(){
-        document.getElementById('fileid').click();
-    });
+        //response = await waitForResponse('Code','OneDrive');
+       // location.assign(response);
+    //});
+    //googleDrive.addEventListener('click', function(){
+       // document.getElementById('fileid').click();
+    //});
+    //dropBox.addEventListener('click', async function(){
+        //document.getElementById('fileid').click();
+        //response = await waitForResponse('Code','DropBox');
+        //location.assign(response);
+   //});
 }
+
 function openMenu()
 {
     document.getElementById("shownMenu").removeAttribute("hidden");
@@ -81,10 +98,16 @@ async function checkUrl(){
     var urlParams = new URLSearchParams(window.location.search); 
     if(urlParams.get('code')!=null)
     {
-        let responseJson = await waitForResponse('Token','OneDrive');
+        if(urlParams.get('code')[0] == 'M'){
+            let responseJson = await waitForResponse('Token','OneDrive'); 
+            alert('OneDrive'); 
+        } else if(urlParams.get('code')[0] == 'k'){
+            let responseJson = await waitForResponse('Token','DropBox');
+            alert('DropBox');  
+        }
         let response = JSON.parse(responseJson);
         if(response.status =='200'){
-            alert("Ok");
+            alert("Okey");
         }else if(response.status=='401'){
             alert("Authorization failed");
         }
