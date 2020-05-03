@@ -1,7 +1,7 @@
-function makeRequestForCode() {
+function makeRequestForCode(drive) {
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        xhr.open('GET', 'getCode', true);
+        xhr.open('GET', 'getCode?drive='+drive, true);
        xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
@@ -10,10 +10,10 @@ function makeRequestForCode() {
         xhr.send();
     });
 }
-function makeRequestForToken(code){
+function makeRequestForToken(code,drive){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-       xhr.open('GET', 'getToken?code='+code, true);
+       xhr.open('GET', 'getToken?code='+code+'&drive='+drive, true);
        xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
@@ -22,13 +22,13 @@ function makeRequestForToken(code){
         xhr.send();
     });
 }
-async function waitForResponse(reason) {
+async function waitForResponse(reason,drive) {
     if(reason=='Code'){
-        let result = await makeRequestForCode();
+        let result = await makeRequestForCode(drive);
         return result;
     }else if(reason=='Token'){
         var urlParams = new URLSearchParams(window.location.search);
-        let result = await makeRequestForToken(urlParams.get('code'));
+        let result = await makeRequestForToken(urlParams.get('code'),drive);
         return result;
     }
     
@@ -49,7 +49,7 @@ async function waitForResponse(reason) {
     });
     oneDrive.addEventListener('click', async function(){
         //document.getElementById('fileid').click();
-        response = await waitForResponse('Code');
+        response = await waitForResponse('Code','OneDrive');
         location.assign(response);
     });
     googleDrive.addEventListener('click', function(){
@@ -77,12 +77,11 @@ function logOutUser(){
     xhr.send();
     location.assign('login');
 }
-async function checkURl(){
+async function checkUrl(){
     var urlParams = new URLSearchParams(window.location.search); 
     if(urlParams.get('code')!=null)
     {
-        let responseJson = await waitForResponse('Token');
-        alert(responseJson);
+        let responseJson = await waitForResponse('Token','OneDrive');
         let response = JSON.parse(responseJson);
         if(response.status =='200'){
             alert("Ok");
@@ -91,4 +90,4 @@ async function checkURl(){
         }
     } 
 }
-checkURl();
+checkUrl();

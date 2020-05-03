@@ -35,15 +35,21 @@ Route::set('logOut',function(){
     Login::EndSession();
 });
 Route::set('getCode', function(){
-    $response = OneDrive::GetCode();
+    $drive_type = $_REQUEST['drive'];
+    if($drive_type =='OneDrive'){
+        $response = OneDrive::GetCode();
     echo $response;
+    }
 });
 Route::set('getToken',function(){
     if(empty($_REQUEST['code'])){
         echo "No code";
     }else{
-        $response = OneDrive::GetToken($_REQUEST['code']);
-        echo $response;
+        $drive_type = $_REQUEST['drive'];
+        if($drive_type =='OneDrive'){
+            $response = OneDrive::GetToken($_REQUEST['code']);
+            echo $response;
+        }
     }
 });
 ?>
