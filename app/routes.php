@@ -13,9 +13,13 @@ Route::set('login',function(){
             $json_response = json_decode($response,true);
             if($json_response['status']=='0'){
                 Login::StartSession();
+                echo $response;
+            }else{
+                echo $response;
             }
+        }else{
+            echo $response;
         }
-        echo $response;
     }
 });
 Route::set('signUp', function(){
