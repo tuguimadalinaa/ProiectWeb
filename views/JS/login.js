@@ -27,6 +27,7 @@ async function goToIndex(callback)
     let response = JSON.parse(jsonResponse);
     if(response.status == '1'){
         alert("User is not valid");
+        location.assign('login');
         return true;
     }else if(response.status== '0'){
         alert("You logged well. You will be redirected to the next page.");
@@ -35,6 +36,7 @@ async function goToIndex(callback)
     }
     else if(response.status== '2'){
         alert("Password is not corect");
+        location.assign('login');
         return true;
     }
 }

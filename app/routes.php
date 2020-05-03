@@ -10,7 +10,10 @@ Route::set('login',function(){
     else{
         $response = Login::getApprovalFromDB($_REQUEST['username'],$_REQUEST['password']);
         if(empty($_SESSION["loggedIn"])){
-            Login::StartSession();
+            $json_response = json_decode($response,true);
+            if($json_response['status']=='0'){
+                Login::StartSession();
+            }
         }
         echo $response;
     }
