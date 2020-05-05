@@ -29,7 +29,7 @@ class DataBase{
         $connection->execute();
         $result = $connection -> fetchAll();
         foreach( $result as $row ) {
-            $response = self::approveRequest($password,$result[0][2]);
+            $response = self::approveRequest($password,$result[0][1]);
             $jsonResponse = json_encode(array("status"=>$response));
             return $jsonResponse;
         }
@@ -49,8 +49,14 @@ class DataBase{
         }
         return json_encode(array("status"=>'0'));
     }
-    public static function addAccessToken(){
+    public static function addAccessToken($access_token,$userName){
+        $updateCommand = 'UPDATE users SET access_token = ' . "'" . $access_token . "'" . ' WHERE username = ' . "'" . $username . "'";
+        $connection = DataBase::connect()->prepare($updateCommand);
+        if($connection->execute() == true){
             
+        } else{
+            
+        }
     }
 }
 ?>

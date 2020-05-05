@@ -110,13 +110,13 @@ async function checkUrl(){
     else
     {
         if(urlParams.get('code')[0] == 'M'){
-            let responseJson = await waitForResponse('Token','OneDrive'); 
+            var responseJson2 = await waitForResponse('Token','OneDrive'); 
             alert('OneDrive'); 
         } else {
-            let responseJson = await waitForResponse('Token','DropBox');
+            var responseJson2 = await waitForResponse('Token','DropBox');
             alert('DropBox');  
         }
-        let response = JSON.parse(responseJson);
+        let response = JSON.parse(responseJson2);
         if(response.status =='200'){
             alert("Okey");
         }else if(response.status=='401'){

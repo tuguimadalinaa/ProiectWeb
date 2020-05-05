@@ -49,6 +49,7 @@ class CRUD{
             $checkUser = 'INSERT INTO users(username,password,logged) values('."'".$userName."'".','."'".$password."'".",'"."no"."')";
             $connection = BD::getConnection()->prepare($checkUser);
             $connection->execute();
+            $_SESSION['username'] = $userName;
             return json_encode(array("status"=>'1'));
         }
         return json_encode(array("status"=>'0'));

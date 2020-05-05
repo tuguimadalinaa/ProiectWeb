@@ -35,8 +35,9 @@ Class Dropbox extends Controller{
        curl_close($curl_resource);
        $responseDecoded = json_decode($result,true);
         try{
-            $acces_token = $responseDecoded['access_token'];
-            if($acces_token!=null){
+            $access_token = $responseDecoded['access_token'];
+            if($access_token!=null){
+                self::getModel()->addAccessToken($access_token,'gigi@gmail.com');
                 echo json_encode(array("status"=>'200'));
             }
         }
