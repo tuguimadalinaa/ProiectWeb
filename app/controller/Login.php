@@ -7,7 +7,7 @@ class Login extends Controller{
         return self::getSessionHandler()->StartSession();
     }
     public static function EndSession(){
-        self::getSessionHandler()->EndSession();
+        return self::getSessionHandler()->EndSession();
     }
 }
 ?>

@@ -13,17 +13,23 @@ Route::set('login',function(){
             $json_response = json_decode($response,true);
             if($json_response['status']=='0'){
                 Login::StartSession();
-                echo $response;
-            }else{
-                echo $response;
             }
-        }else{
-            echo $response;
         }
+        echo $response;
     }
 });
 Route::set('signUp', function(){
-    Login::CreateView('signUp');
+    if(empty($_REQUEST['username']) && empty($_REQUEST['password'])){
+         Controller::CreateView('signUp');
+    } else{
+        $response = SignUp::createAccount($_REQUEST['username'],$_REQUEST['password']);
+        $status = json_decode($response,true);
+        if($status['status'] == '1'){
+            Controller::CreateView('login');
+        } else {
+            Controller::CreateView('signUp');
+        }
+    }
 });
 Route::set('home',function(){
     if(empty($_SESSION['loggedIn'])){
@@ -40,6 +46,7 @@ Route::set('your-files',function(){
 });
 Route::set('logOut',function(){
     Login::EndSession();
+    echo 'Logout';
 });
 Route::set('getCode', function(){
     $drive_type = $_REQUEST['drive'];

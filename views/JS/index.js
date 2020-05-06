@@ -2,7 +2,7 @@ function makeRequestForCode(drive) {
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
         xhr.open('GET', 'getCode?drive='+drive, true);
-       xhr.onreadystatechange = function () {
+        xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
             }
@@ -12,7 +12,7 @@ function makeRequestForCode(drive) {
 }
 function makeRequestForToken(code,drive){
     return new Promise(function (resolve) {
-        let xhr = new XMLHttpRequest();
+       let xhr = new XMLHttpRequest();
        xhr.open('GET', 'getToken?code='+code+'&drive='+drive, true);
        xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -90,38 +90,39 @@ function closeMenu()
 function logOutUser(){
     let xhr = new XMLHttpRequest();
     xhr.open('GET', 'logOut', true);
-    alert("Your session has ended.");
     xhr.send();
     location.assign('login');
 }
 async function checkUrl(){
     var urlParams = new URLSearchParams(window.location.search);
-    if(urlParams.get('code')!=null && urlParams.get('scope')!=null)
-    {
-        let responseJson = await waitForResponse('Token','GoogleDrive'); 
-        alert('GoogleDrive');
-        let response = JSON.parse(responseJson);
-        if(response.status =='200'){
-            alert("Okey");
-        }else if(response.status=='401'){
-            alert("Authorization failed");
-        }
-    } 
-    else
-    {
-        if(urlParams.get('code')[0] == 'M'){
-            var responseJson2 = await waitForResponse('Token','OneDrive'); 
-            alert('OneDrive'); 
-        } else {
-            var responseJson2 = await waitForResponse('Token','DropBox');
-            alert('DropBox');  
-        }
-        let response = JSON.parse(responseJson2);
-        if(response.status =='200'){
-            alert("Okey");
-        }else if(response.status=='401'){
-            alert("Authorization failed");
-        }
+    if(urlParams.get('code')!=null){
+        if(urlParams.get('scope')!=null)
+        {
+            let responseJson = await waitForResponse('Token','GoogleDrive'); 
+            alert('GoogleDrive');
+            let response = JSON.parse(responseJson);
+            if(response.status =='200'){
+                alert("Okey");
+            }else if(response.status=='401'){
+                alert("Authorization failed");
+            }
+        } 
+        else
+        {
+            if(urlParams.get('code')[0] == 'M'){
+                var responseJson2 = await waitForResponse('Token','OneDrive'); 
+                alert('OneDrive'); 
+            } else {
+                var responseJson2 = await waitForResponse('Token','DropBox');
+                alert('DropBox');  
+            }
+            let response = JSON.parse(responseJson2);
+            if(response.status =='200'){
+                alert("Okey");
+            }else if(response.status=='401'){
+                alert("Authorization failed");
+            }
+        } 
     } 
 }
 checkUrl();

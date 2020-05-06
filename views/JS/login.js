@@ -5,13 +5,13 @@ function makeRequest() {
         let passwordInput = document.getElementById("passwordInput").value;
         let dataString = 'username=' + userName + '&password=' +passwordInput + '&method=CHECK_USER_IN_DB';
         let xhr = new XMLHttpRequest();
-        xhr.open('GET', 'login?'+dataString, true);
+        xhr.open('GET', 'login?'+dataString, false);
         xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
             }
         };
-        xhr.send(dataString);
+        xhr.send();
     });
 }
 async function waitForResponse() {
@@ -26,14 +26,11 @@ async function goToIndex(callback)
     let jsonResponse = await waitForResponse();
     let response = JSON.parse(jsonResponse);
     if(response.status == '1'){
-        alert("User is not valid");
         location.assign('login');
     }else if(response.status== '0'){
-        alert("You logged well. You will be redirected to the next page.");
         location.assign('home');
     }
     else if(response.status== '2'){
-        alert("Password is not corect");
         location.assign('login');
     }
 }

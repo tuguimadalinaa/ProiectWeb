@@ -42,14 +42,17 @@ class DataBase{
         $connection->execute();
         $result = $connection -> fetchAll();
         if(empty($result)==true){
-            $checkUser = 'INSERT INTO users(username,password,logged) values('."'".$userName."'".','."'".$password."'".",'"."no"."')";
+            $checkUser = "INSERT INTO users VALUES(?,?,?,?)";
             $connection = DataBase::connect()->prepare($checkUser);
-            $connection->execute();
-            return json_encode(array("status"=>'1'));
+            if($connection->execute(array($userName,$password,'no','0')) == true){
+                return json_encode(array("status"=>'1')); //adaugat cu succes
+            } else {
+                return json_encode(array("status"=>'2')); //eroare la adaugare in baza de date
+            }
         }
-        return json_encode(array("status"=>'0'));
+        return json_encode(array("status"=>'3')); //user-ul exista deja in baza de date
     }
-    public static function addAccessToken($access_token,$userName){
+    public static function addAccessToken($access_token,$username){
         $updateCommand = 'UPDATE users SET access_token = ' . "'" . $access_token . "'" . ' WHERE username = ' . "'" . $username . "'";
         $connection = DataBase::connect()->prepare($updateCommand);
         if($connection->execute() == true){

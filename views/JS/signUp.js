@@ -4,13 +4,13 @@ function makeRequest() {
         let password = document.getElementById("passwordInput").value;
         let dataString = 'username=' + userName + '&password=' +password + '&method=SIGN_UP';
         let xhr = new XMLHttpRequest();
-        xhr.open('POST', 'signUp?'+dataString, true);
+        xhr.open('GET', 'signUp?'+dataString, true);
         xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
             }
         };
-        xhr.send(dataString);
+        xhr.send();
     });
 }
 async function waitForResponse() {
