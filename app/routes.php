@@ -8,14 +8,19 @@ Route::set('login',function(){
         }
     }
     else{
+        if(!empty($_SESSION["loggedIn"])){
+            header('Location: home');
+        }
         $response = Login::getApprovalFromDB($_REQUEST['username'],$_REQUEST['password']);
         if(empty($_SESSION["loggedIn"])){
             $json_response = json_decode($response,true);
             if($json_response['status']=='0'){
                 Login::StartSession();
+                echo $response;
+            }else if($json_response['status']=='1' ||$json_response['status']=='2'){
+                echo $response;
             }
         }
-        echo $response;
     }
 });
 Route::set('signUp', function(){

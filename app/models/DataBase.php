@@ -16,9 +16,10 @@ class DataBase{
     }
     private function approveRequest($password,$inputPassword){
         if(strcmp($password, $inputPassword)==0){
+
             return '0';
         }
-        if(is_null($password)==false){
+        else if(is_null($password)==false){
             return '2';
         }
         return '1';
@@ -29,7 +30,7 @@ class DataBase{
         $connection->execute();
         $result = $connection -> fetchAll();
         foreach( $result as $row ) {
-            $response = self::approveRequest($password,$result[0][1]);
+            $response = self::approveRequest($password,$result[0][2]);
             $jsonResponse = json_encode(array("status"=>$response));
             return $jsonResponse;
         }
