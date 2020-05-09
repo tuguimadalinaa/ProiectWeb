@@ -35,8 +35,19 @@ async function waitForResponse(reason,drive) {
 }
 
 async function uploadOneDrive(){
-    response = await waitForResponse('Code','OneDrive');
-    location.assign(response);
+    var urlParams = new URLSearchParams(window.location.search);
+    if(urlParams.get('code')!=null){
+        if(confirm("Upload directory?")){
+            changeStatusOneDriveDirectoryUpload();
+        }
+        else{
+            changeStatusOneDrive();
+        }
+    }else{
+        response = await waitForResponse('Code','OneDrive');
+        location.assign(response);
+    }
+  
 }
 async function uploadGoogleDrive(){
     response = await waitForResponse('Code','GoogleDrive');
@@ -50,30 +61,10 @@ async function uploadDropBox(){
 
  async function uploadAllDrivers()
 {
-    //let oneDrive = document.getElementById("one-drive");
-    //let googleDrive = document.getElementById("google-drive");
-    //let dropBox = document.getElementById("drop-box");
     let allCloudMethods = document.getElementById("allCloudMethods");
     var htmlString = "";
     htmlString = "<input id='fileid' type='file' hidden/>";
     googleDrive.insertAdjacentHTML('beforebegin',htmlString);
-
-    //allCloudMethods.addEventListener('click', function(){
-       // document.getElementById('fileid').click();
-   // });
-   // oneDrive.addEventListener('click', async function(){
-        //document.getElementById('fileid').click();
-        //response = await waitForResponse('Code','OneDrive');
-       // location.assign(response);
-    //});
-    //googleDrive.addEventListener('click', function(){
-       // document.getElementById('fileid').click();
-    //});
-    //dropBox.addEventListener('click', async function(){
-        //document.getElementById('fileid').click();
-        //response = await waitForResponse('Code','DropBox');
-        //location.assign(response);
-   //});
 }
 
 function openMenu()
@@ -99,30 +90,62 @@ async function checkUrl(){
         if(urlParams.get('scope')!=null)
         {
             let responseJson = await waitForResponse('Token','GoogleDrive'); 
-            alert('GoogleDrive');
             let response = JSON.parse(responseJson);
-            if(response.status =='200'){
-                alert("Okey");
-            }else if(response.status=='401'){
+            if(response.status=='401'){
                 alert("Authorization failed");
             }
         } 
         else
         {
             if(urlParams.get('code')[0] == 'M'){
-                var responseJson2 = await waitForResponse('Token','OneDrive'); 
-                alert('OneDrive'); 
+                var responseJson2 = await waitForResponse('Token','OneDrive');  
             } else {
                 var responseJson2 = await waitForResponse('Token','DropBox');
-                alert('DropBox');  
             }
             let response = JSON.parse(responseJson2);
-            if(response.status =='200'){
-                alert("Okey");
-            }else if(response.status=='401'){
+             if(response.status=='401'){
                 alert("Authorization failed");
             }
         } 
     } 
 }
+function changeStatusOneDrive(){
+    var fileInput = document.getElementById('fileOneDrive');
+    fileInput.click();
+}
+ function changeStatusOneDriveDirectoryUpload(){
+    var directoryInput = document.getElementById('directoryOneDrive');
+    directoryInput.click();
+ }
+function getFiles(){
+    var chooser = document.getElementById('fileOneDrive');
+    if ('files' in chooser) { 
+        for (var i = 0; i < chooser.files.length; i++) {
+            var file = chooser.files[i];
+            if ('name' in file) {
+                console.log(file.name);
+            }
+            if ('size' in file) {
+                console.log(file.size);
+            }
+        }
+    }
+}
+function getDirectory(){
+    var chooser = document.getElementById('directoryOneDrive');
+    if ('files' in chooser) { 
+        for (var i = 0; i < chooser.files.length; i++) {
+            var file = chooser.files[i];
+            if ('name' in file) {
+                console.log(file.name);
+            }
+            if ('size' in file) {
+                console.log(file.size);
+            }
+        }
+    }
+}
+//https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_fileupload_files
+//https://stackoverflow.com/questions/16210231/how-can-i-upload-a-new-file-on-click-of-image-button
+//https://codepen.io/monjer/pen/JKRLzM
 checkUrl();
