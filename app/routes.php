@@ -83,4 +83,8 @@ Route::set('getToken',function(){
         }
     }
 });
+Route::set('transferFile',function(){
+    $response = $_REQUEST['fileData'];
+    echo $response;
+});
 ?>

@@ -117,20 +117,42 @@ function changeStatusOneDrive(){
     var directoryInput = document.getElementById('directoryOneDrive');
     directoryInput.click();
  }
-function getFiles(){
-    var chooser = document.getElementById('fileOneDrive');
-    if ('files' in chooser) { 
-        for (var i = 0; i < chooser.files.length; i++) {
-            var file = chooser.files[i];
-            if ('name' in file) {
-                console.log(file.name);
+ function makeRequestForFileTransfer(fileData){
+    return new Promise(function (resolve) {
+       let xhr = new XMLHttpRequest();
+       xhr.open('POST', 'transferFile?fileData='+fileData, true);
+       xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
             }
-            if ('size' in file) {
-                console.log(file.size);
-            }
-        }
-    }
+        };
+        xhr.send();
+    });
 }
+async function responseForFileTransfer(fileData){
+    let result = await makeRequestForFileTransfer(fileData);
+    console.log(result);
+    return result;
+}
+document.getElementById("fileOneDrive").addEventListener("change", async function(){
+    if (this.files && this.files[0]) {
+        for (var i = 0; i < this.files.length; i++) {
+            var myFile = this.files[i];
+            var reader = new FileReader();
+            reader.addEventListener('load',  async function (e) {
+                var arrayBuffer = this.result,
+                array = new Uint8Array(arrayBuffer),
+                binaryString = String.fromCharCode.apply(null, array);
+                let result   = await responseForFileTransfer(binaryString);
+                console.log(result);
+            });
+            reader.readAsArrayBuffer(myFile);
+            //reader.readAsDataURL(myFile);
+            //reader.readAsBinaryString(myFile);
+        }
+      }   
+    } 
+ );
 function getDirectory(){
     var chooser = document.getElementById('directoryOneDrive');
     if ('files' in chooser) { 
@@ -149,3 +171,6 @@ function getDirectory(){
 //https://stackoverflow.com/questions/16210231/how-can-i-upload-a-new-file-on-click-of-image-button
 //https://codepen.io/monjer/pen/JKRLzM
 checkUrl();
+/*https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944 */
+/*https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file */
+/*https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944 */
