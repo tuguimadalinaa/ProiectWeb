@@ -135,6 +135,7 @@ async function responseForFileTransfer(fileData){
     return result;
 }
 document.getElementById("fileOneDrive").addEventListener("change", async function(){
+    let index=0;
     if (this.files && this.files[0]) {
         for (var i = 0; i < this.files.length; i++) {
             var myFile = this.files[i];
@@ -145,32 +146,37 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
                 binaryString = String.fromCharCode.apply(null, array);
                 let result   = await responseForFileTransfer(binaryString);
                 console.log(result);
+                console.log(index);
+                index++;
             });
             reader.readAsArrayBuffer(myFile);
-            //reader.readAsDataURL(myFile);
-            //reader.readAsBinaryString(myFile);
         }
       }   
     } 
  );
-function getDirectory(){
-    var chooser = document.getElementById('directoryOneDrive');
-    if ('files' in chooser) { 
-        for (var i = 0; i < chooser.files.length; i++) {
-            var file = chooser.files[i];
-            if ('name' in file) {
-                console.log(file.name);
-            }
-            if ('size' in file) {
-                console.log(file.size);
-            }
+ document.getElementById('directoryOneDrive').addEventListener("change", function(){
+    let index=0;
+    if (this.files && this.files[0]) {
+        for (var i = 0; i < this.files.length; i++) {
+            var myFile = this.files[i];
+            var reader = new FileReader();
+            reader.addEventListener('load',  async function (e) {
+                var arrayBuffer = this.result,
+                array = new Uint8Array(arrayBuffer),
+                binaryString = String.fromCharCode.apply(null, array);
+                let result   = await responseForFileTransfer(binaryString);
+                console.log(result);
+                console.log(index);
+                index++;
+            });
+            reader.readAsArrayBuffer(myFile);
         }
-    }
-}
+      }    
+ });
+ checkUrl();
 //https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_fileupload_files
 //https://stackoverflow.com/questions/16210231/how-can-i-upload-a-new-file-on-click-of-image-button
 //https://codepen.io/monjer/pen/JKRLzM
-checkUrl();
 /*https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944 */
 /*https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file */
 /*https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944 */
