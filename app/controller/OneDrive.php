@@ -44,8 +44,6 @@ class OneDrive extends Controller{
             if($access_token!=null){
                 self::getModel()->addAccessToken($access_token,'cici@gmail.com');
                 echo json_encode(array("status"=>'200'));
-            }else{
-                echo "lalalalaa";
             }
         }
         catch(Exception $e){
@@ -53,8 +51,55 @@ class OneDrive extends Controller{
         }
         
     }
-    public static function UploadFile(){
-        
+    private static function getAccesTokenFromDB(){
+        $response = self::getModel()->getAccessToken('cici@gmail.com');
+        $json_response = json_decode($response,true);
+        if($json_response['status']=='200'){
+            return $json_response['access_token'];
+        }else{
+            return "fail";
+        }
+    }
+    private static function createFile($fileName,$access_token){
+        $create_curl=curl_init();
+        curl_setopt_array($create_curl,[
+            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drive/root:/Documents/'.$fileName.':/content',
+            CURLOPT_RETURNTRANSFER=>true,
+            CURLOPT_PUT=>true,
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ".$access_token,
+            "Content-Type: text/plain"),
+            CURLOPT_SSL_VERIFYPEER=>false
+        ]); 
+        $response=curl_exec($create_curl);
+        curl_close($create_curl);
+        return $response;
+    }
+    private static function WriteFile($fileName,$fileData,$access_token,$fileSize){
+        $upload_curl=curl_init();
+        curl_setopt_array($upload_curl,[
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drive/root:/Documents/'.$fileName.':/content',
+            CURLOPT_PUT=>true,
+            CURLOPT_SSL_VERIFYPEER=>false,
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ".$access_token,
+                                'Content-Length: '.$fileSize,
+                                'Content-Range: bytes '.'0-'.($fileSize-1).'/'.$fileSize),
+            CURLOPT_POSTFIELDS=>$fileData 
+        ]);
+        $response=curl_exec($upload_curl);
+        curl_close($upload_curl);
+        return $response;
+    }
+    public static function UploadFile($fileName, $fileData,$fileSize){
+        $access_token = self::getAccesTokenFromDB();
+        if(strcmp($access_token,"fail")!=0){
+            $response = self::createFile($fileName,$access_token);
+            $json_response = json_decode($response,true);
+            $graph_url = $json_response['uploadUrl'];
+            return json_encode(array("status"=>$graph_url));
+            $response = self::WriteFile($fileName,$fileData,$access_token,$fileSize);
+        }
+        return $response;
     }
 }
 ?>

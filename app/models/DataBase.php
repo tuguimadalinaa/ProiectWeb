@@ -62,5 +62,17 @@ class DataBase{
             
         }
     }
+    public static function getAccessToken($userName){
+        $checkUser = 'SELECT * from users where username='."'".$userName."'";
+        $connection  = DataBase::connect()->prepare($checkUser);
+        $connection->execute();
+        $result = $connection -> fetchAll();
+        if(!empty($result[0][4])){
+            return json_encode(array("status"=>"200","access_token"=>$result[0][4]));
+        }else{
+            return json_encode(array("status"=>"401","access_token" =>null));
+        }
+        
+    }
 }
 ?>
