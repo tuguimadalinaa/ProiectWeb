@@ -84,7 +84,9 @@ Route::set('getToken',function(){
     }
 });
 Route::set('transferFile',function(){
-    $response = $_REQUEST['fileData'];
-    echo $response;
+    $fileData = file_get_contents('php://input');
+    $name =  $_REQUEST['fileTransfName'];
+    echo $fileData;
 });
+//https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
 ?>

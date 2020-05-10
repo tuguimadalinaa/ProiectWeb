@@ -117,25 +117,23 @@ function changeStatusOneDrive(){
     var directoryInput = document.getElementById('directoryOneDrive');
     directoryInput.click();
  }
- function makeRequestForFileTransfer(fileData){
+ function makeRequestForFileTransfer(fileData,fileName){
     return new Promise(function (resolve) {
        let xhr = new XMLHttpRequest();
-       xhr.open('POST', 'transferFile?fileData='+fileData, true);
+       xhr.open('POST', 'transferFile?fileTransfName='+fileName, true);
        xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
             }
         };
-        xhr.send();
+        xhr.send(fileData);
     });
 }
-async function responseForFileTransfer(fileData){
-    let result = await makeRequestForFileTransfer(fileData);
-    console.log(result);
+async function responseForFileTransfer(fileData, fileName){
+    let result = await makeRequestForFileTransfer(fileData,fileName);
     return result;
 }
 document.getElementById("fileOneDrive").addEventListener("change", async function(){
-    let index=0;
     if (this.files && this.files[0]) {
         for (var i = 0; i < this.files.length; i++) {
             var myFile = this.files[i];
@@ -144,10 +142,8 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
                 var arrayBuffer = this.result,
                 array = new Uint8Array(arrayBuffer),
                 binaryString = String.fromCharCode.apply(null, array);
-                let result   = await responseForFileTransfer(binaryString);
+                let result   = await responseForFileTransfer(binaryString,  myFile.name);
                 console.log(result);
-                console.log(index);
-                index++;
             });
             reader.readAsArrayBuffer(myFile);
         }
