@@ -40,14 +40,20 @@ class OneDrive extends Controller{
         curl_close($curl);
         $responseDecoded = json_decode($response,true);
         try{
-            $acces_token = $responseDecoded['access_token'];
-            if($acces_token!=null){
+            $access_token = $responseDecoded['access_token'];
+            if($access_token!=null){
+                self::getModel()->addAccessToken($access_token,'cici@gmail.com');
                 echo json_encode(array("status"=>'200'));
+            }else{
+                echo "lalalalaa";
             }
         }
         catch(Exception $e){
             echo json_encode(array("status"=>'401'));
         }
+        
+    }
+    public static function UploadFile(){
         
     }
 }

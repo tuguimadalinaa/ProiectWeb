@@ -98,7 +98,7 @@ async function checkUrl(){
         else
         {
             if(urlParams.get('code')[0] == 'M'){
-                var responseJson2 = await waitForResponse('Token','OneDrive');  
+                var responseJson2 = await waitForResponse('Token','OneDrive');
             } else {
                 var responseJson2 = await waitForResponse('Token','DropBox');
             }
