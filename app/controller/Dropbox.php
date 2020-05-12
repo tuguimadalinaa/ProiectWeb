@@ -68,7 +68,6 @@ Class Dropbox extends Controller{
        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
        curl_setopt($curl_resource,CURLOPT_POSTFIELDS, $filebits);
-       curl_setopt($curl_resource,CURLOPT_FOLLOWLOCATION,true);
        $result = curl_exec($curl_resource);
        curl_close($curl_resource);
        $responseDecoded = json_decode($result,true);
@@ -96,7 +95,30 @@ Class Dropbox extends Controller{
            "Content-Type: application/json"
         ));
         curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$parameters);
-        curl_setopt($curl_resource,CURLOPT_FOLLOWLOCATION,true);
+        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+        $response = curl_exec($curl_resource);
+        curl_close($curl_resource);
+        $responseDecoded = json_decode($response,true);
+        echo $response;
+    }
+
+    public static function createFolder(){
+        $dropbox_create_folder_url = "https://api.dropboxapi.com/2/files/create_folder_v2";
+        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com"),true); //gigi's token
+        $token = $json_token['access_token'];
+        $parameters = '{' .
+            '"path": "/Kurtos",' .
+            '"autorename": false' .
+        '}';
+        $curl_resource = curl_init();
+        curl_setopt($curl_resource,CURLOPT_URL,$dropbox_create_folder_url);
+        curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+        curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$parameters);
+        curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+            "Authorization: Bearer ${token}",
+            "Content-Type: application/json"
+        ));
         curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
         curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
         $response = curl_exec($curl_resource);

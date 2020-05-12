@@ -38,7 +38,7 @@ Route::set('signUp', function(){
 });
 Route::set('home',function(){
     if(empty($_SESSION['loggedIn'])){
-        header('Location: login');
+        header('Location: login');    
     }else{
         Home::Createview('index');
     }
@@ -90,6 +90,10 @@ Route::set('uploadDropbox',function(){   //Ruta testing
 
 Route::set('getFilesDropbox',function(){ //Ruta testing
    DropBox::getFolderFiles();
+});
+
+Route::set('createFolderDropbox',function(){ //Ruta testing
+    DropBox::createFolder();
 });
 
 Route::set('transferFile',function(){
