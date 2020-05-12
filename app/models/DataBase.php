@@ -30,7 +30,7 @@ class DataBase{
         $connection->execute();
         $result = $connection -> fetchAll();
         foreach( $result as $row ) {
-            $response = self::approveRequest($password,$result[0][2]);
+            $response = self::approveRequest($password,$result[0][1]);
             $jsonResponse = json_encode(array("status"=>$response));
             return $jsonResponse;
         }
@@ -67,8 +67,8 @@ class DataBase{
         $connection  = DataBase::connect()->prepare($checkUser);
         $connection->execute();
         $result = $connection -> fetchAll();
-        if(!empty($result[0][4])){
-            return json_encode(array("status"=>"200","access_token"=>$result[0][4]));
+        if(!empty($result[0][3])){                       
+            return json_encode(array("status"=>"200","access_token"=>$result[0][3]));
         }else{
             return json_encode(array("status"=>"401","access_token" =>null));
         }

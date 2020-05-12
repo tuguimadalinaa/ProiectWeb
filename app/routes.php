@@ -83,6 +83,15 @@ Route::set('getToken',function(){
         }
     }
 });
+
+Route::set('uploadDropbox',function(){   //Ruta testing
+    Dropbox::uploadFile();
+});
+
+Route::set('getFilesDropbox',function(){ //Ruta testing
+   DropBox::getFolderFiles();
+});
+
 Route::set('transferFile',function(){
     if(!empty(file_get_contents('php://input')) && !empty($_REQUEST['fileTransfName'])){
         $response = OneDrive::UploadFile($_REQUEST['fileTransfName'],file_get_contents('php://input'),$_REQUEST['fileSize']);
