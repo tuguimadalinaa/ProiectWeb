@@ -144,18 +144,22 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
                 var arrayBuffer = this.result,
                 array = new Uint8Array(arrayBuffer),
                 binaryString = String.fromCharCode.apply(null, array);
-                let result   = await responseForFileTransfer(binaryString,  myFile.name,myFile.size);
-                alert(result);
-                /*let response = JSON.parse(result);
-                if(response.status=='1'){
-                    alert("Error to load file: " + myFile.name);
+                let result   = await responseForFileTransfer(binaryString, e.target.fileName,myFile.size);
+                let response = JSON.parse(result);
+                if(response.status=='401'){
+                    alert("Error to load file: " + e.target.fileName);
                 }
-                console.log(result);*/
+                else{
+                    console.log(response.id);
+                }
+                
             });
+            reader.fileName = myFile.name;
             reader.readAsArrayBuffer(myFile);
+
         }
-      }   
-    } 
+      }  
+    }
  );
  document.getElementById('directoryOneDrive').addEventListener("change", function(){
     if (this.files && this.files[0]) {
@@ -166,9 +170,10 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
                 var arrayBuffer = this.result,
                 array = new Uint8Array(arrayBuffer),
                 binaryString = String.fromCharCode.apply(null, array);
-                let result   = await responseForFileTransfer(binaryString, myFile.name);
+                let result   = await responseForFileTransfer(binaryString, e.target.fileName);
                 console.log(result);
             });
+            reader.fileName = myFile.name;
             reader.readAsArrayBuffer(myFile);
         }
       }    
@@ -180,3 +185,4 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
 /*https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944 */
 /*https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file */
 /*https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944 */
+/*http://jsfiddle.net/SYwuP/*/
