@@ -65,13 +65,17 @@ width: 250px;
     input[type=email]:focus, input[type="password"]:focus {
         width: 130px;
     }
+    .signUpMessage{
+       /* margin-left: 10%;*/
+    }
 
     .containerSignUp form input{
         width: 180px;
         transition: width .35s ease-in-out;
         margin-top: 20px;
         margin-bottom: 20px;
-        margin-left:32%;
+        /*margin-left:32%;*/
+        margin-left: 0%;
         border-radius: 25px;
         border: 2px solid black;
         outline: none; 
@@ -87,16 +91,19 @@ width: 250px;
         font-size: x-large;
     }
     .containerSignUp{
-        padding: 20px;
+        padding: 0px;
         border-radius: 5px;
         margin-top: 50px;
-        margin-left: 30%;
+        /*margin-left: 45%;*/
         margin-right: 600px;
     }
 }
 @media (max-width: 1200px) and (min-width:767px){
     input[type=email]:focus, input[type="password"]:focus {
         width: 130px;
+    }
+    .signUpMessage{
+        margin-left: 5%;
     }
 
     .containerSignUp form input{
@@ -120,10 +127,10 @@ width: 250px;
         font-size: xx-large;
     }
     .containerSignUp{
-        padding: 20px;
+        padding: 0px;
         border-radius: 5px;
         margin-top: 50px;
-        margin-left: 40%;
+        margin-left: 45%;
         margin-right: 600px;
     }
     .containerSignUp button{

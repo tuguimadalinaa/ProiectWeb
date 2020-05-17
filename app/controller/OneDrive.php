@@ -61,29 +61,33 @@ class OneDrive extends Controller{
         }
     }
     private static function createFile($fileName,$access_token){
+        $data= json_encode(array('item'=>array(
+            '@microsoft.graph.conflictBehavior'=>'rename')
+        ));
         $create_curl=curl_init();
         curl_setopt_array($create_curl,[
-            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drive/root:/Documents/'.$fileName.':/content',
-            CURLOPT_RETURNTRANSFER=>true,
-            CURLOPT_PUT=>true,
+            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drive/root:/Documents/'.$fileName.':/createUploadSession',
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_POST=>1,
             CURLOPT_HTTPHEADER=>array("Authorization: Bearer ".$access_token,
-            "Content-Type: text/plain"),
-            CURLOPT_SSL_VERIFYPEER=>false
+            "Content-Type: application/json"),
+            CURLOPT_SSL_VERIFYPEER=>false,
+            CURLOPT_POSTFIELDS=>$data
         ]); 
         $response=curl_exec($create_curl);
         curl_close($create_curl);
         return $response;
     }
-    private static function WriteFile($fileName,$fileData,$access_token,$fileSize){
+    private static function WriteFile($fileName,$fileData,$access_token,$fileSize,$graph_url){
         $upload_curl=curl_init();
         curl_setopt_array($upload_curl,[
             CURLOPT_RETURNTRANSFER=>1,
-            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drive/root:/Documents/'.$fileName.':/content',
-            CURLOPT_PUT=>true,
+            CURLOPT_URL=>$graph_url,
+            CURLOPT_CUSTOMREQUEST=>'PUT',
             CURLOPT_SSL_VERIFYPEER=>false,
-            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ".$access_token,
-                                'Content-Length: '.$fileSize,
-                                'Content-Range: bytes '.'0-'.($fileSize-1).'/'.$fileSize),
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}",
+                                "Content-Length: ${fileSize}",
+                                'Content-Range: bytes '."0-".($fileSize-1).'/'.$fileSize),
             CURLOPT_POSTFIELDS=>$fileData 
         ]);
         $response=curl_exec($upload_curl);
@@ -96,8 +100,7 @@ class OneDrive extends Controller{
             $response = self::createFile($fileName,$access_token);
             $json_response = json_decode($response,true);
             $graph_url = $json_response['uploadUrl'];
-            return json_encode(array("status"=>$graph_url));
-            $response = self::WriteFile($fileName,$fileData,$access_token,$fileSize);
+            $response = self::WriteFile($fileName,$fileData,$access_token,$fileSize,$graph_url);
         }
         return $response;
     }

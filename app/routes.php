@@ -38,7 +38,7 @@ Route::set('signUp', function(){
 });
 Route::set('home',function(){
     if(empty($_SESSION['loggedIn'])){
-        header('Location: login');
+        header('Location: login');    
     }else{
         Home::Createview('index');
     }
@@ -83,8 +83,21 @@ Route::set('getToken',function(){
         }
     }
 });
+
+Route::set('uploadDropbox',function(){   //Ruta testing
+    Dropbox::uploadFile();
+});
+
+Route::set('getFilesDropbox',function(){ //Ruta testing
+   DropBox::getFolderFiles();
+});
+
+Route::set('createFolderDropbox',function(){ //Ruta testing
+    DropBox::createFolder();
+});
+
 Route::set('transferFile',function(){
-    if(!empty(file_get_contents('php://input')) && !empty($_REQUEST['fileTransfName'])){
+    if(!empty(file_get_contents('php://input')) && !empty($_REQUEST['fileTransfName'])&& !empty($_REQUEST['fileSize'])){
         $response = OneDrive::UploadFile($_REQUEST['fileTransfName'],file_get_contents('php://input'),$_REQUEST['fileSize']);
         echo $response;
     }else{

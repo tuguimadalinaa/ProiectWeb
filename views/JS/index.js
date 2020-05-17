@@ -84,7 +84,7 @@ function logOutUser(){
     let xhr = new XMLHttpRequest();
     xhr.open('GET', 'logOut', true);
     xhr.send();
-    location.assign('login');
+    location.assign('login');  //logOut imi merge fara location.assign(), ma redirecteaza la pagina de login din routes.php la ruta /home (Robert)
 }
 async function checkUrl(){
     var urlParams = new URLSearchParams(window.location.search);
@@ -146,11 +146,11 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
                 binaryString = String.fromCharCode.apply(null, array);
                 let result   = await responseForFileTransfer(binaryString,  myFile.name,myFile.size);
                 alert(result);
-                let response = JSON.parse(result);
+                /*let response = JSON.parse(result);
                 if(response.status=='1'){
                     alert("Error to load file: " + myFile.name);
                 }
-                console.log(result);
+                console.log(result);*/
             });
             reader.readAsArrayBuffer(myFile);
         }
