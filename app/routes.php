@@ -30,7 +30,7 @@ Route::set('signUp', function(){
         $response = SignUp::createAccount($_REQUEST['username'],$_REQUEST['password']);
         $status = json_decode($response,true);
         if($status['status'] == '1'){
-            Controller::CreateView('login');
+            echo $response;
         } else {
             Controller::CreateView('signUp');
         }
@@ -103,6 +103,9 @@ Route::set('transferFile',function(){
     }else{
         echo json_encode(array("status"=>'1'));
     }
+});
+Route::set('registrationConfirmed',function(){
+    ConfirmedRegistration::Createview('registrationConfirmed');
 });
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
 ?>
