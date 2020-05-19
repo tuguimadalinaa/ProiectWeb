@@ -1,21 +1,22 @@
 <?php
 Route::set('login',function(){
     if(empty($_REQUEST['username'])){
-        if(!empty($_SESSION['loggedIn'])){
+        if(isset($_COOKIE["loggedIn"])){
             header('Location: home');
         }else{
             Login::CreateView('login');
         }
     }
     else{
-        if(!empty($_SESSION["loggedIn"])){
+        if(isset($_COOKIE["loggedIn"])){
             header('Location: home');
         }
         $response = Login::getApprovalFromDB($_REQUEST['username'],$_REQUEST['password']);
-        if(empty($_SESSION["loggedIn"])){
+        if(!isset($_COOKIE["loggedIn"])){
             $json_response = json_decode($response,true);
             if($json_response['status']=='0'){
-                Login::StartSession();
+                //Login::StartSession();
+                Login::Cookie("loggedIn","JWToken",time() + 36000,"http://localhost/ProiectWeb/");
                 echo $response;
             }else if($json_response['status']=='1' ||$json_response['status']=='2'){
                 echo $response;
@@ -37,7 +38,7 @@ Route::set('signUp', function(){
     }
 });
 Route::set('home',function(){
-    if(empty($_SESSION['loggedIn'])){
+    if(!isset($_COOKIE["loggedIn"])){
         header('Location: login');    
     }else{
         Home::Createview('index');
@@ -50,7 +51,9 @@ Route::set('your-files',function(){
     Home::CreateView('fileRender');
 });
 Route::set('logOut',function(){
-    Login::EndSession();
+    //Login::EndSession();
+    Login::Cookie("loggedIn","JWToken",time() - 3600,"http://localhost/ProiectWeb/");
+    //header('Location: home');   //Robert, musai trebuie 
     echo 'Logout';
 });
 Route::set('getCode', function(){

@@ -84,7 +84,7 @@ function logOutUser(){
     let xhr = new XMLHttpRequest();
     xhr.open('GET', 'logOut', true);
     xhr.send();
-    location.assign('login');  //logOut imi merge fara location.assign(), ma redirecteaza la pagina de login din routes.php la ruta /home (Robert)
+    //location.assign('login');  //logOut imi merge fara location.assign(), ma redirecteaza la pagina de login din routes.php la ruta /home (Robert)
 }
 async function checkUrl(){
     var urlParams = new URLSearchParams(window.location.search);

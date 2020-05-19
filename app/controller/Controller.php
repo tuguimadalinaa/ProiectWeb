@@ -12,5 +12,10 @@ class Controller{
         return $session;
     }
 
+    public static function getCookieHandler(){
+        $cookie_handler = new CookieHandlerModel();
+        return $cookie_handler;
+    }
+
 }
 ?>
