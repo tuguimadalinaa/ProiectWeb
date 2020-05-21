@@ -1,24 +1,26 @@
 <?php
 Route::set('login',function(){
     if(empty($_REQUEST['username'])){
-        if(!empty($_SESSION['loggedIn'])){
+        if(isset($_COOKIE["loggedIn"])){
             header('Location: home');
         }else{
             Login::CreateView('login');
         }
     }
     else{
-        if(!empty($_SESSION["loggedIn"])){
+        if(isset($_COOKIE["loggedIn"])){
             header('Location: home');
         }
-        $response = Login::getApprovalFromDB($_REQUEST['username'],$_REQUEST['password']);
-        if(empty($_SESSION["loggedIn"])){
-            $json_response = json_decode($response,true);
-            if($json_response['status']=='0'){
+        $data = Login::getApprovalFromDB($_REQUEST['username'],$_REQUEST['password']);
+        //echo $data;
+        if(!isset($_COOKIE["loggedIn"])){
+            $json_response = json_decode($data,true);
+            if($json_response['status']==0){
+                Login::Cookie("loggedIn",$json_response['jwt'],time() + 36000,"http://localhost/ProiectWeb/");
                 Login::StartSession();
-                echo $response;
-            }else if($json_response['status']=='1' ||$json_response['status']=='2'){
-                echo $response;
+                echo $data;
+            }else if($json_response['status']==1 ||$json_response['status']==2){
+                echo $data;
             }
         }
     }
@@ -30,14 +32,17 @@ Route::set('signUp', function(){
         $response = SignUp::createAccount($_REQUEST['username'],$_REQUEST['password']);
         $status = json_decode($response,true);
         if($status['status'] == '1'){
-            Controller::CreateView('login');
+            echo $response;
         } else {
             Controller::CreateView('signUp');
         }
     }
 });
+Route::set('registrationConfirmed',function(){
+    ConfirmedRegistration::Createview('registrationConfirmed');
+});
 Route::set('home',function(){
-    if(empty($_SESSION['loggedIn'])){
+    if(!isset($_COOKIE["loggedIn"])){
         header('Location: login');    
     }else{
         Home::Createview('index');
@@ -50,7 +55,8 @@ Route::set('your-files',function(){
     Home::CreateView('fileRender');
 });
 Route::set('logOut',function(){
-    Login::EndSession();
+    //Login::EndSession();
+    Login::Cookie("loggedIn","JWToken",time() - 3600,"http://localhost/ProiectWeb/");
     echo 'Logout';
 });
 Route::set('getCode', function(){
@@ -73,12 +79,12 @@ Route::set('getToken',function(){
         if($drive_type =='OneDrive'){
             $response = OneDrive::GetToken($_REQUEST['code']);
             echo $response;
-        } else if($drive_type ='DropBox'){
+        } else if($drive_type =='DropBox'){
             $response = DropBox::GetToken($_REQUEST['code']);
             echo $response;
         }
         else{
-            $respone=GoogleDrive::GetToken($_REQUEST['code']);
+            $response=GoogleDrive::GetToken($_REQUEST['code'],$_COOKIE["loggedIn"]);
             echo $response;
         }
     }
@@ -103,6 +109,9 @@ Route::set('transferFile',function(){
     }else{
         echo json_encode(array("status"=>'1'));
     }
+});
+Route::set('registrationConfirmed',function(){
+    ConfirmedRegistration::Createview('registrationConfirmed');
 });
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
 ?>

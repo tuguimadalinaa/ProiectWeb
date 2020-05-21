@@ -1,4 +1,7 @@
 <?php
+
+
+//include 'C:\xampp\htdocs\ProiectWeb\app\models\auth_jwt.php';
     class GoogleDrive extends Controller{
         private static $google_client_id='18989996688-606poom9qjh2rgcbq6e1e4phk0lsp0c7.apps.googleusercontent.com';
         private static $google_client_secret='aha78mJ7nTnZoezOc2GagCJs';
@@ -17,7 +20,7 @@
            return $google_drive_uri;
            
         }
-        public static function GetToken($code){
+        public static function GetToken($code,$data){
             $query=[
                 'code'=>$code,
                 'client_id'=>self::$google_client_id,
@@ -38,10 +41,11 @@
             $response=curl_exec($curl);
             curl_close($curl);
             $responseDecoded = json_decode($response,true);
+            $username=(self::getAuth()->jwtDecode($data))->username;
             try{
                 $access_token = $responseDecoded['access_token'];
                     if($access_token!=null){
-                        self::getModel()->addAccessToken($access_token,'cici@gmail.com');
+                        self::getModel()->addAccessToken($access_token,$username);
                         echo json_encode(array("status"=>'200'));
             }
         }   catch(Exception $e){
@@ -49,5 +53,32 @@
             }
         
         }
+        /*public static function UploadFile()
+        {
+            $string = 'SELECT access_token from users where username="cici@gmail.com"';
+            $connection  = DataBase::connect()->prepare($string);
+            $connection->execute();
+            $token = $connection -> fetchAll();
+            $path='C:\Users\alexg\Desktop\download.jpg';
+            $file=file_get_contents($path);
+            $headers= array(
+                'Content-Type:image/jpeg'
+                'Authorization : Bearer ' . $token,
+                'Content-Length: ' . strlen($file)
+            );
+            $curl=curl_init();
+            curl_setopt_array($curl,[
+                CURLOPT_URL => 'https://www.googleapis.com/upload/drive/v2/files?uploadType=media',
+                CURLOPT_HTTPHEADER => $headers,
+                CURLOPT_RETURNTRANSFER=>TRUE,
+                CURLOPT_BINARYTRANSFER=>TRUE,
+                CURLOPT_POST=>TRUE,
+                CURLOPT_POSTFIELDS=>$file
+            ]);
+            $response=curl_exec($curl);
+            curl_close($curl);
+            echo $response;
+        }
+        */
     }
 ?>

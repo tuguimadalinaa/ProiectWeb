@@ -53,6 +53,7 @@ async function uploadOneDrive(){
 }
 async function uploadGoogleDrive(){
     response = await waitForResponse('Code','GoogleDrive');
+    //alert(response);
     location.assign(response);
 }
 
@@ -84,7 +85,7 @@ function logOutUser(){
     let xhr = new XMLHttpRequest();
     xhr.open('GET', 'logOut', true);
     xhr.send();
-    location.assign('login');  //logOut imi merge fara location.assign(), ma redirecteaza la pagina de login din routes.php la ruta /home (Robert)
+    //location.assign('login');  //logOut imi merge fara location.assign(), ma redirecteaza la pagina de login din routes.php la ruta /home (Robert)
 }
 async function checkUrl(){
     var urlParams = new URLSearchParams(window.location.search);
@@ -92,7 +93,9 @@ async function checkUrl(){
         if(urlParams.get('scope')!=null)
         {
             let responseJson = await waitForResponse('Token','GoogleDrive'); 
+            //alert(responseJson);
             let response = JSON.parse(responseJson);
+            //alert(response);
             if(response.status=='401'){
                 alert("Authorization failed");
             }
@@ -144,18 +147,22 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
                 var arrayBuffer = this.result,
                 array = new Uint8Array(arrayBuffer),
                 binaryString = String.fromCharCode.apply(null, array);
-                let result   = await responseForFileTransfer(binaryString,  myFile.name,myFile.size);
-                alert(result);
-                /*let response = JSON.parse(result);
-                if(response.status=='1'){
-                    alert("Error to load file: " + myFile.name);
+                let result   = await responseForFileTransfer(binaryString, e.target.fileName,myFile.size);
+                let response = JSON.parse(result);
+                if(response.status=='401'){
+                    alert("Error to load file: " + e.target.fileName);
                 }
-                console.log(result);*/
+                else{
+                    console.log(response.id);
+                }
+                
             });
+            reader.fileName = myFile.name;
             reader.readAsArrayBuffer(myFile);
+
         }
-      }   
-    } 
+      }  
+    }
  );
  document.getElementById('directoryOneDrive').addEventListener("change", function(){
     if (this.files && this.files[0]) {
@@ -166,9 +173,10 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
                 var arrayBuffer = this.result,
                 array = new Uint8Array(arrayBuffer),
                 binaryString = String.fromCharCode.apply(null, array);
-                let result   = await responseForFileTransfer(binaryString, myFile.name);
+                let result   = await responseForFileTransfer(binaryString, e.target.fileName);
                 console.log(result);
             });
+            reader.fileName = myFile.name;
             reader.readAsArrayBuffer(myFile);
         }
       }    
@@ -180,3 +188,4 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
 /*https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944 */
 /*https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file */
 /*https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944 */
+/*http://jsfiddle.net/SYwuP/*/

@@ -1,4 +1,7 @@
 <?php
+
+//include 'auth_jwt.php';
+
 class DataBase{
     public static $data='0';
     public static function connect(){
@@ -31,11 +34,30 @@ class DataBase{
         $result = $connection -> fetchAll();
         foreach( $result as $row ) {
             $response = self::approveRequest($password,$result[0][1]);
-            $jsonResponse = json_encode(array("status"=>$response));
-            return $jsonResponse;
+            if($response==0)
+            {
+                $jwt=Auth::jwtGenerate($userName,$password);
+            }
+            else{
+                //echo "Access denied!";
+                $jwt="";
+            }
+            $data=array(
+                "jwt"=>$jwt,
+                "status"=>$response
+            );
+            $jsonResponse = json_encode($data);
+           
         }
-        $jsonResponse = json_encode(array("status"=>'1'));
-        return $jsonResponse;
+        //echo $data['jwt'];
+        //echo $data['status'];
+        //echo "<pre";
+        //print_r($data);
+        //echo "</pre>";
+        //echo $jsonResponse;
+            return $jsonResponse;
+        //$jsonResponse = json_encode(array("status"=>'1'));
+        //return $jsonResponse;
     }
     public static function addUser($userName, $password){
         $checkUser = 'SELECT * from users where username='."'".$userName."'";

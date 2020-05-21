@@ -24,22 +24,22 @@ async function registerUser()
     if(password.length<5)
     {
         alert("You must enter a password with minimum of 5 characters.");
-        return true;
+        location.assign('signUp');
     }
     else if(password!=passwordCheck)
    {
         alert("Both passwords don't match!");
-        return true ;
+        location.assign('signUp');
    }
     let jsonResponse = await waitForResponse();
+    alert(jsonResponse);
     let response = JSON.parse(jsonResponse);
+    
     if(response.status=='0'){
         alert("User already exists");
         location.assign('signUp');
-        return true;
     }
     else if(response.status=='1'){
         location.assign('registrationConfirmed');
-        return false;
     }
 }

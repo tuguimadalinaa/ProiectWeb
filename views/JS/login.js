@@ -25,7 +25,9 @@ async function goToIndex(callback)
     /*https://dev.to/shoupn/javascript-fetch-api-and-using-asyncawait-47mp*/
     /*https://stackoverflow.com/questions/48969495/in-javascript-how-do-i-should-i-use-async-await-with-xmlhttprequest*/
     let jsonResponse = await waitForResponse(true);
+    alert(jsonResponse);
     let response = JSON.parse(jsonResponse);
+    //alert(response);
     if(response.status == '1'){
         alert("Username is wrong");
         location.assign('login');

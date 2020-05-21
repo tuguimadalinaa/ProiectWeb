@@ -101,8 +101,11 @@ class OneDrive extends Controller{
             $json_response = json_decode($response,true);
             $graph_url = $json_response['uploadUrl'];
             $response = self::WriteFile($fileName,$fileData,$access_token,$fileSize,$graph_url);
+            $decodedResponse = json_decode($response, true);
+            $fileId = $decodedResponse['id'];
+            return json_encode(array("status"=>'200',"id"=>$fileId));
         }
-        return $response;
+        return json_encode(array("status"=>'401'));
     }
 }
 ?>
