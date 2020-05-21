@@ -17,7 +17,7 @@ Route::set('login',function(){
             $json_response = json_decode($data,true);
             if($json_response['status']==0){
                 Login::Cookie("loggedIn",$json_response['jwt'],time() + 36000,"http://localhost/ProiectWeb/");
-                Login::StartSession();
+                //Login::StartSession();
                 echo $data;
             }else if($json_response['status']==1 ||$json_response['status']==2){
                 echo $data;
@@ -57,6 +57,7 @@ Route::set('your-files',function(){
 Route::set('logOut',function(){
     //Login::EndSession();
     Login::Cookie("loggedIn","JWToken",time() - 3600,"http://localhost/ProiectWeb/");
+    //header('Location: home');   //Robert, musai trebuie 
     echo 'Logout';
 });
 Route::set('getCode', function(){
