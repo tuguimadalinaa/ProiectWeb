@@ -12,7 +12,6 @@ Route::set('login',function(){
             header('Location: home');
         }
         $data = Login::getApprovalFromDB($_REQUEST['username'],$_REQUEST['password']);
-        //echo $data;
         if(!isset($_COOKIE["loggedIn"])){
             $json_response = json_decode($data,true);
             if($json_response['status']==0){
@@ -111,8 +110,21 @@ Route::set('transferFile',function(){
         echo json_encode(array("status"=>'1'));
     }
 });
+Route::set('transferBigFile',function(){
+    if((!empty(file_get_contents('php://input')) && !empty($_REQUEST['fileTransfName'])&& !empty($_REQUEST['fileSize'])&&!empty($_REQUEST['readyToGo']))
+        ||$_REQUEST['readyToGo']=="true"){
+        $response = OneDrive::UploadBigFile($_REQUEST['fileTransfName'],file_get_contents('php://input'),$_REQUEST['fileSize'],$_REQUEST['readyToGo']);
+        echo $response;
+    }
+    else{
+        echo json_encode(array("status"=>'1'));
+    }
+});
 Route::set('registrationConfirmed',function(){
     ConfirmedRegistration::Createview('registrationConfirmed');
+});
+Route::set('getFile',function(){
+    echo OneDrive::GetFile($_REQUEST['fileTransfName']);
 });
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
 ?>

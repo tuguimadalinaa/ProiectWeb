@@ -94,6 +94,7 @@ class OneDrive extends Controller{
         curl_close($upload_curl);
         return $response;
     }
+    
     public static function UploadFile($fileName, $fileData,$fileSize){
         $access_token = self::getAccesTokenFromDB();
         if(strcmp($access_token,"fail")!=0){
@@ -106,6 +107,41 @@ class OneDrive extends Controller{
             return json_encode(array("status"=>'200',"id"=>$fileId));
         }
         return json_encode(array("status"=>'401'));
+    }
+    public static function UploadBigFile($fileName,$fileData,$fileSize,$readyToGo){
+        $access_token = self::getAccesTokenFromDB();
+        if($readyToGo=="false"){
+            if(strcmp($access_token,"fail")!=0){
+                $response = self::createFile($fileName,$access_token);
+                $json_response = json_decode($response,true);
+                $graph_url = $json_response['uploadUrl'];
+                $response = self::WriteFile($fileName,$fileData,$access_token,$fileSize,$graph_url);
+                $decodedResponse = json_decode($response, true);
+                $fileId = $decodedResponse['id'];
+                return json_encode(array("status"=>'200',"id"=>$fileId));
+            }
+        }
+        return json_encode(array("status"=>'200',"fileName"=>$fileName,"readyToGo"=>$readyToGo));
+    }
+    public static function makeRequestForFile($access_token,$fileName){
+        $create_curl=curl_init();
+        curl_setopt_array($create_curl,[
+            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drive/root:/Documents/'.$fileName, //spatiile in url dau erori
+            CURLOPT_RETURNTRANSFER=>1,
+           /* CURLOPT_CUSTOMREQUEST=>'GET',*/
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}"),
+            CURLOPT_SSL_VERIFYPEER=>false
+        ]); 
+        $response=curl_exec($create_curl);
+        curl_close($create_curl);
+        return $response;
+    }
+    public static function GetFile($fileName){
+        $access_token = self::getAccesTokenFromDB();
+        $response = self::makeRequestForFile($access_token,$fileName);
+        $decodedResponse = json_decode($response, true);
+        $urlForDownload = $decodedResponse['@microsoft.graph.downloadUrl'];
+        return json_encode(array("status"=>'200',"urlToDownload"=>$urlForDownload));
     }
 }
 ?>

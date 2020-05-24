@@ -32,7 +32,6 @@ async function registerUser()
         location.assign('signUp');
    }
     let jsonResponse = await waitForResponse();
-    alert(jsonResponse);
     let response = JSON.parse(jsonResponse);
     
     if(response.status=='0'){

@@ -1,5 +1,6 @@
 <?php
-include 'C:\xampp\htdocs\ProiectWeb\app\models\auth_jwt.php';
+/*include 'C:\xampp\htdocs\ProiectWeb\app\models\auth_jwt.php';*/
+include '.\models\auth_jwt.php';
 class Controller{
     public static function getModel(){
         $model = new DataBase();
