@@ -126,5 +126,147 @@ Class Dropbox extends Controller{
         $responseDecoded = json_decode($response,true);
         echo $response;
     }
+
+    public static function uploadSessionStart(){
+        $dropbox_download_url = "https://content.dropboxapi.com/2/files/upload_session/start";
+        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com"),true); //gigi's token
+        $token = $json_token['access_token'];
+        $curl_resource = curl_init();
+        $parameter = '{' .
+            '"close": false' .
+        '}';
+        $file_data = 'Hello';
+        curl_setopt($curl_resource,CURLOPT_URL,$dropbox_download_url);
+        curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+        curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$file_data);
+        curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+            "Authorization: Bearer ${token}",
+            "Dropbox-API-Arg: $parameter",
+            "Content-Type: application/octet-stream"
+        ));
+        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+        $response = curl_exec($curl_resource);
+        curl_close($curl_resource);
+        $responseDecoded = json_decode($response,true);
+        $session_id = $responseDecoded['session_id'];
+        $file_size = strlen($file_data);
+        $max_request_size = "157286400";
+        if($file_size <= intval($max_request_size)){         
+            Dropbox::uploadSessionFinish($token,$file_data,$session_id);
+        } else {
+            Dropbox::uploadSessionAppend($token,$file_data,$session_id);
+        }
+        echo $response;
+    }
+
+    public static function uploadSessionAppend($access_token,$file_data,$session_id){
+        $dropbox_download_url = "https://content.dropboxapi.com/2/files/upload_session/append_v2";
+        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com"),true); //gigi's token
+        $token = $json_token['access_token'];
+        $curl_resource = curl_init();
+        $parameters = '{' .
+            '"cursor" : {' .
+                 '"session_id": ' . $session_id . ',' .
+                 '"offset": 5' .
+            '},' .
+            '"close": false' .
+        '}';
+        curl_setopt($curl_resource,CURLOPT_URL,$dropbox_download_url);
+        curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+        curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$file_data);
+        curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+            "Authorization: Bearer ${token}",
+            "Dropbox-API-Arg: $parameters",
+            "Content-Type: application/octet-stream"
+        ));
+        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+        $response = curl_exec($curl_resource);
+        curl_close($curl_resource);
+        $responseDecoded = json_decode($response,true);
+        echo $response;
+    }
+
+    public static function uploadSessionFinish($access_token,$file_data,$session_id){
+        $dropbox_download_url = "https://content.dropboxapi.com/2/files/upload_session/finish";
+        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com"),true); //gigi's token
+        $token = $json_token['access_token'];
+        $curl_resource = curl_init();
+        $parameters = '{' .
+            '"cursor" : {' .
+                 '"session_id": ' . '"' . $session_id . '",' .
+                 '"offset": 5' .
+            '},' .
+            '"commit": {' .
+                '"path": "/Langos/Cartofi.txt",' .
+                '"mode": "add",' . 
+                '"autorename": true,' .
+                '"mute": false,' .
+                '"strict_conflict": false' .
+            '}' .
+        '}';
+        curl_setopt($curl_resource,CURLOPT_URL,$dropbox_download_url);
+        curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+        curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$file_data);
+        curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+            "Authorization: Bearer ${token}",
+            "Dropbox-API-Arg: $parameters",
+            "Content-Type: application/octet-stream"
+        ));
+        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+        $response = curl_exec($curl_resource);
+        curl_close($curl_resource);
+        $responseDecoded = json_decode($response,true);
+        echo $response;
+    }
+
+
+    public static function download(){
+        $dropbox_download_url = "https://content.dropboxapi.com/2/files/download";
+        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com"),true); //gigi's token
+        $token = $json_token['access_token'];
+        $curl_resource = curl_init();
+        $parameter = '{' .
+            '"path": "/Langos/Biserica.txt"' .
+        '}';
+        curl_setopt($curl_resource,CURLOPT_URL,$dropbox_download_url);
+        curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+        curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+            "Authorization: Bearer ${token}",
+            "Dropbox-API-Arg: $parameter"
+        ));
+        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+        $response = curl_exec($curl_resource);
+        curl_close($curl_resource);
+        $responseDecoded = json_decode($response,true);
+        echo $response;
+    }
+
+    public static function downloadByLink(){
+        $dropbox_download_url = "https://api.dropboxapi.com/2/files/get_temporary_link";
+        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com"),true); //gigi's token
+        $token = $json_token['access_token'];
+        $curl_resource = curl_init();
+        $parameter = '{' .
+            '"path": "/Langos/Biserica.txt"' .
+        '}';
+        curl_setopt($curl_resource,CURLOPT_URL,$dropbox_download_url);
+        curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+        curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$parameter);
+        curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+            "Authorization: Bearer ${token}",
+            "Content-Type: application/json"
+        ));
+        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+        $response = curl_exec($curl_resource);
+        curl_close($curl_resource);
+        $responseDecoded = json_decode($response,true);
+        echo $response;
+    }
+
 }
 
