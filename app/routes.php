@@ -102,6 +102,15 @@ Route::set('createFolderDropbox',function(){ //Ruta testing
     DropBox::createFolder();
 });
 
+Route::set('uploadDropboxSession',function(){ //Ruta testing
+        Dropbox::uploadSessionStart();
+});
+
+Route::set('downloadFileDropbox',function(){ //Ruta testing
+       Dropbox::download();
+       //Dropbox::downloadByLink();
+});
+
 Route::set('transferFile',function(){
     if(!empty(file_get_contents('php://input')) && !empty($_REQUEST['fileTransfName'])&& !empty($_REQUEST['fileSize'])){
         $response = OneDrive::UploadFile($_REQUEST['fileTransfName'],file_get_contents('php://input'),$_REQUEST['fileSize']);

@@ -230,7 +230,7 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
             reader.addEventListener('load',  async function (e) {
                 var arrayBuffer = this.result,
                 array = new Uint8Array(arrayBuffer),
-                binaryString = String.fromCharCode.apply(null, array);
+                binaryString = String.fromCharCode(array);
                 let result   = await responseForFileTransfer(binaryString, e.target.fileName);
                 console.log(result);
             });
