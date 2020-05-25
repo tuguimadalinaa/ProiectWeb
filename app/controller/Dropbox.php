@@ -103,6 +103,32 @@ Class Dropbox extends Controller{
         echo $response;
     }
 
+    public static function getFileMetadata(){
+        $dropbox_download_url = "https://api.dropboxapi.com/2/files/get_metadata";
+        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com",'Dropbox'),true); //gigi's token
+        $token = $json_token['access_token'];
+        $curl_resource = curl_init();
+        $parameter = '{' .
+            '"path": "/Langos/Biserica.txt",' .
+            '"include_media_info": false,' .
+            '"include_deleted": false,' .
+            '"include_has_explicit_shared_members": false' .
+        '}';
+        curl_setopt($curl_resource,CURLOPT_URL,$dropbox_download_url);
+        curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+        curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$parameter);
+        curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+            "Authorization: Bearer ${token}",
+            "Content-Type: application/json"
+        ));
+        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+        $response = curl_exec($curl_resource);
+        curl_close($curl_resource);
+        $responseDecoded = json_decode($response,true);
+        echo $response;
+    }
+
     public static function createFolder(){
         $dropbox_create_folder_url = "https://api.dropboxapi.com/2/files/create_folder_v2";
         $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com",'Dropbox'),true); //gigi's token

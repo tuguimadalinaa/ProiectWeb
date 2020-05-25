@@ -111,6 +111,10 @@ Route::set('downloadFileDropbox',function(){ //Ruta testing
        //Dropbox::downloadByLink();
 });
 
+Route::set('getFileMetadata',function(){ //Ruta testing
+    Dropbox::getFileMetadata();
+});
+
 Route::set('transferFile',function(){
     if(!empty(file_get_contents('php://input')) && !empty($_REQUEST['fileTransfName'])&& !empty($_REQUEST['fileSize'])){
         $response = OneDrive::UploadFile($_REQUEST['fileTransfName'],file_get_contents('php://input'),$_REQUEST['fileSize']);
