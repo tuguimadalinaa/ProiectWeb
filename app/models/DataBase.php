@@ -75,8 +75,16 @@ class DataBase{
         }
         return json_encode(array("status"=>'3')); //user-ul exista deja in baza de date
     }
-    public static function addAccessToken($access_token,$username){
-        $updateCommand = 'UPDATE users SET access_token = ' . "'" . $access_token . "'" . ' WHERE username = ' . "'" . $username . "'";
+    public static function addAccessToken($access_token,$username,$drive){
+        if($drive == 'Dropbox'){
+            $updateCommand = 'UPDATE users SET Dropbox_access_token = ' . "'" . $access_token . "'" . ' WHERE username = ' . "'" . $username . "'";
+        }
+        if($drive == 'OneDrive'){
+            $updateCommand = 'UPDATE users SET OneDrive_access_token = ' . "'" . $access_token . "'" . ' WHERE username = ' . "'" . $username . "'";
+        }
+        if($drive == 'GoogleDrive'){
+            $updateCommand = 'UPDATE users SET GoogleDrive_access_token = ' . "'" . $access_token . "'" . ' WHERE username = ' . "'" . $username . "'";
+        }
         $connection = DataBase::connect()->prepare($updateCommand);
         if($connection->execute() == true){
             
@@ -84,17 +92,32 @@ class DataBase{
             
         }
     }
-    public static function getAccessToken($userName){
+    public static function getAccessToken($userName,$drive){
         $checkUser = 'SELECT * from users where username='."'".$userName."'";
         $connection  = DataBase::connect()->prepare($checkUser);
         $connection->execute();
         $result = $connection -> fetchAll();
-        if(!empty($result[0][3])){                       
-            return json_encode(array("status"=>"200","access_token"=>$result[0][3]));
-        }else{
-            return json_encode(array("status"=>"401","access_token" =>null));
+        if($drive == "OneDrive"){
+            if(!empty($result[0][3])){                       
+                return json_encode(array("status"=>"200","access_token"=>$result[0][3]));
+            }else{
+                return json_encode(array("status"=>"401","access_token" =>null));
+            }
+            
+        } else if($drive == "Dropbox"){
+            if(!empty($result[0][4])){                       
+                return json_encode(array("status"=>"200","access_token"=>$result[0][4]));
+            }else{
+                return json_encode(array("status"=>"401","access_token" =>null));
+            }
+        } else {
+            if(!empty($result[0][5])){                       
+                return json_encode(array("status"=>"200","access_token"=>$result[0][5]));
+            }else{
+                return json_encode(array("status"=>"401","access_token" =>null));
+            }
         }
-        
+    
     }
 }
 ?>
