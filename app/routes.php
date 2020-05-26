@@ -53,6 +53,20 @@ Route::set('about',function(){
 Route::set('your-files',function(){
     Home::CreateView('fileRender');
 });
+
+Route::set('Dropbox_files',function(){
+    Home::CreateView('Dropbox_files');
+});
+
+Route::set('OneDrive_files',function(){
+    Home::CreateView('OneDrive_files');
+});
+
+Route::set('GoogleDrive_files',function(){
+    Home::CreateView('GoogleDrive_files');
+});
+
+
 Route::set('logOut',function(){
     //Login::EndSession();
     Login::Cookie("loggedIn","JWToken",time() - 3600,"http://localhost/ProiectWeb/");
