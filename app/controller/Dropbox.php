@@ -34,10 +34,11 @@ Class Dropbox extends Controller{
        $result = curl_exec($curl_resource);
        curl_close($curl_resource);
        $responseDecoded = json_decode($result,true);
+       $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         try{
             $access_token = $responseDecoded['access_token'];
             if($access_token!=null){
-                self::getModel()->addAccessToken($access_token,'gigi@gmail.com','Dropbox');
+                self::getModel()->addAccessToken($access_token,$username,'Dropbox');
                 echo json_encode(array("status"=>'200'));
             }
         }
@@ -47,11 +48,12 @@ Class Dropbox extends Controller{
     }
     public static function uploadFile(){
         $dropbox_upload_url = "https://content.dropboxapi.com/2/files/upload";
-        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com",'Dropbox'),true); //gigi's token
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
         $token = $json_token['access_token'];
         $filebits = "Hai noroc vecine";   //file content to upload
         $parameters = '{' .
-            '"path": "/Langos/' . 'Biserica.txt' . '",' .
+            '"path": "/Langos/' . 'Costelino.txt' . '",' .
             '"mode": "add",' .
             '"autorename": true,' .
             '"mute": false,' .
@@ -71,11 +73,12 @@ Class Dropbox extends Controller{
        $result = curl_exec($curl_resource);
        curl_close($curl_resource);
        $responseDecoded = json_decode($result,true);
-       echo $result;
+       return "http://localhost/ProiectWeb/app/home";
     }
 
     public static function getFolderFiles(){
-        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com",'Dropbox'),true); //gigi's token
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
         $token = $json_token['access_token'];
         $dropbox_listFiles_url = "https://api.dropboxapi.com/2/files/list_folder";
         $parameters = '{' .
@@ -104,8 +107,9 @@ Class Dropbox extends Controller{
     }
 
     public static function getFileMetadata(){
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $dropbox_download_url = "https://api.dropboxapi.com/2/files/get_metadata";
-        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com",'Dropbox'),true); //gigi's token
+        $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
         $token = $json_token['access_token'];
         $curl_resource = curl_init();
         $parameter = '{' .
@@ -130,8 +134,9 @@ Class Dropbox extends Controller{
     }
 
     public static function createFolder(){
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $dropbox_create_folder_url = "https://api.dropboxapi.com/2/files/create_folder_v2";
-        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com",'Dropbox'),true); //gigi's token
+        $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
         $token = $json_token['access_token'];
         $parameters = '{' .
             '"path": "/Termopane",' .
@@ -154,8 +159,9 @@ Class Dropbox extends Controller{
     }
 
     public static function uploadSessionStart(){
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $dropbox_download_url = "https://content.dropboxapi.com/2/files/upload_session/start";
-        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com",'Dropbox'),true); //gigi's token
+        $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
         $token = $json_token['access_token'];
         $curl_resource = curl_init();
         $parameter = '{' .
@@ -187,8 +193,9 @@ Class Dropbox extends Controller{
     }
 
     public static function uploadSessionAppend($access_token,$file_data,$session_id){
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $dropbox_download_url = "https://content.dropboxapi.com/2/files/upload_session/append_v2";
-        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com",'Dropbox'),true); //gigi's token
+        $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
         $token = $json_token['access_token'];
         $curl_resource = curl_init();
         $parameters = '{' .
@@ -215,8 +222,9 @@ Class Dropbox extends Controller{
     }
 
     public static function uploadSessionFinish($access_token,$file_data,$session_id){
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $dropbox_download_url = "https://content.dropboxapi.com/2/files/upload_session/finish";
-        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com",'Dropbox'),true); //gigi's token
+        $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
         $token = $json_token['access_token'];
         $curl_resource = curl_init();
         $parameters = '{' .
@@ -250,8 +258,9 @@ Class Dropbox extends Controller{
 
 
     public static function download(){
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $dropbox_download_url = "https://content.dropboxapi.com/2/files/download";
-        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com",'Dropbox'),true); //gigi's token
+        $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
         $token = $json_token['access_token'];
         $curl_resource = curl_init();
         $parameter = '{' .
@@ -272,8 +281,9 @@ Class Dropbox extends Controller{
     }
 
     public static function downloadByLink(){
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $dropbox_download_url = "https://api.dropboxapi.com/2/files/get_temporary_link";
-        $json_token = json_decode(self::getModel()->getAccessToken("gigi@gmail.com",'Dropbox'),true); //gigi's token
+        $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
         $token = $json_token['access_token'];
         $curl_resource = curl_init();
         $parameter = '{' .

@@ -22,6 +22,26 @@ function makeRequestForToken(code,drive){
         xhr.send();
     });
 }
+
+function makeRequestForUpload(drive){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        if(drive == 'OneDrive'){
+
+        } else if(drive == 'DropBox'){
+             xhr.open('GET', 'uploadDropbox', true);
+        } else if(drive == 'GoogleDrive'){
+
+        }
+        xhr.onreadystatechange = function () {
+             if (xhr.readyState == XMLHttpRequest.DONE) {
+                 resolve(xhr.response);
+             }
+         };
+         xhr.send();
+     });
+}
+
 async function waitForResponse(reason,drive) {
     if(reason=='Code'){
         let result = await makeRequestForCode(drive);
@@ -29,6 +49,9 @@ async function waitForResponse(reason,drive) {
     }else if(reason=='Token'){
         var urlParams = new URLSearchParams(window.location.search);
         let result = await makeRequestForToken(urlParams.get('code'),drive);
+        return result;
+    } else if(reason == 'upload'){
+        let result = await makeRequestForUpload(drive);
         return result;
     }
     
@@ -58,7 +81,7 @@ async function uploadGoogleDrive(){
 }
 
 async function uploadDropBox(){
-    response = await waitForResponse('Code','DropBox');
+    response = await waitForResponse('upload','DropBox');
     location.assign(response);
 }
 

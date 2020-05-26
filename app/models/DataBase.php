@@ -98,20 +98,20 @@ class DataBase{
         $connection->execute();
         $result = $connection -> fetchAll();
         if($drive == "OneDrive"){
-            if(!empty($result[0][3])){                       
+            if($result[0][3] != '0'){                       
                 return json_encode(array("status"=>"200","access_token"=>$result[0][3]));
             }else{
                 return json_encode(array("status"=>"401","access_token" =>null));
             }
             
         } else if($drive == "Dropbox"){
-            if(!empty($result[0][4])){                       
+            if($result[0][4] != '0'){                       
                 return json_encode(array("status"=>"200","access_token"=>$result[0][4]));
             }else{
                 return json_encode(array("status"=>"401","access_token" =>null));
             }
         } else {
-            if(!empty($result[0][5])){                       
+            if($result[0][5] != '0'){                       
                 return json_encode(array("status"=>"200","access_token"=>$result[0][5]));
             }else{
                 return json_encode(array("status"=>"401","access_token" =>null));

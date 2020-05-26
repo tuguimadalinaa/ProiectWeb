@@ -85,6 +85,7 @@ Route::set('getCode', function(){
     }
     echo $response;
 });
+
 Route::set('getToken',function(){
     if(empty($_REQUEST['code'])){
         echo "No code";
@@ -104,8 +105,19 @@ Route::set('getToken',function(){
     }
 });
 
+
 Route::set('uploadDropbox',function(){   //Ruta testing
-    Dropbox::uploadFile();
+    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+    $access_token_json = Controller::getModel()->getAccessToken($username,'Dropbox');
+    $access_token_decoded = json_decode($access_token_json,true);
+    $access_token = $access_token_decoded['access_token'];
+    if($access_token != null){
+          $response = Dropbox::uploadFile();
+          echo $response;
+    } else {
+        header('Location: getCode?drive=DropBox');
+    }
+    
 });
 
 Route::set('getFilesDropbox',function(){ //Ruta testing
