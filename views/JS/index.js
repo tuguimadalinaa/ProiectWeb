@@ -54,7 +54,6 @@ async function waitForResponse(reason,drive) {
         let result = await makeRequestForUpload(drive);
         return result;
     }
-    
 }
 
 async function uploadOneDrive(){

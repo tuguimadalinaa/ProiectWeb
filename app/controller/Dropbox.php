@@ -76,14 +76,17 @@ Class Dropbox extends Controller{
        return "http://localhost/ProiectWeb/app/home";
     }
 
-    public static function getFolderFiles(){
+    public static function getFolderFiles($folder_id){
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
         $token = $json_token['access_token'];
         $dropbox_listFiles_url = "https://api.dropboxapi.com/2/files/list_folder";
+        if($folder_id == "root"){
+            $folder_id = "";
+        }
         $parameters = '{' .
-             '"path": "/Langos"' . ',' .
-             '"recursive": true,' .
+             '"path": "' . $folder_id . '"' . ',' .
+             '"recursive": false,' .
              '"include_media_info": false,' .
              '"include_deleted": false,' .
              '"include_has_explicit_shared_members": false,' .
@@ -103,7 +106,16 @@ Class Dropbox extends Controller{
         $response = curl_exec($curl_resource);
         curl_close($curl_resource);
         $responseDecoded = json_decode($response,true);
-        echo $response;
+        $entries = $responseDecoded['entries'];
+        //print_r(array_values($folders));
+        $folders = array();
+        foreach($entries as $file){
+            if($file['.tag'] == 'folder'){
+                array_push($folders,$file['name']);
+                array_push($folders,$file['id']);
+            }
+        }        
+        return json_encode($folders);
     }
 
     public static function getFileMetadata(){

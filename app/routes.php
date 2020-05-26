@@ -120,8 +120,9 @@ Route::set('uploadDropbox',function(){   //Ruta testing
     
 });
 
-Route::set('getFilesDropbox',function(){ //Ruta testing
-   DropBox::getFolderFiles();
+Route::set('getFolderFilesDropbox',function(){ //Ruta testing
+   $response = DropBox::getFolderFiles($_REQUEST['folder_id']);
+   echo $response;
 });
 
 Route::set('createFolderDropbox',function(){ //Ruta testing
