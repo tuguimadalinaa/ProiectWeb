@@ -207,7 +207,7 @@ Route::set('getFile',function(){
     echo OneDrive::GetFile($_REQUEST['fileTransfName']);
 });
 Route::set('getDirectoryOneDrive', function(){
-    echo OneDrive::ListAllFiles();
+    echo OneDrive::ListAllFiles($_REQUEST['name']);
 });
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
 ?>

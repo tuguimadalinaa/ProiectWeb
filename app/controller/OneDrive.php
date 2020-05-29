@@ -149,11 +149,11 @@ class OneDrive extends Controller{
         $urlForDownload = $decodedResponse['@microsoft.graph.downloadUrl'];
         return json_encode(array("status"=>'200',"urlToDownload"=>$urlForDownload));
     }
-    public static function makeRequestForListFiles($access_token)
+    public static function makeRequestForListFiles($access_token,$fileName)
     {
         $create_curl=curl_init();
         curl_setopt_array($create_curl,[
-            CURLOPT_URL=>'https://graph.microsoft.com/v1.0//me/drive/root:/Documents:/children', //spatiile in url dau erori
+            CURLOPT_URL=>'https://graph.microsoft.com/v1.0//me'.$fileName.':/children', //spatiile in url dau erori
             CURLOPT_RETURNTRANSFER=>1,
            /* CURLOPT_CUSTOMREQUEST=>'GET',*/
             CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}"),
@@ -163,11 +163,11 @@ class OneDrive extends Controller{
         curl_close($create_curl);
         return $response;
     }
-    public static function ListAllFiles()
+    public static function ListAllFiles($fileName)
     {
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
-        $response = self::makeRequestForListFiles($access_token);
+        $response = self::makeRequestForListFiles($access_token,$fileName);
         return $response;
     }
 }

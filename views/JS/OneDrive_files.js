@@ -11,10 +11,10 @@ function closeMenu()
     document.getElementById("shownMenu").style.width = "0";
     document.getElementById("sideMenu").style.marginLeft= "0";
 }
-function makeRequestGetDirectory(){
+function makeRequestGetDirectory(name){
     return new Promise(function (resolve) {
        let xhr = new XMLHttpRequest();
-       xhr.open('GET', 'getDirectoryOneDrive', true);
+       xhr.open('GET', 'getDirectoryOneDrive?name='+name, true);
        xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
@@ -23,31 +23,34 @@ function makeRequestGetDirectory(){
         xhr.send();
     });
 }
-async function responseGetDirectory() {
-    let result = await makeRequestGetDirectory();
+async function responseGetDirectory(name) {
+    let result = await makeRequestGetDirectory(name);
     return result;
 }
-var myFunction = function() {
-    alert("Merge");
+var nextFolder = function() {
+    var x = this.id;
+    var element = document.getElementById('renderFolders');
+    element.innerHTML='';
+    getDirectory(x);
 };
 function finished(){
-    alert("Done");
     var elements = document.getElementsByClassName("folder");
-    alert(elements.length); 
     for (var i = 0; i < elements.length; i++) {
-        elements[i].addEventListener('dblclick', myFunction, false);
+        elements[i].addEventListener('dblclick', nextFolder, false);
     }
 };
-async function getDirectory(callback){
-    let result   = await responseGetDirectory();
+async function getDirectory(name,callback){
+    let result   = await responseGetDirectory(name);
+    alert(result);
     let response = JSON.parse(result);
+    alert(response.value[0].length);
     var folders = document.getElementById('renderFolders');
     for(var i=0;i<response.value.length;i++)
     {
         var keyName = Object.values(response.value[i])[0];
         console.log(keyName);
         console.log(response.value[i]);
-        htmlString = '<div class="folder"> <a href="#"><img id='.concat(response.value[i].name).concat('"')
+        htmlString = "<div class='folder' id=".concat("'").concat(response.value[i].parentReference.path.concat('/').concat(response.value[i].name)).concat("'> <a href='#'><img id=").concat(response.value[i].name).concat('"')
                     .concat(' class="folderIcon" src="../views/IMAGES/folder-icon.png" alt="folderIcon"></a> <h4>')
                     .concat(response.value[i].name).concat('</h4> <button class="folder-button" onclick="getFile('.concat("'").concat(response.value[i].parentReference.path.concat('/').concat(response.value[i].name))
                     .concat("'").concat(')">Hello</button></div>'));
@@ -88,4 +91,4 @@ async function getFile(fileName){
     }
  }
  
- getDirectory(finished);
+ getDirectory('/drive/root:/Documents',finished);
