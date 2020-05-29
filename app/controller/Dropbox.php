@@ -110,7 +110,7 @@ Class Dropbox extends Controller{
         //print_r(array_values($folders));
         $folders = array();
         foreach($entries as $file){
-            if($file['.tag'] == 'folder'){
+            if($file['.tag'] == 'folder' || $file['.tag'] == 'file'){
                 array_push($folders,$file['name']);
                 array_push($folders,$file['id']);
             }
@@ -315,6 +315,8 @@ Class Dropbox extends Controller{
         $responseDecoded = json_decode($response,true);
         echo $response;
     }
-
+    public static function Cookie($cookie_name,$cookie_value,$cookie_expiration_time,$cookie_path,$cookie_domain,$cookie_secure,$cookie_httponly){
+        return self::getCookieHandler()->Cookie($cookie_name,$cookie_value,$cookie_expiration_time,$cookie_path,$cookie_domain,$cookie_secure,$cookie_httponly);
+    }
 }
 
