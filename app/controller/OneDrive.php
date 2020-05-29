@@ -42,7 +42,8 @@ class OneDrive extends Controller{
         try{
             $access_token = $responseDecoded['access_token'];
             if($access_token!=null){
-                self::getModel()->addAccessToken($access_token,'cici@gmail.com');
+                $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+                self::getModel()->addAccessToken($access_token,$username,'OneDrive');
                 echo json_encode(array("status"=>'200'));
             }
         }
@@ -51,8 +52,8 @@ class OneDrive extends Controller{
         }
         
     }
-    private static function getAccesTokenFromDB(){
-        $response = self::getModel()->getAccessToken('cici@gmail.com');
+    private static function getAccesTokenFromDB($username,$drive){
+        $response = self::getModel()->getAccessToken($username,$drive);
         $json_response = json_decode($response,true);
         if($json_response['status']=='200'){
             return $json_response['access_token'];
@@ -86,6 +87,7 @@ class OneDrive extends Controller{
             CURLOPT_CUSTOMREQUEST=>'PUT',
             CURLOPT_SSL_VERIFYPEER=>false,
             CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}",
+                                "Content-Type: application/octet-stream",
                                 "Content-Length: ${fileSize}",
                                 'Content-Range: bytes '."0-".($fileSize-1).'/'.$fileSize),
             CURLOPT_POSTFIELDS=>$fileData 
@@ -96,7 +98,8 @@ class OneDrive extends Controller{
     }
     
     public static function UploadFile($fileName, $fileData,$fileSize){
-        $access_token = self::getAccesTokenFromDB();
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         if(strcmp($access_token,"fail")!=0){
             $response = self::createFile($fileName,$access_token);
             $json_response = json_decode($response,true);
@@ -109,7 +112,8 @@ class OneDrive extends Controller{
         return json_encode(array("status"=>'401'));
     }
     public static function UploadBigFile($fileName,$fileData,$fileSize,$readyToGo){
-        $access_token = self::getAccesTokenFromDB();
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         if($readyToGo=="false"){
             if(strcmp($access_token,"fail")!=0){
                 $response = self::createFile($fileName,$access_token);
@@ -137,11 +141,33 @@ class OneDrive extends Controller{
         return $response;
     }
     public static function GetFile($fileName){
-        $access_token = self::getAccesTokenFromDB();
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $response = self::makeRequestForFile($access_token,$fileName);
         $decodedResponse = json_decode($response, true);
         $urlForDownload = $decodedResponse['@microsoft.graph.downloadUrl'];
         return json_encode(array("status"=>'200',"urlToDownload"=>$urlForDownload));
+    }
+    public static function makeRequestForListFiles($access_token)
+    {
+        $create_curl=curl_init();
+        curl_setopt_array($create_curl,[
+            CURLOPT_URL=>'https://graph.microsoft.com/v1.0//me/drive/root:/Documents:/children', //spatiile in url dau erori
+            CURLOPT_RETURNTRANSFER=>1,
+           /* CURLOPT_CUSTOMREQUEST=>'GET',*/
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}"),
+            CURLOPT_SSL_VERIFYPEER=>false
+        ]); 
+        $response=curl_exec($create_curl);
+        curl_close($create_curl);
+        return $response;
+    }
+    public static function ListAllFiles()
+    {
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
+        $response = self::makeRequestForListFiles($access_token);
+        return $response;
     }
 }
 ?>

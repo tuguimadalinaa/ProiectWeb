@@ -42,7 +42,8 @@ async function checkDropboxFiles(){
     var htmlString;
     var currentFolders = Array.from(response);
     for(var i = 0; i < currentFolders.length; i=i+2){
-        htmlString = '<div class="folder"> <img id='.concat(currentFolders[i+1]).concat('class="folderIcon" src="../views/IMAGES/folder-icon.png" alt="folderIcon"> <h4>').concat(currentFolders[i]).concat('</h4> </div>');
+        htmlString = '<div class="folder"> <img id="' + currentFolders[i+1] + '"';
+        htmlString = htmlString + ' class="folderIcon" src="../views/IMAGES/folder-icon.png" alt="folderIcon"> <h4>' + currentFolders[i] + '</h4> </div>';
         folders.insertAdjacentHTML('afterbegin',htmlString);
     }
    } else {

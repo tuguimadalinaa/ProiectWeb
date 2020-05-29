@@ -177,7 +177,7 @@ async function responseForBigFileTransfer(fileData, fileName,fileSize, readyToGo
     return result;
 }
 function readByChunk(file, fileSize,name){
-    let chunkSize  = 999; 
+    let chunkSize  = 1024; 
     let start     = 0;
     let chunkReaderBlock = null;
     let readEventHandler = async function(evt) {
@@ -187,14 +187,12 @@ function readByChunk(file, fileSize,name){
             console.log(name);
             console.log(evt.target.result.length);
             let result   = await responseForBigFileTransfer(evt.target.result, evt.target.fileName,evt.target.result.length, "false");
-            alert(result);
         } else {
             console.log("Read error: " + evt.target.error);
             return;
         }
         if (start >= fileSize) {
             let result   = await responseForBigFileTransfer("", "",0, "true");
-            alert(result);
             console.log("Done reading file");
             return;
         }
@@ -217,7 +215,7 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
     if (this.files && this.files[0]) {
         for (var i = 0; i < this.files.length; i++) {
             var myFile = this.files[i];
-            if(myFile.size<2000)
+            if(myFile.size<200000000000006)
             {
                 var reader = new FileReader();
                 reader.addEventListener('load',  async function (e) {
@@ -225,6 +223,7 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
                     array = new Uint8Array(arrayBuffer),
                     binaryString = String.fromCharCode.apply(null, array);
                     let result   = await responseForFileTransfer(binaryString, e.target.fileName,myFile.size);
+                    console.log(result);
                     let response = JSON.parse(result);
                     if(response.status=='401'){
                         alert("Error to load file: " + e.target.fileName);
@@ -289,6 +288,31 @@ async function getFile(fileName){
     else{
         location.assign(response.urlToDownload);
     }
+ }
+ function makeRequestGetDirectory(fileName){
+    return new Promise(function (resolve) {
+       let xhr = new XMLHttpRequest();
+       xhr.open('GET', 'getDirectory', true);
+       xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+async function responseGetDirectory(fileName) {
+    let result = await makeRequestGetDirectory(fileName);
+    return result;
+}
+   
+async function getDirectory(fileName){
+    //getFile('Tugui_Ioana_Madalina_IIB2_Laborator7_Tema.sql');
+    let result   = await responseGetDirectory(fileName);
+    let response = JSON.parse(result);
+    console.log(response.value[1].name);
+    console.log(response.value[1].parentReference.path);
+    
  }
  checkUrl();
 //https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_fileupload_files
