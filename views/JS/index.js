@@ -260,60 +260,7 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
         }
       }    
  });
- function makeRequestGetFile(fileName){
-    return new Promise(function (resolve) {
-       let xhr = new XMLHttpRequest();
-       xhr.open('GET', 'getFile?fileTransfName='+fileName, true);
-       xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                resolve(xhr.response);
-            }
-        };
-        xhr.send();
-    });
-}
-async function responseGetFile(fileName) {
-    let result = await makeRequestGetFile(fileName);
-    return result;
-}
-   
-async function getFile(fileName){
-    //getFile('Tugui_Ioana_Madalina_IIB2_Laborator7_Tema.sql');
-    let result   = await responseGetFile(fileName);
-    alert(result);
-    let response = JSON.parse(result);
-    if(response.status=='401'){
-        alert("Error to load file: " + e.target.fileName);
-    }
-    else{
-        location.assign(response.urlToDownload);
-    }
- }
- function makeRequestGetDirectory(fileName){
-    return new Promise(function (resolve) {
-       let xhr = new XMLHttpRequest();
-       xhr.open('GET', 'getDirectory', true);
-       xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                resolve(xhr.response);
-            }
-        };
-        xhr.send();
-    });
-}
-async function responseGetDirectory(fileName) {
-    let result = await makeRequestGetDirectory(fileName);
-    return result;
-}
-   
-async function getDirectory(fileName){
-    //getFile('Tugui_Ioana_Madalina_IIB2_Laborator7_Tema.sql');
-    let result   = await responseGetDirectory(fileName);
-    let response = JSON.parse(result);
-    console.log(response.value[1].name);
-    console.log(response.value[1].parentReference.path);
-    
- }
+
  checkUrl();
 //https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_fileupload_files
 //https://stackoverflow.com/questions/16210231/how-can-i-upload-a-new-file-on-click-of-image-button

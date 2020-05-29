@@ -58,13 +58,15 @@
     padding: 10px;
     margin-top: 20%;
 }
-.folderIcon{
-    width: 100px;
-    height: 100px;
-}
+
 .folder{
      margin-left: 100px;
      flex-direction: row;
+    
+}
+.folder .folderIcon{
+    width: 100px;
+    height: 100px;
 }
 .folder h4{
     margin-left: 5%;

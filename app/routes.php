@@ -50,9 +50,7 @@ Route::set('home',function(){
 Route::set('about',function(){
     Home::CreateView('about');
 });
-Route::set('your-files',function(){
-    Home::CreateView('fileRender');
-});
+
 
 Route::set('Dropbox_files',function(){
     Home::CreateView('Dropbox_files');
@@ -166,8 +164,8 @@ Route::set('registrationConfirmed',function(){
 Route::set('getFile',function(){
     echo OneDrive::GetFile($_REQUEST['fileTransfName']);
 });
-Route::set('getDirectory', function(){
+Route::set('getDirectoryOneDrive', function(){
     echo OneDrive::ListAllFiles();
-})
+});
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
 ?>

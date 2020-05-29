@@ -44,11 +44,11 @@ class OneDrive extends Controller{
             if($access_token!=null){
                 $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
                 self::getModel()->addAccessToken($access_token,$username,'OneDrive');
-                echo json_encode(array("status"=>'200'));
+                return json_encode(array("status"=>'200'));
             }
         }
         catch(Exception $e){
-            echo json_encode(array("status"=>'401'));
+            return  json_encode(array("status"=>'401'));
         }
         
     }
@@ -128,9 +128,10 @@ class OneDrive extends Controller{
         return json_encode(array("status"=>'200',"fileName"=>$fileName,"readyToGo"=>$readyToGo));
     }
     public static function makeRequestForFile($access_token,$fileName){
+        
         $create_curl=curl_init();
         curl_setopt_array($create_curl,[
-            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drive/root:/Documents/'.$fileName, //spatiile in url dau erori
+            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me'.$fileName, //spatiile in url dau erori
             CURLOPT_RETURNTRANSFER=>1,
            /* CURLOPT_CUSTOMREQUEST=>'GET',*/
             CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}"),
