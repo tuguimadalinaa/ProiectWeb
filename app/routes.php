@@ -104,8 +104,32 @@ Route::set('getToken',function(){
         }
     }
 });
-
-
+Route::set('uploadGoogleDrive',function()
+{
+    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
+    $access_token_decoded = json_decode($access_token_json,true);
+    $access_token = $access_token_decoded['access_token'];
+    //echo $access_token;
+    if($access_token != null){
+        $response = GoogleDrive::uploadFileResumable();
+        echo $response;
+  } else {
+      header('Location: getCode?drive=GoogleDrive');
+  }
+});
+Route::set('listGoogleDrive',function(){
+    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
+    $access_token_decoded = json_decode($access_token_json,true);
+    $access_token = $access_token_decoded['access_token'];
+    if($access_token != null){
+        $response = GoogleDrive::listAllFiles();
+        echo $response;
+  } else {
+      header('Location: getCode?drive=GoogleDrive');
+  }
+});
 Route::set('uploadDropbox',function(){   //Ruta testing
     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
     $access_token_json = Controller::getModel()->getAccessToken($username,'Dropbox');
@@ -120,6 +144,15 @@ Route::set('uploadDropbox',function(){   //Ruta testing
     
 });
 
+Route::set('getMetadataFileGoogleDrive',function(){
+     $response=GoogleDrive::getMetadata();
+     echo $response;
+});
+
+Route::set('downloadFileGoogleDrive',function(){
+    $response=GoogleDrive::downloadAllFiles();
+    echo $response;
+});
 Route::set('getFolderFilesDropbox',function(){ //Ruta testing
    $response = DropBox::getFolderFiles($_REQUEST['folder_id']);
    echo $response;

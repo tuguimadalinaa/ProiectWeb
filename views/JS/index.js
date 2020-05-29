@@ -31,7 +31,7 @@ function makeRequestForUpload(drive){
         } else if(drive == 'DropBox'){
              xhr.open('GET', 'uploadDropbox', true);
         } else if(drive == 'GoogleDrive'){
-
+            xhr.open('GET', 'uploadGoogleDrive', true);
         }
         xhr.onreadystatechange = function () {
              if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -74,8 +74,8 @@ async function uploadOneDrive(){
   
 }
 async function uploadGoogleDrive(){
-    response = await waitForResponse('Code','GoogleDrive');
-    //alert(response);
+    response = await waitForResponse('upload','GoogleDrive');
+    alert(response);
     location.assign(response);
 }
 
