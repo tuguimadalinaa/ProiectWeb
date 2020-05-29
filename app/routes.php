@@ -15,7 +15,8 @@ Route::set('login',function(){
         if(!isset($_COOKIE["loggedIn"])){
             $json_response = json_decode($data,true);
             if($json_response['status']==0){
-                Login::Cookie("loggedIn",$json_response['jwt'],time() + 36000,"http://localhost/ProiectWeb/");
+                Login::Cookie("loggedIn",$json_response['jwt'],time() + 36000,"http://localhost/ProiectWeb/",null,TRUE,TRUE);
+                Login::Cookie("Dropbox","root",time() + 36000,"http://localhost/ProiectWeb/",null,FALSE,FALSE);
                 //Login::StartSession();
                 echo $data;
             }else if($json_response['status']==1 ||$json_response['status']==2){
@@ -67,7 +68,8 @@ Route::set('GoogleDrive_files',function(){
 
 Route::set('logOut',function(){
     //Login::EndSession();
-    Login::Cookie("loggedIn","JWToken",time() - 3600,"http://localhost/ProiectWeb/");
+    Login::Cookie("loggedIn","JWToken",time() - 3600,null,null,TRUE,TRUE);
+    Login::Cookie("Dropbox","root",time() - 3600,null,null,FALSE,FALSE);
     //header('Location: home');   //Robert, musai trebuie 
     echo 'Logout';
 });
@@ -102,8 +104,32 @@ Route::set('getToken',function(){
         }
     }
 });
-
-
+Route::set('uploadGoogleDrive',function()
+{
+    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
+    $access_token_decoded = json_decode($access_token_json,true);
+    $access_token = $access_token_decoded['access_token'];
+    //echo $access_token;
+    if($access_token != null){
+        $response = GoogleDrive::uploadFileResumable();
+        echo $response;
+  } else {
+      header('Location: getCode?drive=GoogleDrive');
+  }
+});
+Route::set('listGoogleDrive',function(){
+    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
+    $access_token_decoded = json_decode($access_token_json,true);
+    $access_token = $access_token_decoded['access_token'];
+    if($access_token != null){
+        $response = GoogleDrive::listAllFiles();
+        echo $response;
+  } else {
+      header('Location: getCode?drive=GoogleDrive');
+  }
+});
 Route::set('uploadDropbox',function(){   //Ruta testing
     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
     $access_token_json = Controller::getModel()->getAccessToken($username,'Dropbox');
@@ -117,6 +143,22 @@ Route::set('uploadDropbox',function(){   //Ruta testing
     }
     
 });
+
+Route::set('getMetadataFileGoogleDrive',function(){
+     $response=GoogleDrive::getMetadata();
+     echo $response;
+});
+
+Route::set('downloadFileGoogleDrive',function(){
+    $response=GoogleDrive::downloadAllFiles();
+    echo $response;
+});
+
+Route::set('changeFolderDropbox',function(){
+    $changed_folder_id = $_REQUEST['folder_id'];
+    Dropbox::Cookie("Dropbox",$changed_folder_id,time() + 36000,"http://localhost/ProiectWeb/",null,FALSE,FALSE);
+    echo 'Cookie value changed';
+ });
 
 Route::set('getFolderFilesDropbox',function(){ //Ruta testing
    $response = DropBox::getFolderFiles($_REQUEST['folder_id']);
