@@ -134,19 +134,29 @@ Route::set('listGoogleDrive',function(){
   }
 });
 
+Route::set('deleteFileGoogleDrive',function(){
+    $response=GoogleDrive::deleteFile($_REQUEST['folderId']);
+    echo $response;
+});
 Route::set('getMetadataFileGoogleDrive',function(){
      $response=GoogleDrive::getMetadata();
      echo $response;
 });
 
-Route::set('downloadFolderGoogleDrive',function(){
-    $response=GoogleDrive::exportFolders();
-    echo $response;
-});
+// Route::set('downloadFolderGoogleDrive',function(){
+//     $response=GoogleDrive::exportFolders();
+//     echo $response;
+// });
 
 Route::set('downloadFileGoogleDrive',function(){
-    $response=GoogleDrive::downloadAllFiles();
-    echo $response;
+    $response=GoogleDrive::downloadSimpleFile($_REQUEST['fileId']);
+    $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
+    $file_name = basename($file_to_download);
+    header("Content-Type: application/octet-stream");
+    header("Content-Disposition: attachment; filename=${file_name}");
+    header("Content-Length: " . filesize($file_to_download));
+    readfile($file_to_download);
+    unlink($file_to_download);
 });
 
 /* --------------------------------------------- Dropbox --------------------------------------------- */

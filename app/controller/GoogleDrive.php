@@ -148,7 +148,7 @@
             
         }
 
-        public static function getMetadata()
+        public static function getMetadata($fileId)
         {
             $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
             $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
@@ -164,45 +164,16 @@
             curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
             $response=curl_exec($curl_resource);
             curl_close($curl_resource); 
-            echo $response;
+            return  $response;
         }
-        public static function exportFolders()
+        
+        public static function downloadSimpleFile($fileId)
         {
             $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
             $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
             $token = $json_token['access_token'];
-            $files=self::listAllFiles();
-            $files_length=count($files);
-            for($i=0;$i<$files_length;$i+=2)
-            {
-                $fileId=$files[$i+1];
-                $nameOfTheFile=$files[$i];
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=application/vnd.google-apps.folder";
-                $curl_resource=curl_init();
-                curl_setopt($curl_resource,CURLOPT_URL,$uri);
-                curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
-                curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
-                 "Authorization: Bearer ${token}"
-                ));
-                curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
-                curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
-                $response=curl_exec($curl_resource);
-                curl_close($curl_resource);
-                $data=$nameOfTheFile . " content: " . $response . "\n";  
-                echo $data;
-            }
-        }
-        public static function downloadAllFiles()
-        {
-            $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
-            $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
-            $token = $json_token['access_token'];
-            $files=self::listAllFiles();
-            $files_length=count($files);
-            for($i=0;$i<$files_length;$i+=2)
-            {
-                $fileId=$files[$i+1];
-                $nameOfTheFile=$files[$i];
+            $metadata=self::getMetadata($fileId);
+            $dataArray=json_decode($metadata,true);
                 $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
@@ -214,68 +185,89 @@
                 curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
                 $response=curl_exec($curl_resource);
                 curl_close($curl_resource);
-                $data=$nameOfTheFile . " content: " . $response . "\n";  
-                echo $data;
-            }
+                $file_name = $dataArray['name'];
+                $myfile = fopen("${file_name}","w");
+                file_put_contents("${file_name}",$response);
+                //echo $response;
+                return $file_name;
             
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        public static function uploadFile()
-    {
-        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
-        $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
-        $token = $json_token['access_token'];
-        $metadata='--boundary' .
-        ' Content-Type: application/json; charset=UTF-8' .
-        ' {'  .
-            '"name": "poleta.txt"' .
-        ' }' .
-        ' --boundary  ' .
-        ' Content-Type: text/plain '  .
-        '  "Mister"   '  .
-        ' --boundary-- ' ;
-
-        echo $metadata;
-        //$metadata="--boundary 
-        //Content-Type: application/json; charset=UTF-8
-
-        //{
-            //"name": "lala.txt"
-        //}
-        //--boundary
-        //Content-Type: text/plain
-
-        //"Mister"
-
-        //--boundary--";
-        $curl_resource = curl_init();
-        curl_setopt($curl_resource,CURLOPT_URL,"https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart");
-        curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
-        curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
-           "Authorization: Bearer ${token}",
-           "Content-Type: multipart/related; boundary=boundary"
-        ));
-        curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$metadata);
-        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
-        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
-        $response=curl_exec($curl_resource);
-        curl_close($curl_resource);
-        echo $response;
-        $responseDecoded = json_decode($response,true);
+        public static function deleteFile($fileId)
+        {
+            $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+            $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
+            $token = $json_token['access_token'];
+    
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}";
+                $curl_resource=curl_init();
+                curl_setopt($curl_resource,CURLOPT_URL,$uri);
+                curl_setopt($curl_resource, CURLOPT_CUSTOMREQUEST, "DELETE");
+                curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+                 "Authorization: Bearer ${token}"
+                ));
+                curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+                curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+                $response=curl_exec($curl_resource);
+                curl_close($curl_resource);
+                return json_encode($response);
+            }
     }
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //     public static function uploadFile()
+    // {
+    //     $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+    //     $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
+    //     $token = $json_token['access_token'];
+    //     $metadata='--boundary' .
+    //     ' Content-Type: application/json; charset=UTF-8' .
+    //     ' {'  .
+    //         '"name": "poleta.txt"' .
+    //     ' }' .
+    //     ' --boundary  ' .
+    //     ' Content-Type: text/plain '  .
+    //     '  "Mister"   '  .
+    //     ' --boundary-- ' ;
+
+    //     echo $metadata;
+    //     //$metadata="--boundary 
+    //     //Content-Type: application/json; charset=UTF-8
+
+    //     //{
+    //         //"name": "lala.txt"
+    //     //}
+    //     //--boundary
+    //     //Content-Type: text/plain
+
+    //     //"Mister"
+
+    //     //--boundary--";
+    //     $curl_resource = curl_init();
+    //     curl_setopt($curl_resource,CURLOPT_URL,"https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart");
+    //     curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+    //     curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+    //        "Authorization: Bearer ${token}",
+    //        "Content-Type: multipart/related; boundary=boundary"
+    //     ));
+    //     curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$metadata);
+    //     curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+    //     curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+    //     $response=curl_exec($curl_resource);
+    //     curl_close($curl_resource);
+    //     echo $response;
+    //     $responseDecoded = json_decode($response,true);
+    // }
+    // }
 ?>

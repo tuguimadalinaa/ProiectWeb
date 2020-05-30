@@ -89,9 +89,9 @@ async function deleteItem(){
 }
 
 async function downloadItem(){
-    item = document.getElementById(clickedItemId);
-    typeOfItem = item.getAttribute('alt');
     if(clickedItemId != 0){
+        item = document.getElementById(clickedItemId);
+        typeOfItem = item.getAttribute('alt');
         if(typeOfItem == 'folderIcon'){
             window.location = 'downloadFolderDropbox?folder_id=' + clickedItemId;
         } else if(typeOfItem == 'fileIcon'){
