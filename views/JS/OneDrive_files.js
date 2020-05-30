@@ -95,23 +95,28 @@ var  getFile = async function()
         console.log('In get File ' + selectedFile);
         var div = document.getElementById(selectedFile).childNodes;
         var image =div[1].childNodes;
+        var folder = false;
         console.log(image[0].src);
         let result;
         if(image[0].src.includes('folder-icon-v2.png')==true)
         {
             result   = await responseGetFile(selectedFile,'folder'); 
+            folder=true;
         }
         else{
             result   = await responseGetFile(selectedFile,'file');
         }
-       console.log(result);
-        /*let response = JSON.parse(result);
+        let response = JSON.parse(result);
         if(response.status=='401'){
             alert("Error to load file: " + selectedFile);
         }
         else{
-            location.assign(response.urlToDownload);
-        }*/
+            if(folder==false)
+            {
+                location.assign(response.urlToDownload);
+            }
+            
+        }
         pressedButton=false;
     }
     else{
