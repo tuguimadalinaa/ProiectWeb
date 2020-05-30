@@ -54,6 +54,19 @@ function makeRequestForDeletingItem(itemId){
     });
 }
 
+function makeRequestForGoingToPreviousFolder(){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', 'previousFolderDropbox', true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+
 async function waitForResponse(reason,itemId) {
      if(reason == 'updateFiles'){
         let result = await makeRequestForFiles(itemId);
@@ -63,6 +76,9 @@ async function waitForResponse(reason,itemId) {
         return result;
      } else if(reason == 'deleteItem'){
         let result = await makeRequestForDeletingItem(itemId);
+        return result;
+     } else if(reason == 'goBackToPreviousFolder'){
+        let result = makeRequestForGoingToPreviousFolder();
         return result;
      }
 }
@@ -86,6 +102,11 @@ async function deleteItem(){
         response = await waitForResponse('deleteItem',clickedItemId);
         location.reload();
     }
+}
+
+async function goBackToPreviousFolder(){
+    response = await waitForResponse('goBackToPreviousFolder',null);
+    location.reload();
 }
 
 async function downloadItem(){

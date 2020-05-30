@@ -374,5 +374,13 @@ Class Dropbox extends Controller{
         file_put_contents("${file_name}.zip",$response);
         return $file_name;
     }
+
+    public static function getParentFolderId($current_folder_id){
+        $current_folder_metadata = self::getItemMetadata($current_folder_id);
+        $current_folder_name_position_in_path = strpos($current_folder_metadata['path_display'],$current_folder_metadata['name']);
+        $parent_path = substr($current_folder_metadata['path_display'],0,$current_folder_name_position_in_path - 1);
+        $parent_folder_metadata = self::getItemMetadata($parent_path);
+        return $parent_folder_metadata['id'];
+    }
 }
 

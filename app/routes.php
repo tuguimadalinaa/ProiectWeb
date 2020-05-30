@@ -15,8 +15,8 @@ Route::set('login',function(){
         if(!isset($_COOKIE["loggedIn"])){
             $json_response = json_decode($data,true);
             if($json_response['status']==0){
-                Login::Cookie("loggedIn",$json_response['jwt'],time() + 36000,"http://localhost/ProiectWeb/",null,FALSE,TRUE);
-                Login::Cookie("Dropbox","root",time() + 36000,"http://localhost/ProiectWeb/",null,FALSE,FALSE);
+                Login::Cookie("loggedIn",$json_response['jwt'],time() + 36000,'/',null,FALSE,TRUE);
+                Login::Cookie("Dropbox","root",time() + 36000,'/',null,FALSE,FALSE);
                 //Login::StartSession();
                 echo $data;
             }else if($json_response['status']==1 ||$json_response['status']==2){
@@ -68,8 +68,8 @@ Route::set('GoogleDrive_files',function(){
 
 Route::set('logOut',function(){
     //Login::EndSession();
-    Login::Cookie("loggedIn","JWToken",time() - 3600,null,null,FALSE,TRUE);
-    Login::Cookie("Dropbox","root",time() - 3600,null,null,FALSE,FALSE);
+    Login::Cookie("loggedIn","JWToken",time() - 3600,'/',null,FALSE,TRUE);
+    Login::Cookie("Dropbox","root",time() - 3600,'/',null,FALSE,FALSE);
     //header('Location: home');   //Robert, musai trebuie 
     echo 'Logout';
 });
@@ -182,16 +182,24 @@ Route::set('deleteItemDropbox',function(){
 
 Route::set('changeFolderDropbox',function(){
     $changed_folder_id = $_REQUEST['folder_id'];
-    Dropbox::Cookie("Dropbox",$changed_folder_id,time() + 36000,"http://localhost/ProiectWeb/",null,FALSE,FALSE);
-    echo 'Cookie value changed';
+    Dropbox::Cookie("Dropbox",$changed_folder_id,time() + 36000,'/',null,FALSE,FALSE);
+    echo 'Cookie Folder value changed';
  });
 
-Route::set('getFolderFilesDropbox',function(){ //Ruta testing
+Route::set('getFolderFilesDropbox',function(){ 
    $response = DropBox::getFolderFiles($_REQUEST['folder_id']);
    echo $response;
 });
 
-Route::set('downloadFileDropbox',function(){ //Ruta testing
+Route::set('previousFolderDropbox',function(){
+    $parent_id = Dropbox::getParentFolderId($_COOKIE["Dropbox"]);
+    //echo $_COOKIE['Dropbox'];
+    //$parent_id = Dropbox::getParentFolderId('id:Z9Jcd_nPTfAAAAAAAAAAIQ');
+    Dropbox::Cookie("Dropbox",$parent_id,time() + 36000,'/',null,FALSE,FALSE);
+    echo 'Previous Folder';
+});
+
+Route::set('downloadFileDropbox',function(){ 
     $downloaded_item_id = $_REQUEST['file_id'];
     $response = Dropbox::downloadFileByLink($downloaded_item_id);
     header("Location: ${response}");
@@ -223,7 +231,7 @@ Route::set('downloadFileDropbox',function(){ //Ruta testing
        //Dropbox::downloadByLink();
 });
 
-Route::set('getFileMetadata',function(){ //Ruta testing
+Route::set('getFileMetadataDropbox',function(){ //Ruta testing
     Dropbox::getFileMetadata();
 });
 
