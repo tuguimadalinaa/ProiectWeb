@@ -15,7 +15,7 @@ Route::set('login',function(){
         if(!isset($_COOKIE["loggedIn"])){
             $json_response = json_decode($data,true);
             if($json_response['status']==0){
-                Login::Cookie("loggedIn",$json_response['jwt'],time() + 36000,"http://localhost/ProiectWeb/",null,TRUE,TRUE);
+                Login::Cookie("loggedIn",$json_response['jwt'],time() + 36000,"http://localhost/ProiectWeb/",null,FALSE,TRUE);
                 Login::Cookie("Dropbox","root",time() + 36000,"http://localhost/ProiectWeb/",null,FALSE,FALSE);
                 //Login::StartSession();
                 echo $data;
@@ -68,7 +68,7 @@ Route::set('GoogleDrive_files',function(){
 
 Route::set('logOut',function(){
     //Login::EndSession();
-    Login::Cookie("loggedIn","JWToken",time() - 3600,null,null,TRUE,TRUE);
+    Login::Cookie("loggedIn","JWToken",time() - 3600,null,null,FALSE,TRUE);
     Login::Cookie("Dropbox","root",time() - 3600,null,null,FALSE,FALSE);
     //header('Location: home');   //Robert, musai trebuie 
     echo 'Logout';
@@ -134,6 +134,11 @@ Route::set('listGoogleDrive',function(){
 Route::set('getMetadataFileGoogleDrive',function(){
      $response=GoogleDrive::getMetadata();
      echo $response;
+});
+
+Route::set('downloadFolderGoogleDrive',function(){
+    $response=GoogleDrive::exportFolders();
+    echo $response;
 });
 
 Route::set('downloadFileGoogleDrive',function(){

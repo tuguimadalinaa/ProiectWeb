@@ -131,8 +131,12 @@
 
             foreach($responseDecoded['files'] as $file)
             {
-                if($file['mimeType']=='text/plain')
+                if($file['mimeType']=='application/vnd.google-apps.folder')
                 {
+                    array_push($folders,$file['name']);
+                    array_push($folders,$file['id']);
+                }
+                else{
                     array_push($folders,$file['name']);
                     array_push($folders,$file['id']);
                 }
@@ -140,7 +144,7 @@
             }
         
             //print_r(array_values($folders));
-            return $folders;
+            return json_encode($folders);
             
         }
 
@@ -149,7 +153,6 @@
             $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
             $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
             $token = $json_token['access_token'];
-            $fileId="1XYGmFs73vB6QyVUz2sjFyROXZdCUGW8p";
             $uri="https://www.googleapis.com/drive/v3/files/${fileId}";
             $curl_resource=curl_init();
             curl_setopt($curl_resource,CURLOPT_URL,$uri);
@@ -163,7 +166,32 @@
             curl_close($curl_resource); 
             echo $response;
         }
-
+        public static function exportFolders()
+        {
+            $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+            $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
+            $token = $json_token['access_token'];
+            $files=self::listAllFiles();
+            $files_length=count($files);
+            for($i=0;$i<$files_length;$i+=2)
+            {
+                $fileId=$files[$i+1];
+                $nameOfTheFile=$files[$i];
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=application/vnd.google-apps.folder";
+                $curl_resource=curl_init();
+                curl_setopt($curl_resource,CURLOPT_URL,$uri);
+                curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
+                curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+                 "Authorization: Bearer ${token}"
+                ));
+                curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+                curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+                $response=curl_exec($curl_resource);
+                curl_close($curl_resource);
+                $data=$nameOfTheFile . " content: " . $response . "\n";  
+                echo $data;
+            }
+        }
         public static function downloadAllFiles()
         {
             $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
