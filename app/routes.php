@@ -104,6 +104,9 @@ Route::set('getToken',function(){
         }
     }
 });
+
+/* --------------------------------------------- GoogleDrive --------------------------------------------- */
+
 Route::set('uploadGoogleDrive',function()
 {
     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
@@ -146,6 +149,8 @@ Route::set('downloadFileGoogleDrive',function(){
     echo $response;
 });
 
+/* --------------------------------------------- Dropbox --------------------------------------------- */
+
 Route::set('uploadDropbox',function(){   
     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
     $access_token_json = Controller::getModel()->getAccessToken($username,'Dropbox');
@@ -160,7 +165,7 @@ Route::set('uploadDropbox',function(){
 });
 
 Route::set('deleteItemDropbox',function(){
-    $deleted_item_id = $_REQUEST['folder_id'];
+    $deleted_item_id = $_REQUEST['item_id'];
     Dropbox::deleteItem($deleted_item_id);
     echo 'Item deleted';
 });
@@ -175,6 +180,25 @@ Route::set('getFolderFilesDropbox',function(){ //Ruta testing
    $response = DropBox::getFolderFiles($_REQUEST['folder_id']);
    echo $response;
 });
+
+Route::set('downloadFileDropbox',function(){ //Ruta testing
+    $downloaded_item_id = $_REQUEST['file_id'];
+    $response = Dropbox::downloadFileByLink($downloaded_item_id);
+    header("Location: ${response}");
+});
+
+Route::set('downloadFolderDropbox',function(){
+ $folder_id = $_REQUEST['folder_id'];
+ $response = Dropbox::downloadFolder($folder_id);
+ $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response . '.zip';
+ $file_name = basename($file_to_download);
+ header("Content-Type: application/zip");
+ header("Content-Disposition: attachment; filename=${file_name}");
+ header("Content-Length: " . filesize($file_to_download));
+ readfile($file_to_download);
+ unlink($file_to_download);
+});
+
 
 Route::set('createFolderDropbox',function(){ //Ruta testing
     DropBox::createFolder();
@@ -192,6 +216,8 @@ Route::set('downloadFileDropbox',function(){ //Ruta testing
 Route::set('getFileMetadata',function(){ //Ruta testing
     Dropbox::getFileMetadata();
 });
+
+/* --------------------------------------------- OneDrive --------------------------------------------- */
 
 Route::set('transferFile',function(){
     if(!empty(file_get_contents('php://input')) && !empty($_REQUEST['fileTransfName'])&& !empty($_REQUEST['fileSize'])){

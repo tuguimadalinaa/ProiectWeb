@@ -41,10 +41,10 @@ function makeRequestForChangingFolder(folderId){
     });
 }
 
-function makeRequestForDeletingItem(folderId){
+function makeRequestForDeletingItem(itemId){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        xhr.open('GET', 'deleteItemDropbox?folder_id='+folderId, true);
+        xhr.open('GET', 'deleteItemDropbox?item_id='+itemId, true);
         xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
@@ -54,15 +54,15 @@ function makeRequestForDeletingItem(folderId){
     });
 }
 
-async function waitForResponse(reason,folderId) {
+async function waitForResponse(reason,itemId) {
      if(reason == 'updateFiles'){
-        let result = await makeRequestForFiles(folderId);
+        let result = await makeRequestForFiles(itemId);
         return result;
      } else if(reason == 'changeFolder'){
-        let result = await makeRequestForChangingFolder(folderId);
+        let result = await makeRequestForChangingFolder(itemId);
         return result;
      } else if(reason == 'deleteItem'){
-        let result = await makeRequestForDeletingItem(folderId);
+        let result = await makeRequestForDeletingItem(itemId);
         return result;
      }
 }
@@ -85,6 +85,22 @@ async function deleteItem(){
     } else {
         response = await waitForResponse('deleteItem',clickedItemId);
         location.reload();
+    }
+}
+
+async function downloadItem(){
+    item = document.getElementById(clickedItemId);
+    typeOfItem = item.getAttribute('alt');
+    if(clickedItemId != 0){
+        if(typeOfItem == 'folderIcon'){
+            window.location = 'downloadFolderDropbox?folder_id=' + clickedItemId;
+        } else if(typeOfItem == 'fileIcon'){
+            window.location = 'downloadFileDropbox?file_id=' + clickedItemId;
+        } else {
+            
+        }
+    } else{
+        alert('Please select a folder or file to download');
     }
 }
 
