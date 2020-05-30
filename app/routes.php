@@ -136,6 +136,11 @@ Route::set('getMetadataFileGoogleDrive',function(){
      echo $response;
 });
 
+Route::set('downloadFolderGoogleDrive',function(){
+    $response=GoogleDrive::exportFolders();
+    echo $response;
+});
+
 Route::set('downloadFileGoogleDrive',function(){
     $response=GoogleDrive::downloadAllFiles();
     echo $response;
