@@ -170,6 +170,30 @@ Class Dropbox extends Controller{
         echo $response;
     }
 
+    public static function deleteItem($item_id){
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $dropbox_delete_item_url = "https://api.dropboxapi.com/2/files/delete_v2";
+        $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
+        $token = $json_token['access_token'];
+        $parameters = '{' .
+            '"path": "' . $item_id . '"' .
+        '}';
+        $curl_resource = curl_init();
+        curl_setopt($curl_resource,CURLOPT_URL,$dropbox_delete_item_url);
+        curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+        curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$parameters);
+        curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+            "Authorization: Bearer ${token}",
+            "Content-Type: application/json"
+        ));
+        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+        $response = curl_exec($curl_resource);
+        curl_close($curl_resource);
+        $responseDecoded = json_decode($response,true);
+        echo $response;
+    }
+
     public static function uploadSessionStart(){
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $dropbox_download_url = "https://content.dropboxapi.com/2/files/upload_session/start";

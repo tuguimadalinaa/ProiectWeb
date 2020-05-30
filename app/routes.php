@@ -130,7 +130,18 @@ Route::set('listGoogleDrive',function(){
       header('Location: getCode?drive=GoogleDrive');
   }
 });
-Route::set('uploadDropbox',function(){   //Ruta testing
+
+Route::set('getMetadataFileGoogleDrive',function(){
+     $response=GoogleDrive::getMetadata();
+     echo $response;
+});
+
+Route::set('downloadFileGoogleDrive',function(){
+    $response=GoogleDrive::downloadAllFiles();
+    echo $response;
+});
+
+Route::set('uploadDropbox',function(){   
     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
     $access_token_json = Controller::getModel()->getAccessToken($username,'Dropbox');
     $access_token_decoded = json_decode($access_token_json,true);
@@ -141,17 +152,12 @@ Route::set('uploadDropbox',function(){   //Ruta testing
     } else {
         header('Location: getCode?drive=DropBox');
     }
-    
 });
 
-Route::set('getMetadataFileGoogleDrive',function(){
-     $response=GoogleDrive::getMetadata();
-     echo $response;
-});
-
-Route::set('downloadFileGoogleDrive',function(){
-    $response=GoogleDrive::downloadAllFiles();
-    echo $response;
+Route::set('deleteItemDropbox',function(){
+    $deleted_item_id = $_REQUEST['folder_id'];
+    Dropbox::deleteItem($deleted_item_id);
+    echo 'Item deleted';
 });
 
 Route::set('changeFolderDropbox',function(){

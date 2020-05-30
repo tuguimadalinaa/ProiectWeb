@@ -1,6 +1,7 @@
 console.log('Dropbox');
 
 var updatedFiles = false;
+var clickedItemId = 0;
 
 function openMenu()
 {
@@ -40,12 +41,28 @@ function makeRequestForChangingFolder(folderId){
     });
 }
 
+function makeRequestForDeletingItem(folderId){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', 'deleteItemDropbox?folder_id='+folderId, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+
 async function waitForResponse(reason,folderId) {
      if(reason == 'updateFiles'){
         let result = await makeRequestForFiles(folderId);
         return result;
      } else if(reason == 'changeFolder'){
         let result = await makeRequestForChangingFolder(folderId);
+        return result;
+     } else if(reason == 'deleteItem'){
+        let result = await makeRequestForDeletingItem(folderId);
         return result;
      }
 }
@@ -54,6 +71,21 @@ async function getFolderFiles(folder){
       folderId = folder.getAttribute('id');
       response = await waitForResponse('changeFolder',folderId);
       location.reload();
+}
+
+async function highlightItem(item){
+    itemId = item.getAttribute('id');
+    clickedItemId = itemId;
+    console.log(clickedItemId);
+}
+
+async function deleteItem(){
+    if(clickedItemId == 0){
+        alert('Please select a file/folder to delete first');
+    } else {
+        response = await waitForResponse('deleteItem',clickedItemId);
+        location.reload();
+    }
 }
 
 async function checkDropboxFiles(){
@@ -69,8 +101,9 @@ async function checkDropboxFiles(){
         if(currentFolders[i].includes('.') == false){
             htmlString = htmlString + ' class="folderIcon" src="../views/IMAGES/folder-icon-v2.png" alt="folderIcon" ';
         } else {
-            htmlString = htmlString + ' class="folderIcon" src="../views/IMAGES/file-icon-v1.png" alt="folderIcon" ';
+            htmlString = htmlString + ' class="folderIcon" src="../views/IMAGES/file-icon-v1.png" alt="fileIcon" ';
         }
+        htmlString = htmlString + 'onclick="highlightItem(this)" ';
         htmlString = htmlString + 'ondblclick="getFolderFiles(this)" >';
         htmlString = htmlString + '<h4>' + currentFolders[i] + '</h4> </div>';
         folder.insertAdjacentHTML('beforeend',htmlString);

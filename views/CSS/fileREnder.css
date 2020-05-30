@@ -83,6 +83,58 @@
     align-items: flex-start;
     align-content: center;
 }
+
+.bottom_buttons{
+    margin-left: 1%;
+    margin-top: 30%;
+    margin-bottom: 1%;
+    margin-right: 5%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    position: absolute;
+}
+
+.bottom_button{
+    margin-left: 100px;
+    flex-direction: row;
+    display: inline;
+    margin: 0 20px; 
+}
+
+#upload_button{
+    width: 250px;
+    height: auto;
+}
+
+#delete_button{
+    width: 250px;
+    height: auto;
+}
+
+#download_button{
+    width: 250px;
+    height: auto;
+}
+
+#move_button{
+    width: 250px;
+    height: auto;
+}
+
+#rename_button{
+    width: 250px;
+    height: auto;
+}
+
+#create_folder_button{
+    width: 250px;
+    height: auto;
+}
+
 @media (max-width: 800px) and (min-width: 375px)
 {
     .containerFlex{
