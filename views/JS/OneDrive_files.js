@@ -1,5 +1,5 @@
-console.log('OneDrive');
-
+var pressedButton = false;
+var selectedFile = '';
 function openMenu()
 {
     document.getElementById("shownMenu").removeAttribute("hidden");
@@ -33,40 +33,48 @@ var nextFolder = function() {
     element.innerHTML='';
     getDirectory(x);
 };
+var selectFile  = function()
+{
+    pressedButton=true;
+    selectedFile  = this.id;
+    console.log(selectFile);
+
+}
 function finished(){
     var elements = document.getElementsByClassName("folder");
     for (var i = 0; i < elements.length; i++) {
         elements[i].addEventListener('dblclick', nextFolder, false);
+        elements[i].addEventListener('click',selectFile,false);
     }
 };
 async function getDirectory(name,callback){
     let result   = await responseGetDirectory(name);
-    alert(result);
     let response = JSON.parse(result);
-    alert(response.value[0].length);
+    let typeOfPhoto='';
     var folders = document.getElementById('renderFolders');
     for(var i=0;i<response.value.length;i++)
     {
-        var keyName = Object.values(response.value[i])[0];
-        console.log(keyName);
         console.log(response.value[i]);
+        var keyName = Object.values(response.value[i])[0];
+        if(response.value[i].folder!=undefined)
+        {
+            typeOfPhoto='src="../views/IMAGES/folder-icon-v2.png"';
+        }
+        else{
+            typeOfPhoto='src="../views/IMAGES/file-icon-v1.png"';
+        }
         htmlString = "<div class='folder' id=".concat("'").concat(response.value[i].parentReference.path.concat('/').concat(response.value[i].name)).concat("'> <a href='#'><img id=").concat(response.value[i].name).concat('"')
-                    .concat(' class="folderIcon" src="../views/IMAGES/folder-icon.png" alt="folderIcon"></a> <h4>')
-                    .concat(response.value[i].name).concat('</h4> <button class="folder-button" onclick="getFile('.concat("'").concat(response.value[i].parentReference.path.concat('/').concat(response.value[i].name))
-                    .concat("'").concat(')">Hello</button></div>'));
+                    .concat(' class="folderIcon" ').concat(typeOfPhoto).concat(' alt="folderIcon"></a> <h4>')
+                    .concat(response.value[i].name).concat('</h4></div>');
         folders.insertAdjacentHTML('afterbegin',htmlString);
-        
-        console.log(response.value[i].name);
-        console.log(response.value[i].parentReference.path);
-        console.log(response.value[i].parentReference.path.concat('/').concat(response.value[i].name));
     }
     callback();
  }
 
- function makeRequestGetFile(fileName){
+ function makeRequestGetFile(fileName,type){
     return new Promise(function (resolve) {
        let xhr = new XMLHttpRequest();
-       xhr.open('GET', 'getFile?fileTransfName='+fileName, true);
+       xhr.open('GET', 'getFile?fileTransfName='+fileName + '&type='+type, true);
        xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
@@ -75,20 +83,72 @@ async function getDirectory(name,callback){
         xhr.send();
     });
 }
-async function responseGetFile(fileName) {
-    let result = await makeRequestGetFile(fileName);
+async function responseGetFile(fileName,type) {
+    let result = await makeRequestGetFile(fileName,type);
     return result;
 }
    
-async function getFile(fileName){
-    let result   = await responseGetFile(fileName);
-    let response = JSON.parse(result);
-    if(response.status=='401'){
-        alert("Error to load file: " + e.target.fileName);
+var  getFile = async function()
+{
+    if(pressedButton==true)
+    {
+        console.log('In get File ' + selectedFile);
+        var div = document.getElementById(selectedFile).childNodes;
+        var image =div[1].childNodes;
+        console.log(image[0].src);
+        let result;
+        if(image[0].src.includes('folder-icon-v2.png')==true)
+        {
+            result   = await responseGetFile(selectedFile,'folder'); 
+        }
+        else{
+            result   = await responseGetFile(selectedFile,'file');
+        }
+       console.log(result);
+        /*let response = JSON.parse(result);
+        if(response.status=='401'){
+            alert("Error to load file: " + selectedFile);
+        }
+        else{
+            location.assign(response.urlToDownload);
+        }*/
+        pressedButton=false;
     }
     else{
-        location.assign(response.urlToDownload);
+        alert("Please select a file");
     }
  }
- 
+ function makeRequestDeleteFile(fileName,type){
+    return new Promise(function (resolve) {
+       let xhr = new XMLHttpRequest();
+       xhr.open('GET', 'deleteFile?fileTransfName='+fileName, true);
+       xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+async function responseDeleteFile(fileName) {
+    let result = await makeRequestDeleteFile(fileName);
+    return result;
+}
+var  deleteFile = async function()
+{
+    if(pressedButton==true)
+    {
+        console.log('In delete File ' + selectedFile);
+        var div = document.getElementById(selectedFile).childNodes;
+        var image =div[1].childNodes;
+        let result = await responseDeleteFile(selectedFile);
+        console.log(result);
+        pressedButton=false;
+    }
+    else{
+        alert("Please select a file");
+    }
+ }
+ document.getElementById('download_button').addEventListener('click',getFile,false);
+ document.getElementById('delete_button').addEventListener('click',deleteFile,false);
  getDirectory('/drive/root:/Documents',finished);

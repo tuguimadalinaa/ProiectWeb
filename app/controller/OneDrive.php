@@ -170,5 +170,51 @@ class OneDrive extends Controller{
         $response = self::makeRequestForListFiles($access_token,$fileName);
         return $response;
     }
+    public static function  downloadDirectoryRequest($access_token,$fileName)
+    {
+        $create_curl=curl_init();
+        curl_setopt_array($create_curl,[
+            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me'.$fileName, //spatiile in url dau erori
+            CURLOPT_RETURNTRANSFER=>1,
+           /* CURLOPT_CUSTOMREQUEST=>'GET',*/
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}"),
+            CURLOPT_SSL_VERIFYPEER=>false
+        ]); 
+        $response=curl_exec($create_curl);
+        curl_close($create_curl);
+        return $response;
+    }
+    public static function downloadDirectory($fileName)
+    {
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
+        $response = self::downloadDirectoryRequest($access_token,$fileName);
+        return $response;
+    }
+    public static function deleteFileRequest($access_token,$id)
+    {
+        $create_curl=curl_init();
+        curl_setopt_array($create_curl,[
+            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drive/items/'.$id, //spatiile in url dau erori
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_CUSTOMREQUEST=>'DELETE',
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}"),
+            CURLOPT_SSL_VERIFYPEER=>false
+        ]); 
+        $response=curl_exec($create_curl);
+        curl_close($create_curl);
+        return $response;
+    }
+    public static function deleteFile($fileName)
+    {
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
+        $response  = self::makeRequestForFile($access_token,$fileName);
+        $decodedResponse = json_decode($response, true);
+        $id = $decodedResponse['id'];
+        $response = self::deleteFileRequest($access_token,$id);
+        return $response;
+
+    }
 }
 ?>

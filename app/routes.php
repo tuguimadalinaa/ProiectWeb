@@ -15,7 +15,7 @@ Route::set('login',function(){
         if(!isset($_COOKIE["loggedIn"])){
             $json_response = json_decode($data,true);
             if($json_response['status']==0){
-                Login::Cookie("loggedIn",$json_response['jwt'],time() + 36000,"http://localhost/ProiectWeb/",null,TRUE,TRUE);
+                Login::Cookie("loggedIn",$json_response['jwt'],time() + 36000,"http://localhost/ProiectWeb/",null,FALSE,TRUE);
                 Login::Cookie("Dropbox","root",time() + 36000,"http://localhost/ProiectWeb/",null,FALSE,FALSE);
                 //Login::StartSession();
                 echo $data;
@@ -68,7 +68,7 @@ Route::set('GoogleDrive_files',function(){
 
 Route::set('logOut',function(){
     //Login::EndSession();
-    Login::Cookie("loggedIn","JWToken",time() - 3600,null,null,TRUE,TRUE);
+    Login::Cookie("loggedIn","JWToken",time() - 3600,null,null,FALSE,TRUE);
     Login::Cookie("Dropbox","root",time() - 3600,null,null,FALSE,FALSE);
     //header('Location: home');   //Robert, musai trebuie 
     echo 'Logout';
@@ -210,10 +210,19 @@ Route::set('registrationConfirmed',function(){
     ConfirmedRegistration::Createview('registrationConfirmed');
 });
 Route::set('getFile',function(){
-    echo OneDrive::GetFile($_REQUEST['fileTransfName']);
+    if($_REQUEST['type']=='file')
+    {
+        echo OneDrive::GetFile($_REQUEST['fileTransfName']);
+    }
+    else{
+        echo OneDrive::downloadDirectory($_REQUEST['fileTransfName']);
+    }
 });
 Route::set('getDirectoryOneDrive', function(){
     echo OneDrive::ListAllFiles($_REQUEST['name']);
+});
+Route::set('deleteFile',function(){
+    echo OneDrive::deleteFile($_REQUEST['fileTransfName']);
 });
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
 ?>
