@@ -1,6 +1,7 @@
 //console.log('Google');
 
 var checkedFiles = false;
+var checkedFileId=0;
 
 function openMenu()
 {
@@ -27,26 +28,59 @@ function makeRequestForFiles() {
         xhr.send();
     });
 }
-
+function makeRequestForDeletingFile(fileId){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', 'deleteFileGoogleDrive?folderId='+fileId, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
 async function highlightItem(item){
     itemId = item.getAttribute('id');
-    clickedItemId = itemId;
-    console.log(clickedItemId);
+    checkedFileId = itemId;
+    console.log(checkedFileId);
 }
 
-async function waitForResponse(reason) {
+async function waitForResponse(reason,fileId) {
     if(reason == 'listFiles'){
        let result = await makeRequestForFiles();
-       console.log(result);
-       //alert(result);
        return result;
     }
+    else if(reason=='deleteFile')
+    {
+        let result=await makeRequestForDeletingFile(fileId);
+        return result;
+    }
 }
-
+async function downloadFileAndFolder(){
+    if(checkedFileId == 0){
+        alert('Please select a folder or file to download');
+    }
+    else {
+        item = document.getElementById(checkedFileId);
+        typeOfItem = item.getAttribute("alt");
+         if(typeOfItem == 'fileIcon'){
+            window.location = 'downloadFileGoogleDrive?fileId=' + checkedFileId;
+        } 
+    }
+}
+async function deleteFile(){
+    if(checkedFileId == 0){
+        alert('Please select a file/folder to delete first');
+    } else {
+        response = await waitForResponse('deleteFile',checkedFileId);
+        location.reload();
+    }
+}
 async function checkGoogleDriveFiles(){
     if(checkedFiles == false){
      let responseJson = await waitForResponse('listFiles');
-     alert(responseJson);
+     //alert(responseJson);
      let response = JSON.parse(responseJson);
      
      var folder = document.getElementById('folderContainer');
@@ -68,7 +102,10 @@ async function checkGoogleDriveFiles(){
          folder.insertAdjacentHTML('beforeend',htmlString);
     }
      }
-     checkedFiles = true;
+     else{
+        checkedFiles = true;
+     }
+
  }
 
  checkGoogleDriveFiles();

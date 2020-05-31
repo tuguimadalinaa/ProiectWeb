@@ -15,8 +15,8 @@ Route::set('login',function(){
         if(!isset($_COOKIE["loggedIn"])){
             $json_response = json_decode($data,true);
             if($json_response['status']==0){
-                Login::Cookie("loggedIn",$json_response['jwt'],time() + 36000,"http://localhost/ProiectWeb/",null,FALSE,TRUE);
-                Login::Cookie("Dropbox","root",time() + 36000,"http://localhost/ProiectWeb/",null,FALSE,FALSE);
+                Login::Cookie("loggedIn",$json_response['jwt'],time() + 36000,'/',null,FALSE,TRUE);
+                Login::Cookie("Dropbox","root",time() + 36000,'/',null,FALSE,FALSE);
                 //Login::StartSession();
                 echo $data;
             }else if($json_response['status']==1 ||$json_response['status']==2){
@@ -68,8 +68,8 @@ Route::set('GoogleDrive_files',function(){
 
 Route::set('logOut',function(){
     //Login::EndSession();
-    Login::Cookie("loggedIn","JWToken",time() - 3600,null,null,FALSE,TRUE);
-    Login::Cookie("Dropbox","root",time() - 3600,null,null,FALSE,FALSE);
+    Login::Cookie("loggedIn","JWToken",time() - 3600,'/',null,FALSE,TRUE);
+    Login::Cookie("Dropbox","root",time() - 3600,'/',null,FALSE,FALSE);
     //header('Location: home');   //Robert, musai trebuie 
     echo 'Logout';
 });
@@ -104,6 +104,9 @@ Route::set('getToken',function(){
         }
     }
 });
+
+/* --------------------------------------------- GoogleDrive --------------------------------------------- */
+
 Route::set('uploadGoogleDrive',function()
 {
     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
@@ -131,20 +134,32 @@ Route::set('listGoogleDrive',function(){
   }
 });
 
+Route::set('deleteFileGoogleDrive',function(){
+    $response=GoogleDrive::deleteFile($_REQUEST['folderId']);
+    echo $response;
+});
 Route::set('getMetadataFileGoogleDrive',function(){
      $response=GoogleDrive::getMetadata();
      echo $response;
 });
 
-Route::set('downloadFolderGoogleDrive',function(){
-    $response=GoogleDrive::exportFolders();
-    echo $response;
-});
+// Route::set('downloadFolderGoogleDrive',function(){
+//     $response=GoogleDrive::exportFolders();
+//     echo $response;
+// });
 
 Route::set('downloadFileGoogleDrive',function(){
-    $response=GoogleDrive::downloadAllFiles();
-    echo $response;
+    $response=GoogleDrive::downloadSimpleFile($_REQUEST['fileId']);
+    $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
+    $file_name = basename($file_to_download);
+    header("Content-Type: application/octet-stream");
+    header("Content-Disposition: attachment; filename=${file_name}");
+    header("Content-Length: " . filesize($file_to_download));
+    readfile($file_to_download);
+    unlink($file_to_download);
 });
+
+/* --------------------------------------------- Dropbox --------------------------------------------- */
 
 Route::set('uploadDropbox',function(){   
     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
@@ -160,21 +175,48 @@ Route::set('uploadDropbox',function(){
 });
 
 Route::set('deleteItemDropbox',function(){
-    $deleted_item_id = $_REQUEST['folder_id'];
+    $deleted_item_id = $_REQUEST['item_id'];
     Dropbox::deleteItem($deleted_item_id);
     echo 'Item deleted';
 });
 
 Route::set('changeFolderDropbox',function(){
     $changed_folder_id = $_REQUEST['folder_id'];
-    Dropbox::Cookie("Dropbox",$changed_folder_id,time() + 36000,"http://localhost/ProiectWeb/",null,FALSE,FALSE);
-    echo 'Cookie value changed';
+    Dropbox::Cookie("Dropbox",$changed_folder_id,time() + 36000,'/',null,FALSE,FALSE);
+    echo 'Cookie Folder value changed';
  });
 
-Route::set('getFolderFilesDropbox',function(){ //Ruta testing
+Route::set('getFolderFilesDropbox',function(){ 
    $response = DropBox::getFolderFiles($_REQUEST['folder_id']);
    echo $response;
 });
+
+Route::set('previousFolderDropbox',function(){
+    $parent_id = Dropbox::getParentFolderId($_COOKIE["Dropbox"]);
+    //echo $_COOKIE['Dropbox'];
+    //$parent_id = Dropbox::getParentFolderId('id:Z9Jcd_nPTfAAAAAAAAAAIQ');
+    Dropbox::Cookie("Dropbox",$parent_id,time() + 36000,'/',null,FALSE,FALSE);
+    echo 'Previous Folder';
+});
+
+Route::set('downloadFileDropbox',function(){ 
+    $downloaded_item_id = $_REQUEST['file_id'];
+    $response = Dropbox::downloadFileByLink($downloaded_item_id);
+    header("Location: ${response}");
+});
+
+Route::set('downloadFolderDropbox',function(){
+ $folder_id = $_REQUEST['folder_id'];
+ $response = Dropbox::downloadFolder($folder_id);
+ $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response . '.zip';
+ $file_name = basename($file_to_download);
+ header("Content-Type: application/zip");
+ header("Content-Disposition: attachment; filename=${file_name}");
+ header("Content-Length: " . filesize($file_to_download));
+ readfile($file_to_download);
+ unlink($file_to_download);
+});
+
 
 Route::set('createFolderDropbox',function(){ //Ruta testing
     DropBox::createFolder();
@@ -189,9 +231,11 @@ Route::set('downloadFileDropbox',function(){ //Ruta testing
        //Dropbox::downloadByLink();
 });
 
-Route::set('getFileMetadata',function(){ //Ruta testing
+Route::set('getFileMetadataDropbox',function(){ //Ruta testing
     Dropbox::getFileMetadata();
 });
+
+/* --------------------------------------------- OneDrive --------------------------------------------- */
 
 Route::set('transferFile',function(){
     if(!empty(file_get_contents('php://input')) && !empty($_REQUEST['fileTransfName'])&& !empty($_REQUEST['fileSize'])){
