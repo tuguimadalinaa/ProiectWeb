@@ -229,5 +229,15 @@ Route::set('getDirectoryOneDrive', function(){
 Route::set('deleteFile',function(){
     echo OneDrive::deleteFile($_REQUEST['fileTransfName']);
 });
+Route::set('createFolder',function(){
+    if(!empty($_REQUEST['fileTransfName']) && !empty($_REQUEST['path'])){
+        $response = OneDrive::createFolder($_REQUEST['fileTransfName'],$_REQUEST['path']);
+        echo $response;
+    }
+    else{
+        echo json_encode(array("status"=>'1'));
+    }
+    
+});
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
 ?>

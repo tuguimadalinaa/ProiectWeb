@@ -216,5 +216,42 @@ class OneDrive extends Controller{
         return $response;
 
     }
+    public static function createFolderRequest($fileName,$path,$access_token)
+    {
+        $folder = '{'.$path.'}';
+        $data=[
+            "name"=>$fileName,
+            "folder"=>["childCount" => '0'],
+            "@microsoft.graph.conflictBehavior"=>"rename"
+        ];
+        $query_string=http_build_query($data);
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_URL => 'https://graph.microsoft.com/v1.0/me/'.$path.':/children',
+            CURLOPT_USERAGENT => 'STOL2',
+            CURLOPT_POST => 1,
+            CURLOPT_HTTPHEADER => array("Authorization: Bearer ".$access_token,
+            "Content-Type: application/json"),
+            CURLOPT_POSTFIELDS => json_encode($data)
+        ]);
+        $response=curl_exec($curl);
+        curl_close($curl);
+        return $response;
+    }
+    public static function createFolder($fileName,$path)
+    {
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
+        $response  = self::createFolderRequest($fileName,$path,$access_token);
+        $decodedResponse = json_decode($response, true);
+        if($decodedResponse['@odata.context'])
+        {
+            return json_encode(array("status"=>'200'));
+        }
+        else{
+            return json_encode(array("status"=>'401'));
+        }
+    }
 }
 ?>

@@ -154,6 +154,39 @@ var  deleteFile = async function()
         alert("Please select a file");
     }
  }
+ function makeRequestCreateFolder(fileName,path){
+    return new Promise(function (resolve) {
+       let xhr = new XMLHttpRequest();
+       xhr.open('GET', 'createFolder?fileTransfName='+fileName+'&path='+path, true);
+       xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+async function responseCreateFolder(fileName,path) {
+    let result = await makeRequestCreateFolder(fileName,path);
+    return result;
+}
+ var createFolder =  async function (){
+    var folderName = window.prompt('Folder name here');
+    var elements = document.getElementsByClassName('folder');
+    let path  = elements[0].id.split(elements[0].id.match('[\\/][A-za-z]+[\\s]*[\\(]*[0-9]*[\\)]*[\\.]+[a-zA-z]+'));
+    let pathWithoutComa  = path[0].split(',');
+    let result = await responseCreateFolder(folderName,pathWithoutComa);
+    let response = JSON.parse(result);
+    if(response.status=='401'){
+        alert("Error at creating Folder " + folderName);
+    }
+    else{
+        alert("Folder " + folderName+" created")
+    }
+    
+    
+ }
  document.getElementById('download_button').addEventListener('click',getFile,false);
  document.getElementById('delete_button').addEventListener('click',deleteFile,false);
+ document.getElementById('create_folder_button').addEventListener('click',createFolder,false);
  getDirectory('/drive/root:/Documents',finished);
