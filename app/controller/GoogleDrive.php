@@ -140,7 +140,7 @@
             $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
             $token = $json_token['access_token'];
             //echo $token;
-            $uri="https://www.googleapis.com/drive/v3/files";
+            $uri="https://www.googleapis.com/drive/v2/files";
             $curl_resource=curl_init();
             curl_setopt($curl_resource,CURLOPT_URL,$uri);
             curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
