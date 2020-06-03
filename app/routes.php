@@ -107,6 +107,20 @@ Route::set('getToken',function(){
 
 /* --------------------------------------------- GoogleDrive --------------------------------------------- */
 
+Route::set('createFolderGoogleDrive',function(){
+    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
+    $access_token_decoded = json_decode($access_token_json,true);
+    $access_token = $access_token_decoded['access_token'];
+    //echo $access_token;
+    if($access_token != null){
+        $response = GoogleDrive::createFolder($_REQUEST['fileName']);
+        echo $response;
+  } else {
+      header('Location: getCode?drive=GoogleDrive');
+  }
+});
+
 Route::set('uploadGoogleDrive',function()
 {
     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
@@ -126,6 +140,7 @@ Route::set('listGoogleDrive',function(){
     $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
     $access_token_decoded = json_decode($access_token_json,true);
     $access_token = $access_token_decoded['access_token'];
+    //echo $access_token;
     if($access_token != null){
         $response = GoogleDrive::listAllFiles();
         echo $response;
@@ -139,14 +154,10 @@ Route::set('deleteFileGoogleDrive',function(){
     echo $response;
 });
 Route::set('getMetadataFileGoogleDrive',function(){
-     $response=GoogleDrive::getMetadata();
+     $response=GoogleDrive::getMetadata($_REQUEST['fileId']);
      echo $response;
 });
 
-// Route::set('downloadFolderGoogleDrive',function(){
-//     $response=GoogleDrive::exportFolders();
-//     echo $response;
-// });
 
 Route::set('downloadFileGoogleDrive',function(){
     $response=GoogleDrive::downloadSimpleFile($_REQUEST['fileId']);
