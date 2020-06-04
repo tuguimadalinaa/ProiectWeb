@@ -37,7 +37,6 @@ var selectFile  = function()
 {
     pressedButton=true;
     selectedFile  = this.id;
-    console.log(selectFile);
 
 }
 function finished(){
@@ -54,8 +53,6 @@ async function getDirectory(name,callback){
     var folders = document.getElementById('renderFolders');
     for(var i=0;i<response.value.length;i++)
     {
-        console.log(response.value[i]);
-        var keyName = Object.values(response.value[i])[0];
         if(response.value[i].folder!=undefined)
         {
             typeOfPhoto='src="../views/IMAGES/folder-icon-v2.png"';
@@ -96,7 +93,6 @@ var  getFile = async function()
         var div = document.getElementById(selectedFile).childNodes;
         var image =div[1].childNodes;
         var folder = false;
-        console.log(image[0].src);
         let result;
         if(image[0].src.includes('folder-icon-v2.png')==true)
         {
@@ -183,10 +179,22 @@ async function responseCreateFolder(fileName,path) {
     else{
         alert("Folder " + folderName+" created")
     }
+ }
+ var moveFolder = async function(){
     
-    
+    if(pressedButton==true)
+    {
+        let folderWhereToMove = window.prompt('Give path to where to move folder');
+        console.log('In delete File ' + selectedFile);
+        console.log(folderWhereToMove);
+        pressedButton=false;
+    }
+    else{
+        alert("Please select a file");
+    }
  }
  document.getElementById('download_button').addEventListener('click',getFile,false);
  document.getElementById('delete_button').addEventListener('click',deleteFile,false);
  document.getElementById('create_folder_button').addEventListener('click',createFolder,false);
+ document.getElementById('move_button').addEventListener('click',moveFolder,false);
  getDirectory('/drive/root:/Documents',finished);

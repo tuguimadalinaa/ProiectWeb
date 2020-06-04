@@ -48,7 +48,8 @@ class OneDrive extends Controller{
             }
         }
         catch(Exception $e){
-            return  json_encode(array("status"=>'401'));
+            return $e;
+            //return  json_encode(array("status"=>'401'));
         }
         
     }
@@ -139,6 +140,7 @@ class OneDrive extends Controller{
         ]); 
         $response=curl_exec($create_curl);
         curl_close($create_curl);
+        //Login::Cookie("OneDrive",$fileName,time() + 36000,'/',null,FALSE,FALSE);
         return $response;
     }
     public static function GetFile($fileName){
@@ -241,11 +243,12 @@ class OneDrive extends Controller{
     }
     public static function createFolder($fileName,$path)
     {
+        //de pus in cookie altfel nu merge daca e gol
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $response  = self::createFolderRequest($fileName,$path,$access_token);
         $decodedResponse = json_decode($response, true);
-        if($decodedResponse['@odata.context'])
+        if(isset($decodedResponse['@odata.context']))
         {
             return json_encode(array("status"=>'200'));
         }

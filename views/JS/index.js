@@ -130,9 +130,10 @@ async function checkUrl(){
                 var responseJson2 = await waitForResponse('Token','DropBox');
             }
             let response = JSON.parse(responseJson2);
-             if(response.status=='401'){
+            alert(response);
+            /*if(response.status=='401'){
                 alert("Authorization failed");
-            }
+            }*/
         } 
     } 
 }

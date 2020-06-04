@@ -17,7 +17,7 @@ Route::set('login',function(){
             if($json_response['status']==0){
                 Login::Cookie("loggedIn",$json_response['jwt'],time() + 36000,'/',null,FALSE,TRUE);
                 Login::Cookie("Dropbox","root",time() + 36000,'/',null,FALSE,FALSE);
-                //Login::StartSession();
+                Login::Cookie("OneDrive","root",time() + 36000,'/',null,FALSE,FALSE);
                 echo $data;
             }else if($json_response['status']==1 ||$json_response['status']==2){
                 echo $data;
@@ -70,6 +70,7 @@ Route::set('logOut',function(){
     //Login::EndSession();
     Login::Cookie("loggedIn","JWToken",time() - 3600,'/',null,FALSE,TRUE);
     Login::Cookie("Dropbox","root",time() - 3600,'/',null,FALSE,FALSE);
+    Login::Cookie("OneDrive","root",time() - 3600,'/',null,FALSE,FALSE);
     //header('Location: home');   //Robert, musai trebuie 
     echo 'Logout';
 });
