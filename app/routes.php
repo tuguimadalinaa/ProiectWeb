@@ -15,9 +15,20 @@ Route::set('login',function(){
         if(!isset($_COOKIE["loggedIn"])){
             $json_response = json_decode($data,true);
             if($json_response['status']==0){
-                Login::Cookie("loggedIn",$json_response['jwt'],time() + 36000,'/',null,FALSE,TRUE);
-                Login::Cookie("Dropbox","root",time() + 36000,'/',null,FALSE,FALSE);
-                //Login::StartSession();
+                Login::Cookie("loggedIn",$json_response['jwt'],[
+                    'expires' => time() + 86400,
+                    'path' => '/',
+                    'secure' => true,
+                    'httponly' => true,
+                    'samesite' => 'Strict',
+                ]);
+                Login::Cookie("Dropbox","root",[
+                    'expires' => time() + 86400,
+                    'path' => '/',
+                    'secure' => true,
+                    'httponly' => true,
+                    'samesite' => 'Strict',
+                ]);
                 echo $data;
             }else if($json_response['status']==1 ||$json_response['status']==2){
                 echo $data;
@@ -68,8 +79,20 @@ Route::set('GoogleDrive_files',function(){
 
 Route::set('logOut',function(){
     //Login::EndSession();
-    Login::Cookie("loggedIn","JWToken",time() - 3600,'/',null,FALSE,TRUE);
-    Login::Cookie("Dropbox","root",time() - 3600,'/',null,FALSE,FALSE);
+    Login::Cookie("loggedIn","JWToken",[
+        'expires' => time() - 3600,
+        'path' => '/',
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
+    Login::Cookie("Dropbox","root",[
+        'expires' => time() - 3600,
+        'path' => '/',
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
     //header('Location: home');   //Robert, musai trebuie 
     echo 'Logout';
 });
@@ -192,18 +215,30 @@ Route::set('deleteItemDropbox',function(){
 
 Route::set('changeFolderDropbox',function(){
     $changed_folder_id = $_REQUEST['folder_id'];
-    Dropbox::Cookie("Dropbox",$changed_folder_id,time() + 36000,'/',null,FALSE,FALSE);
+    Dropbox::Cookie("Dropbox",$changed_folder_id,[
+        'expires' => time() + 86400,
+        'path' => '/',
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
     echo 'Cookie Folder value changed';
  });
 
 Route::set('getFolderFilesDropbox',function(){ 
-   $response = DropBox::getFolderFiles($_REQUEST['folder_id']);
+   $response = DropBox::getFolderFiles($_COOKIE['Dropbox']);
    echo $response;
 });
 
 Route::set('previousFolderDropbox',function(){
     $parent_id = Dropbox::getParentFolderId($_COOKIE["Dropbox"]);
-    Dropbox::Cookie("Dropbox",$parent_id,time() + 36000,'/',null,FALSE,FALSE);
+    Dropbox::Cookie("Dropbox",$parent_id,[
+        'expires' => time() + 86400,
+        'path' => '/',
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
     echo 'Previous Folder';
 });
 
@@ -227,7 +262,8 @@ Route::set('downloadFolderDropbox',function(){
 
 
 Route::set('createFolderDropbox',function(){ //Ruta testing
-    DropBox::createFolder();
+    $response = DropBox::createFolder($_COOKIE['Dropbox'],$_REQUEST['folder_name']);
+    echo $response;
 });
 
 Route::set('renameItemDropbox',function(){
