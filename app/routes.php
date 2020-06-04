@@ -18,14 +18,14 @@ Route::set('login',function(){
                 Login::Cookie("loggedIn",$json_response['jwt'],[
                     'expires' => time() + 86400,
                     'path' => '/',
-                    'secure' => true,
+                    'secure' => false,
                     'httponly' => true,
-                    'samesite' => 'Strict',
+                    'samesite' => 'Lax',
                 ]);
                 Login::Cookie("Dropbox","root",[
                     'expires' => time() + 86400,
                     'path' => '/',
-                    'secure' => true,
+                    'secure' => false,
                     'httponly' => true,
                     'samesite' => 'Strict',
                 ]);
@@ -82,14 +82,14 @@ Route::set('logOut',function(){
     Login::Cookie("loggedIn","JWToken",[
         'expires' => time() - 3600,
         'path' => '/',
-        'secure' => true,
+        'secure' => false,
         'httponly' => true,
-        'samesite' => 'Strict',
+        'samesite' => 'Lax',
     ]);
     Login::Cookie("Dropbox","root",[
         'expires' => time() - 3600,
         'path' => '/',
-        'secure' => true,
+        'secure' => false,
         'httponly' => true,
         'samesite' => 'Strict',
     ]);
@@ -218,7 +218,7 @@ Route::set('changeFolderDropbox',function(){
     Dropbox::Cookie("Dropbox",$changed_folder_id,[
         'expires' => time() + 86400,
         'path' => '/',
-        'secure' => true,
+        'secure' => false,
         'httponly' => true,
         'samesite' => 'Strict',
     ]);
@@ -235,7 +235,7 @@ Route::set('previousFolderDropbox',function(){
     Dropbox::Cookie("Dropbox",$parent_id,[
         'expires' => time() + 86400,
         'path' => '/',
-        'secure' => true,
+        'secure' => false,
         'httponly' => true,
         'samesite' => 'Strict',
     ]);
