@@ -146,15 +146,25 @@ Class Dropbox extends Controller{
         return $responseDecoded;
     }
 
-    public static function createFolder(){
+    public static function createFolder($current_folder_id,$folder_name){
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $dropbox_create_folder_url = "https://api.dropboxapi.com/2/files/create_folder_v2";
         $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
         $token = $json_token['access_token'];
-        $parameters = '{' .
-            '"path": "/Termopane",' .
-            '"autorename": false' .
-        '}';
+        if($current_folder_id != 'root'){
+            $metadata = self::getItemMetadata($current_folder_id);
+            $current_folder_path = $metadata['path_display'];
+            echo ($current_folder_path . '/' . $folder_name);
+            $parameters = '{' .
+                '"path": "' . $current_folder_path . '/' . $folder_name . '",' .
+                '"autorename": false' .
+            '}';
+        } else {
+            $parameters = '{' .
+                '"path": "' . '/' . $folder_name . '",' .
+                '"autorename": false' .
+            '}';
+        }
         $curl_resource = curl_init();
         curl_setopt($curl_resource,CURLOPT_URL,$dropbox_create_folder_url);
         curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
