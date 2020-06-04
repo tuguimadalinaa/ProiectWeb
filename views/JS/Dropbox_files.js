@@ -67,7 +67,20 @@ function makeRequestForGoingToPreviousFolder(){
     });
 }
 
-async function waitForResponse(reason,itemId) {
+function makeRequestForRenamingItem(itemId,newName){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', 'renameItemDropbox?item_id='+itemId+'&new_name='+newName, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+
+async function waitForResponse(reason,itemId,extraVariable) {
      if(reason == 'updateFiles'){
         let result = await makeRequestForFiles(itemId);
         return result;
@@ -80,12 +93,15 @@ async function waitForResponse(reason,itemId) {
      } else if(reason == 'goBackToPreviousFolder'){
         let result = makeRequestForGoingToPreviousFolder();
         return result;
+     } else if(reason == 'renameItem'){
+        let result = makeRequestForRenamingItem(itemId,extraVariable);
+        return result;
      }
 }
 
 async function getFolderFiles(folder){
       folderId = folder.getAttribute('id');
-      response = await waitForResponse('changeFolder',folderId);
+      response = await waitForResponse('changeFolder',folderId,null);
       location.reload();
 }
 
@@ -97,15 +113,32 @@ async function highlightItem(item){
 
 async function deleteItem(){
     if(clickedItemId == 0){
-        alert('Please select a file/folder to delete first');
+        alert('Please select a file/folder to delete');
     } else {
-        response = await waitForResponse('deleteItem',clickedItemId);
+        response = await waitForResponse('deleteItem',clickedItemId,null);
         location.reload();
     }
 }
 
+async function renameItem(){
+   if(clickedItemId == 0){
+       alert('Please select a file/folder to rename');
+   } else {
+       while(true){
+           newName = window.prompt('Enter new name');
+           if(newName == null){
+               alert('Please enter a not null new name');
+           } else {
+               break;
+           }
+       }
+       response = await waitForResponse('renameItem',clickedItemId,newName);
+       location.reload();
+   }
+}
+
 async function goBackToPreviousFolder(){
-    response = await waitForResponse('goBackToPreviousFolder',null);
+    response = await waitForResponse('goBackToPreviousFolder',null,null);
     location.reload();
 }
 
@@ -128,7 +161,7 @@ async function downloadItem(){
 async function checkDropboxFiles(){
    if(updatedFiles == false){
     dropboxCookieValue = getDropboxCookie('Dropbox');
-    let responseJson = await waitForResponse('updateFiles',dropboxCookieValue);
+    let responseJson = await waitForResponse('updateFiles',dropboxCookieValue,null);
     let response = JSON.parse(responseJson);
     var folder = document.getElementById('folderContainer');
     var htmlString;
@@ -149,6 +182,8 @@ async function checkDropboxFiles(){
        updatedFiles = true;
    }
 }
+
+
 
 /*https://www.w3schools.com/js/js_cookies.asp */
 function getDropboxCookie(cookieName) {

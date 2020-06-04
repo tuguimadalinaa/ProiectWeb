@@ -158,7 +158,6 @@ Route::set('getMetadataFileGoogleDrive',function(){
      echo $response;
 });
 
-
 Route::set('downloadFileGoogleDrive',function(){
     $response=GoogleDrive::downloadSimpleFile($_REQUEST['fileId']);
     $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
@@ -204,8 +203,6 @@ Route::set('getFolderFilesDropbox',function(){
 
 Route::set('previousFolderDropbox',function(){
     $parent_id = Dropbox::getParentFolderId($_COOKIE["Dropbox"]);
-    //echo $_COOKIE['Dropbox'];
-    //$parent_id = Dropbox::getParentFolderId('id:Z9Jcd_nPTfAAAAAAAAAAIQ');
     Dropbox::Cookie("Dropbox",$parent_id,time() + 36000,'/',null,FALSE,FALSE);
     echo 'Previous Folder';
 });
@@ -231,6 +228,11 @@ Route::set('downloadFolderDropbox',function(){
 
 Route::set('createFolderDropbox',function(){ //Ruta testing
     DropBox::createFolder();
+});
+
+Route::set('renameItemDropbox',function(){
+   $response = Dropbox::renameItem($_REQUEST['item_id'],$_REQUEST['new_name']);
+   echo $response;
 });
 
 Route::set('uploadDropboxSession',function(){ //Ruta testing
