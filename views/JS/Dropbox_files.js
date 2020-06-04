@@ -1,4 +1,4 @@
-console.log('Dropbox');
+
 
 var updatedFiles = false;
 var clickedItemId = 0;
@@ -18,7 +18,7 @@ function closeMenu()
 function makeRequestForFiles(folderId) {
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        xhr.open('GET', 'getFolderFilesDropbox?folder_id='+folderId, true);
+        xhr.open('GET', 'getFolderFilesDropbox', true);
         xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
@@ -67,9 +67,48 @@ function makeRequestForGoingToPreviousFolder(){
     });
 }
 
-async function waitForResponse(reason,itemId) {
+function makeRequestForRenamingItem(itemId,newName){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', 'renameItemDropbox?item_id='+itemId+'&new_name='+newName, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+
+function makeRequestForCreatingFolder(folderName){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', 'createFolderDropbox?folder_name='+folderName, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+
+function makeRequestForMovingItem(itemId){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', 'moveItemDropbox?item_id='+itemId, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+
+async function waitForResponse(reason,itemId,extraParameter) {
      if(reason == 'updateFiles'){
-        let result = await makeRequestForFiles(itemId);
+        let result = await makeRequestForFiles();
         return result;
      } else if(reason == 'changeFolder'){
         let result = await makeRequestForChangingFolder(itemId);
@@ -80,13 +119,22 @@ async function waitForResponse(reason,itemId) {
      } else if(reason == 'goBackToPreviousFolder'){
         let result = makeRequestForGoingToPreviousFolder();
         return result;
+     } else if(reason == 'renameItem'){
+        let result = makeRequestForRenamingItem(itemId,extraParameter);
+        return result;
+     } else if(reason == 'createFolder'){
+        let result = makeRequestForCreatingFolder(extraParameter);
+        return result;
+     } else if(reason == 'moveItem'){
+        let result = makeRequestForMovingItem(itemId);
+        return result;
      }
 }
 
 async function getFolderFiles(folder){
-      folderId = folder.getAttribute('id');
-      response = await waitForResponse('changeFolder',folderId);
-      location.reload();
+    folderId = folder.getAttribute('id');
+    response = await waitForResponse('changeFolder',folderId,null);
+    location.reload();
 }
 
 async function highlightItem(item){
@@ -97,15 +145,56 @@ async function highlightItem(item){
 
 async function deleteItem(){
     if(clickedItemId == 0){
-        alert('Please select a file/folder to delete first');
+        alert('Please select a file/folder to delete');
     } else {
-        response = await waitForResponse('deleteItem',clickedItemId);
+        response = await waitForResponse('deleteItem',clickedItemId,null);
         location.reload();
     }
 }
 
+async function moveItem(){
+    response = await waitForResponse('moveItem',clickedItemId,null);
+    if(response == 'Item stored in cookie'){
+
+    } else if(response == 'Not a valid item id'){
+        alert('Please choose a file/folder to move!');
+    } else {
+        location.reload();
+    }
+}
+
+async function renameItem(){
+   if(clickedItemId == 0){
+       alert('Please select a file/folder to rename');
+   } else {
+       while(true){
+           newName = window.prompt('Enter new name');
+           if(newName == null){
+               alert('Please enter a not null new name');
+           } else {
+               break;
+           }
+       }
+       response = await waitForResponse('renameItem',clickedItemId,newName);
+       location.reload();
+   }
+}
+
+async function createFolder(){
+    while(true){
+        folderName = window.prompt('Enter the name for the folder');
+        if(folderName == null){
+            alert('Please enter a not null name');
+        } else {
+            break;
+        }
+    }
+    response = await waitForResponse('createFolder',null,folderName);
+    location.reload();
+}
+
 async function goBackToPreviousFolder(){
-    response = await waitForResponse('goBackToPreviousFolder',null);
+    response = await waitForResponse('goBackToPreviousFolder',null,null);
     location.reload();
 }
 
@@ -127,8 +216,7 @@ async function downloadItem(){
 
 async function checkDropboxFiles(){
    if(updatedFiles == false){
-    dropboxCookieValue = getDropboxCookie('Dropbox');
-    let responseJson = await waitForResponse('updateFiles',dropboxCookieValue);
+    let responseJson = await waitForResponse('updateFiles',null,null);
     let response = JSON.parse(responseJson);
     var folder = document.getElementById('folderContainer');
     var htmlString;
@@ -149,22 +237,5 @@ async function checkDropboxFiles(){
        updatedFiles = true;
    }
 }
-
-/*https://www.w3schools.com/js/js_cookies.asp */
-function getDropboxCookie(cookieName) {
-    var name = cookieName + "=";
-    var decodedCookie = decodeURIComponent(document.cookie);
-    var ca = decodedCookie.split(';');
-    for(var i = 0; i <ca.length; i++) {
-      var c = ca[i];
-      while (c.charAt(0) == ' ') {
-        c = c.substring(1);
-      }
-      if (c.indexOf(name) == 0) {
-        return c.substring(name.length, c.length);
-      }
-    }
-    return "";
-  }
 
 checkDropboxFiles();

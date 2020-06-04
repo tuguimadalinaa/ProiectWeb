@@ -83,7 +83,33 @@
         return  $redirect_uri;
         }
 
-
+        public static function createFolder($fileName)
+        {
+            $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+            $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
+            $token = $json_token['access_token'];
+            $metadataArray=array( "name"=>"${fileName}","mimeType"=>"application/vnd.google-apps.folder");
+            $metadata=json_encode($metadataArray);
+            //echo $token;
+            $size=strlen($metadata);
+    
+    
+            $curl_resource = curl_init();
+            curl_setopt($curl_resource,CURLOPT_URL,"https://www.googleapis.com/drive/v3/files");
+            curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+            curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+               "Authorization: Bearer ${token}",
+               "Content-Type: application/json"
+            ));
+            curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$metadata);
+            curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+            curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+            $response=curl_exec($curl_resource);
+            curl_close($curl_resource);
+            return $response;
+            $responseDecoded = json_decode($response,true);
+            //echo $responseDecoded;
+        }
 
         public static function uploadFileResumable()
         {
@@ -114,7 +140,7 @@
             $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
             $token = $json_token['access_token'];
             //echo $token;
-            $uri="https://www.googleapis.com/drive/v3/files";
+            $uri="https://www.googleapis.com/drive/v2/files";
             $curl_resource=curl_init();
             curl_setopt($curl_resource,CURLOPT_URL,$uri);
             curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
@@ -124,24 +150,39 @@
             curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
             curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
             $response=curl_exec($curl_resource);
+            //echo $response;
             curl_close($curl_resource); 
             $responseDecoded = json_decode($response,true);
             //print_r(array_values($responseDecoded));
             $folders=array();
 
-            foreach($responseDecoded['files'] as $file)
+            foreach($responseDecoded['items'] as $file)
             {
-                if($file['mimeType']=='application/vnd.google-apps.folder')
+                if(empty($file['parents']))
                 {
-                    array_push($folders,$file['name']);
-                    array_push($folders,$file['id']);
+                    
                 }
                 else{
-                    array_push($folders,$file['name']);
+                
+                $checkRoot=$file['parents'][0]['isRoot'];
+                
+               
+
+                 if($checkRoot==1)
+                 {
+                     if($file['mimeType']=="application/vnd.google-apps.folder")
+                     {
+                    array_push($folders,$file['title']);
                     array_push($folders,$file['id']);
+                     }
+                     else{
+                        array_push($folders,$file['title']);
+                        array_push($folders,$file['id']);
+                     }
                 }
-                    
             }
+                    
+           }
         
             //print_r(array_values($folders));
             return json_encode($folders);

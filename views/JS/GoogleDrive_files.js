@@ -28,6 +28,19 @@ function makeRequestForFiles() {
         xhr.send();
     });
 }
+function makeRequestCreateFolder(fileName){
+    return new Promise(function (resolve) {
+       let xhr = new XMLHttpRequest();
+       xhr.open('POST', 'createFolderGoogleDrive?fileName='+fileName, true);
+       xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+
 function makeRequestForDeletingFile(fileId){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
@@ -46,7 +59,7 @@ async function highlightItem(item){
     console.log(checkedFileId);
 }
 
-async function waitForResponse(reason,fileId) {
+async function waitForResponse(reason,fileId,fileName) {
     if(reason == 'listFiles'){
        let result = await makeRequestForFiles();
        return result;
@@ -54,6 +67,11 @@ async function waitForResponse(reason,fileId) {
     else if(reason=='deleteFile')
     {
         let result=await makeRequestForDeletingFile(fileId);
+        return result;
+    }
+    else if(reason=='createFolder')
+    {
+        let result=await makeRequestCreateFolder(fileName);
         return result;
     }
 }
@@ -77,10 +95,24 @@ async function deleteFile(){
         location.reload();
     }
 }
+async function createFolder()
+{
+    var folderName = window.prompt('Folder name here');
+    alert(folderName);
+    let result = await waitForResponse('createFolder',' ',folderName);
+    let response = JSON.parse(result);
+    if(response.status=='401'){
+        alert("Error at creating Folder " + folderName);
+    }
+    else{
+        alert("Folder " + folderName+" created");
+        location.reload();
+    }
+}
 async function checkGoogleDriveFiles(){
     if(checkedFiles == false){
      let responseJson = await waitForResponse('listFiles');
-     //alert(responseJson);
+     alert(responseJson);
      let response = JSON.parse(responseJson);
      
      var folder = document.getElementById('folderContainer');

@@ -146,15 +146,25 @@ Class Dropbox extends Controller{
         return $responseDecoded;
     }
 
-    public static function createFolder(){
+    public static function createFolder($current_folder_id,$folder_name){
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $dropbox_create_folder_url = "https://api.dropboxapi.com/2/files/create_folder_v2";
         $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
         $token = $json_token['access_token'];
-        $parameters = '{' .
-            '"path": "/Termopane",' .
-            '"autorename": false' .
-        '}';
+        if($current_folder_id != 'root'){
+            $metadata = self::getItemMetadata($current_folder_id);
+            $current_folder_path = $metadata['path_display'];
+            echo ($current_folder_path . '/' . $folder_name);
+            $parameters = '{' .
+                '"path": "' . $current_folder_path . '/' . $folder_name . '",' .
+                '"autorename": false' .
+            '}';
+        } else {
+            $parameters = '{' .
+                '"path": "' . '/' . $folder_name . '",' .
+                '"autorename": false' .
+            '}';
+        }
         $curl_resource = curl_init();
         curl_setopt($curl_resource,CURLOPT_URL,$dropbox_create_folder_url);
         curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
@@ -341,8 +351,8 @@ Class Dropbox extends Controller{
         //echo $response;
         return $responseDecoded['link'];
     }
-    public static function Cookie($cookie_name,$cookie_value,$cookie_expiration_time,$cookie_path,$cookie_domain,$cookie_secure,$cookie_httponly){
-        return self::getCookieHandler()->Cookie($cookie_name,$cookie_value,$cookie_expiration_time,$cookie_path,$cookie_domain,$cookie_secure,$cookie_httponly);
+    public static function Cookie($cookie_name,$cookie_value,$cookie_params_array){
+        return self::getCookieHandler()->Cookie($cookie_name,$cookie_value,$cookie_params_array);
     }
 
     public static function downloadFolder($folder_id){
@@ -379,8 +389,78 @@ Class Dropbox extends Controller{
         $current_folder_metadata = self::getItemMetadata($current_folder_id);
         $current_folder_name_position_in_path = strpos($current_folder_metadata['path_display'],$current_folder_metadata['name']);
         $parent_path = substr($current_folder_metadata['path_display'],0,$current_folder_name_position_in_path - 1);
-        $parent_folder_metadata = self::getItemMetadata($parent_path);
-        return $parent_folder_metadata['id'];
+        if($parent_path == null){
+            return 'root';
+        } else {
+            $parent_folder_metadata = self::getItemMetadata($parent_path);
+            return $parent_folder_metadata['id'];
+        }
     }
+
+    public static function renameItem($item_id,$new_name){
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $dropbox_rename_item_url = "https://api.dropboxapi.com/2/files/move_v2";
+        $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
+        $token = $json_token['access_token'];
+        $metadata = self::getItemMetadata($item_id);
+        $item_path = $metadata['path_display'];
+        $item_extension = substr($item_path,strpos($item_path,'.'));
+        $item_parent_path = substr($item_path,0,strrpos($item_path,'/')+1);
+        $curl_resource = curl_init();
+        $parameters = '{' .
+            '"from_path": "' . $item_path . '",' .
+            '"to_path": "' . $item_parent_path . $new_name . $item_extension . '",' .
+            '"allow_shared_folder": false,' .
+            '"autorename": false,' .
+            '"allow_ownership_transfer": false' .
+        '}';
+        curl_setopt($curl_resource,CURLOPT_URL,$dropbox_rename_item_url);
+        curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+        curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$parameters);
+        curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+            "Authorization: Bearer ${token}",
+            "Content-Type: application/json"
+        ));
+        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+        $response = curl_exec($curl_resource);
+        curl_close($curl_resource);
+        $responseDecoded = json_decode($response);
+        return $response;
+    }
+
+    public static function moveItem($current_folder_id,$item_id){
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $dropbox_rename_item_url = "https://api.dropboxapi.com/2/files/move_v2";
+        $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
+        $token = $json_token['access_token'];
+        $item_metadata = self::getItemMetadata($item_id);
+        $current_folder_metadata = self::getItemMetadata($current_folder_id);
+        $item_path = $item_metadata['path_display'];
+        $item_name = $item_metadata['name'];
+        $current_folder_path = $current_folder_metadata['path_display'];
+        $curl_resource = curl_init();
+        $parameters = '{' .
+            '"from_path": "' . $item_path . '",' .
+            '"to_path": "' . $current_folder_path . '/' . $item_name . '",' .
+            '"allow_shared_folder": false,' .
+            '"autorename": false,' .
+            '"allow_ownership_transfer": false' .
+        '}';
+        curl_setopt($curl_resource,CURLOPT_URL,$dropbox_rename_item_url);
+        curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+        curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$parameters);
+        curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+            "Authorization: Bearer ${token}",
+            "Content-Type: application/json"
+        ));
+        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+        $response = curl_exec($curl_resource);
+        curl_close($curl_resource);
+        $responseDecoded = json_decode($response);
+        return $response;
+    }
+
 }
 

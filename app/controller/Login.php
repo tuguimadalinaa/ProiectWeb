@@ -9,8 +9,8 @@ class Login extends Controller{
     public static function EndSession(){
         return self::getSessionHandler()->EndSession();
     }
-    public static function Cookie($cookie_name,$cookie_value,$cookie_expiration_time,$cookie_path,$cookie_domain,$cookie_secure,$cookie_httponly){
-        return self::getCookieHandler()->Cookie($cookie_name,$cookie_value,$cookie_expiration_time,$cookie_path,$cookie_domain,$cookie_secure,$cookie_httponly);
+    public static function Cookie($cookie_name,$cookie_value,$cookie_params_array){
+        return self::getCookieHandler()->Cookie($cookie_name,$cookie_value,$cookie_params_array);
     }
 
 }
