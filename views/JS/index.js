@@ -135,6 +135,7 @@ async function checkUrl(){
             }
         } 
     } 
+    alert('Logat');
 }
 function changeStatusOneDrive(){
     var fileInput = document.getElementById('fileOneDrive');
