@@ -18,14 +18,14 @@ Route::set('login',function(){
                 Login::Cookie("loggedIn",$json_response['jwt'],[
                     'expires' => time() + 86400,
                     'path' => '/',
-                    'secure' => true,
+                    'secure' => false,
                     'httponly' => true,
-                    'samesite' => 'Strict',
+                    'samesite' => 'Lax',
                 ]);
                 Login::Cookie("Dropbox","root",[
                     'expires' => time() + 86400,
                     'path' => '/',
-                    'secure' => true,
+                    'secure' => false,
                     'httponly' => true,
                     'samesite' => 'Strict',
                 ]);
@@ -82,14 +82,14 @@ Route::set('logOut',function(){
     Login::Cookie("loggedIn","JWToken",[
         'expires' => time() - 3600,
         'path' => '/',
-        'secure' => true,
+        'secure' => false,
         'httponly' => true,
-        'samesite' => 'Strict',
+        'samesite' => 'Lax',
     ]);
     Login::Cookie("Dropbox","root",[
         'expires' => time() - 3600,
         'path' => '/',
-        'secure' => true,
+        'secure' => false,
         'httponly' => true,
         'samesite' => 'Strict',
     ]);
@@ -218,12 +218,39 @@ Route::set('changeFolderDropbox',function(){
     Dropbox::Cookie("Dropbox",$changed_folder_id,[
         'expires' => time() + 86400,
         'path' => '/',
-        'secure' => true,
+        'secure' => false,
         'httponly' => true,
         'samesite' => 'Strict',
     ]);
     echo 'Cookie Folder value changed';
  });
+
+Route::set('moveItemDropbox',function(){
+    if(isset($_COOKIE["Dropbox-MV"])){
+        $response = Dropbox::moveItem($_COOKIE['Dropbox'],$_COOKIE['Dropbox-MV']);
+        Dropbox::Cookie("Dropbox-MV",'invalid',[
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+        echo 'Item moved';
+    } else{
+        if($_REQUEST['item_id'] != '0'){
+            Dropbox::Cookie("Dropbox-MV",$_REQUEST['item_id'],[
+                'expires' => time() + 86400,
+                'path' => '/',
+                'secure' => false,
+                'httponly' => true,
+                'samesite' => 'Strict',
+            ]);
+            echo 'Item stored in cookie';
+        } else {
+            echo 'Not a valid item id';
+        }
+    }
+});
 
 Route::set('getFolderFilesDropbox',function(){ 
    $response = DropBox::getFolderFiles($_COOKIE['Dropbox']);
@@ -235,7 +262,7 @@ Route::set('previousFolderDropbox',function(){
     Dropbox::Cookie("Dropbox",$parent_id,[
         'expires' => time() + 86400,
         'path' => '/',
-        'secure' => true,
+        'secure' => false,
         'httponly' => true,
         'samesite' => 'Strict',
     ]);
