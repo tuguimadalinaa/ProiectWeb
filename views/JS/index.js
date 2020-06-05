@@ -135,7 +135,6 @@ async function checkUrl(){
             }
         } 
     } 
-    alert('Logat');//Bomba alert
 }
 function changeStatusOneDrive(){
     var fileInput = document.getElementById('fileOneDrive');
@@ -179,7 +178,7 @@ async function responseForBigFileTransfer(fileData, fileName,fileSize, readyToGo
 }
 function readByChunk(file, fileSize,name){
     let chunkSize  = 1024; 
-    let start     = 0;
+    let start = 0;
     let chunkReaderBlock = null;
     let readEventHandler = async function(evt) {
         if (evt.target.error == null) {
