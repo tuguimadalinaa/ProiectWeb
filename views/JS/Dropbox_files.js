@@ -93,7 +93,20 @@ function makeRequestForCreatingFolder(folderName){
     });
 }
 
-async function waitForResponse(reason,itemId,extraVariable) {
+function makeRequestForMovingItem(itemId){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', 'moveItemDropbox?item_id='+itemId, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+
+async function waitForResponse(reason,itemId,extraParameter) {
      if(reason == 'updateFiles'){
         let result = await makeRequestForFiles();
         return result;
@@ -107,19 +120,21 @@ async function waitForResponse(reason,itemId,extraVariable) {
         let result = makeRequestForGoingToPreviousFolder();
         return result;
      } else if(reason == 'renameItem'){
-        let result = makeRequestForRenamingItem(itemId,extraVariable);
+        let result = makeRequestForRenamingItem(itemId,extraParameter);
         return result;
      } else if(reason == 'createFolder'){
-        let result = makeRequestForCreatingFolder(extraVariable);
+        let result = makeRequestForCreatingFolder(extraParameter);
+        return result;
+     } else if(reason == 'moveItem'){
+        let result = makeRequestForMovingItem(itemId);
         return result;
      }
 }
 
 async function getFolderFiles(folder){
-      folderId = folder.getAttribute('id');
-      alert(folderId);
-      response = await waitForResponse('changeFolder',folderId,null);
-      location.reload();
+    folderId = folder.getAttribute('id');
+    response = await waitForResponse('changeFolder',folderId,null);
+    location.reload();
 }
 
 async function highlightItem(item){
@@ -133,6 +148,17 @@ async function deleteItem(){
         alert('Please select a file/folder to delete');
     } else {
         response = await waitForResponse('deleteItem',clickedItemId,null);
+        location.reload();
+    }
+}
+
+async function moveItem(){
+    response = await waitForResponse('moveItem',clickedItemId,null);
+    if(response == 'Item stored in cookie'){
+
+    } else if(response == 'Not a valid item id'){
+        alert('Please choose a file/folder to move!');
+    } else {
         location.reload();
     }
 }

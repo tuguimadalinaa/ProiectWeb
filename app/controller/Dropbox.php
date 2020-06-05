@@ -429,5 +429,38 @@ Class Dropbox extends Controller{
         return $response;
     }
 
+    public static function moveItem($current_folder_id,$item_id){
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $dropbox_rename_item_url = "https://api.dropboxapi.com/2/files/move_v2";
+        $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
+        $token = $json_token['access_token'];
+        $item_metadata = self::getItemMetadata($item_id);
+        $current_folder_metadata = self::getItemMetadata($current_folder_id);
+        $item_path = $item_metadata['path_display'];
+        $item_name = $item_metadata['name'];
+        $current_folder_path = $current_folder_metadata['path_display'];
+        $curl_resource = curl_init();
+        $parameters = '{' .
+            '"from_path": "' . $item_path . '",' .
+            '"to_path": "' . $current_folder_path . '/' . $item_name . '",' .
+            '"allow_shared_folder": false,' .
+            '"autorename": false,' .
+            '"allow_ownership_transfer": false' .
+        '}';
+        curl_setopt($curl_resource,CURLOPT_URL,$dropbox_rename_item_url);
+        curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+        curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$parameters);
+        curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+            "Authorization: Bearer ${token}",
+            "Content-Type: application/json"
+        ));
+        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+        $response = curl_exec($curl_resource);
+        curl_close($curl_resource);
+        $responseDecoded = json_decode($response);
+        return $response;
+    }
+
 }
 
