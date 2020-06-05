@@ -503,7 +503,7 @@ Route::set('renameFolder',function(){
     
 });
 Route::set('goBack',function(){
-    echo json_encode(array("status"=>$_COOKIE['OneDrive']));//de pus cookie cu handler
+    echo json_encode(array("status"=>$_COOKIE['OneDrive']));
     
 });
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php

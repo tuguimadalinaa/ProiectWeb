@@ -251,6 +251,8 @@ async function responseGoBack() {
     element.innerHTML='';
     let result = await responseGoBack();
     console.log(result);
+    let response = JSON.parse(result);
+    getDirectory(response.status,finished); //butonul de go back plus de pus dbClick doar pe foldere
  }
  document.getElementById('download_button').addEventListener('click',getFile,false);
  document.getElementById('delete_button').addEventListener('click',deleteFile,false);

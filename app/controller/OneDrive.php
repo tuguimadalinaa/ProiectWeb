@@ -140,7 +140,6 @@ class OneDrive extends Controller{
         ]); 
         $response=curl_exec($create_curl);
         curl_close($create_curl);
-        //Login::Cookie("OneDrive",$fileName,time() + 36000,'/',null,FALSE,FALSE);
         return $response;
     }
     public static function GetFile($fileName){
@@ -164,7 +163,20 @@ class OneDrive extends Controller{
         $response=curl_exec($create_curl);
         curl_close($create_curl);
         $decodedResponse = json_decode($response, true);
-        setcookie('OneDrive', $decodedResponse['value'][0]["parentReference"]["path"], time() + 86400, '/');
+        if($fileNameToRender!='/drive/root:/Documents')
+        {
+            $cookie_params_array = [
+                'expires' => time() + 8600,
+                'path' => '/',
+                'secure' => false,
+                'httponly' => true,
+                'samesite' => 'Strict',
+            ];
+            $splittedExplode  = explode('/',$decodedResponse['value'][0]["parentReference"]["path"]);
+            $end = end($splittedExplode);
+            $split = explode($end,$decodedResponse['value'][0]["parentReference"]["path"]);
+            self::getCookieHandler()->Cookie('OneDrive',$split[0],$cookie_params_array);
+        }
         return $response;
     }
     public static function ListAllFiles($fileName)
