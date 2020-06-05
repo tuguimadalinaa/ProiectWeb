@@ -227,15 +227,27 @@ Route::set('changeFolderDropbox',function(){
 
 Route::set('moveItemDropbox',function(){
     if(isset($_COOKIE["Dropbox-MV"])){
-        $response = Dropbox::moveItem($_COOKIE['Dropbox'],$_COOKIE['Dropbox-MV']);
-        Dropbox::Cookie("Dropbox-MV",'invalid',[
-            'expires' => time() - 3600,
-            'path' => '/',
-            'secure' => false,
-            'httponly' => true,
-            'samesite' => 'Strict',
-        ]);
-        echo 'Item moved';
+        if($_REQUEST['item_id'] == '0'){
+            $response = Dropbox::moveItem($_COOKIE['Dropbox'],$_COOKIE['Dropbox-MV']);
+            Dropbox::Cookie("Dropbox-MV",'invalid',[
+                'expires' => time() - 3600,
+                'path' => '/',
+                'secure' => false,
+                'httponly' => true,
+                'samesite' => 'Strict',
+            ]);
+            echo 'Item moved';
+        } else {
+            Dropbox::Cookie("Dropbox-MV",$_REQUEST['item_id'],[
+                'expires' => time() + 86400,
+                'path' => '/',
+                'secure' => false,
+                'httponly' => true,
+                'samesite' => 'Strict',
+            ]);
+            echo 'Item stored in cookie';
+        }
+        
     } else{
         if($_REQUEST['item_id'] != '0'){
             Dropbox::Cookie("Dropbox-MV",$_REQUEST['item_id'],[
@@ -251,6 +263,38 @@ Route::set('moveItemDropbox',function(){
         }
     }
 });
+
+Route::set('uploadSmallFile',function(){
+    $headers = apache_request_headers();
+    $file_path_json = 'Unknown';
+    foreach ($headers as $header => $value) {
+        if($header == 'File-Args'){
+            $file_path_json = $value;
+            break;
+        }
+    }
+    $file_path_array = json_decode($file_path_json,true);
+    $requestBody = file_get_contents('php://input');
+    $response = Dropbox::uploadSmallFile($requestBody,$file_path_array);
+    echo 'File uploaded';
+});
+
+Route::set('uploadLargeFileStart',function(){
+    $entityBody = file_get_contents('php://input');
+    echo $entityBody;
+});
+
+Route::set('uploadLargeFileAppend',function(){
+    $entityBody = file_get_contents('php://input');
+    echo $entityBody;
+});
+
+Route::set('uploadLargeFileFinish',function(){
+    $entityBody = file_get_contents('php://input');
+    echo $entityBody;
+});
+
+
 
 Route::set('getFolderFilesDropbox',function(){ 
    $response = DropBox::getFolderFiles($_COOKIE['Dropbox']);
@@ -296,10 +340,6 @@ Route::set('createFolderDropbox',function(){ //Ruta testing
 Route::set('renameItemDropbox',function(){
    $response = Dropbox::renameItem($_REQUEST['item_id'],$_REQUEST['new_name']);
    echo $response;
-});
-
-Route::set('uploadDropboxSession',function(){ //Ruta testing
-        Dropbox::uploadSessionStart();
 });
 
 Route::set('downloadFileDropbox',function(){ //Ruta testing

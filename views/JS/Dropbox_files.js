@@ -106,6 +106,61 @@ function makeRequestForMovingItem(itemId){
     });
 }
 
+function makeRequestForUploadingSmallItem(file){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        fileArgs = JSON.stringify({ path: file.name });
+        xhr.open('POST', 'uploadSmallFile', true);
+        xhr.setRequestHeader('File-Args',fileArgs);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(file);
+    });
+}
+
+function makeRequestForUploadSessionStart(fileSlice){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', 'uploadLargeFileStart', true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(fileSlice);
+    });
+}
+
+function makeRequestForUploadSessionAppend(fileSlice){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', 'uploadLargeFileAppend', true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(fileSlice);
+    });
+}
+
+function makeRequestForUploadSessionFinish(fileSlice,fileName){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', 'uploadLargeFileFinish', true);
+        xhr.setRequestHeader('File-Name',fileName);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(fileSlice);
+    });
+}
+
 async function waitForResponse(reason,itemId,extraParameter) {
      if(reason == 'updateFiles'){
         let result = await makeRequestForFiles();
@@ -151,6 +206,68 @@ async function deleteItem(){
         location.reload();
     }
 }
+
+async function prepareUpload(files){
+    let numberOfFilesToUpload = files.files.length;
+    let i = 0;
+    let maxUploadSize = 1048576 * 40; //40 MB
+    while(i < numberOfFilesToUpload){
+       currentFileSize = files.files[i].size;
+       currentFile = files.files[i];
+       if(currentFileSize < maxUploadSize){
+           response =  await makeRequestForUploadingSmallItem(currentFile);
+       } else {
+           let sizeOfDataSent = 0;
+           let uploadSessionStarted = 0;
+           while(currentFileSize - sizeOfDataSent > maxUploadSize){
+               if(uploadSessionStarted == 0){
+                   fileSliceToSend = blob.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize + 1,currentFile);
+                   response = await makeRequestForUploadSessionStart(fileSliceToSend);
+                   uploadSessionStarted = 1;
+               } else {
+                   fileSliceToSend = blob.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize + 1,currentFile);
+                   response = await makeRequestForUploadSessionAppend(fileSliceToSend);
+               }
+               sizeOfDataSent = sizeOfDataSent + maxUploadSize + 1;
+           }
+           if(currentFileSize - sizeOfDataSent < maxUploadSize){
+              fileSliceToSend = blob.slice(sizeOfDataSent,currentFileSize,currentFile);
+              response = await makeRequestForUploadSessionFinish(fileSliceToSend);
+           }
+       }
+       i++;
+    }
+    return response;
+}
+
+async function upload(){
+    input = document.getElementById('upload_button');
+    uploadFile = window.confirm('Upload a file?');
+    if(uploadFile == true ){
+        htmlString = '<input type="file" id="uploadFile" multiple size="50" style="display: none;"/>';
+        if(document.getElementById('uploadFile') == null){
+            input.insertAdjacentHTML('afterend',htmlString);
+            document.getElementById('uploadFile').addEventListener("change",async function(){
+                files = document.getElementById('uploadFile');
+                response = prepareUpload(files);
+                //location.reload();
+            });
+        }
+        item = document.getElementById('uploadFile');
+    } else { 
+        htmlString = '<input type="file" id="uploadFolder" multiple size="50" style="display: none;" webkitdirectory directory/>';
+        if(document.getElementById('uploadFolder') == null){
+            input.insertAdjacentHTML('afterend',htmlString);
+            document.getElementById('uploadFolder').addEventListener("change",async function(){
+                folder = document.getElementById('uploadFolder').value;
+                alert(folder);
+            });
+        }
+        item = document.getElementById('uploadFolder');
+    }
+    item.click();
+}
+
 
 async function moveItem(){
     response = await waitForResponse('moveItem',clickedItemId,null);
