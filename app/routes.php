@@ -29,6 +29,13 @@ Route::set('login',function(){
                     'httponly' => true,
                     'samesite' => 'Strict',
                 ]);
+                Login::Cookie("GoogleDrive","root",[
+                    'expires' => time() + 86400,
+                    'path' => '/',
+                    'secure' => false,
+                    'httponly' => true,
+                    'samesite' => 'Strict',
+                ]);
                 echo $data;
             }else if($json_response['status']==1 ||$json_response['status']==2){
                 echo $data;
@@ -93,7 +100,14 @@ Route::set('logOut',function(){
         'httponly' => true,
         'samesite' => 'Strict',
     ]);
-    //header('Location: home');   //Robert, musai trebuie 
+    Login::Cookie("GoogleDrive","root",[
+        'expires' => time() - 3600,
+        'path' => '/',
+        'secure' => false,
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
+    header('Location: login');   //Robert, musai trebuie 
     echo 'Logout';
 });
 Route::set('getCode', function(){
@@ -137,7 +151,7 @@ Route::set('createFolderGoogleDrive',function(){
     $access_token = $access_token_decoded['access_token'];
     //echo $access_token;
     if($access_token != null){
-        $response = GoogleDrive::createFolder($_REQUEST['fileName']);
+        $response = GoogleDrive::createFolder($_REQUEST['fileName'],$_COOKIE["GoogleDrive"]);
         echo $response;
   } else {
       header('Location: getCode?drive=GoogleDrive');
@@ -165,7 +179,7 @@ Route::set('listGoogleDrive',function(){
     $access_token = $access_token_decoded['access_token'];
     //echo $access_token;
     if($access_token != null){
-        $response = GoogleDrive::listAllFiles();
+        $response = GoogleDrive::listAllFiles($_COOKIE['GoogleDrive']);
         echo $response;
   } else {
       header('Location: getCode?drive=GoogleDrive');
@@ -173,14 +187,45 @@ Route::set('listGoogleDrive',function(){
 });
 
 Route::set('deleteFileGoogleDrive',function(){
-    $response=GoogleDrive::deleteFile($_REQUEST['folderId']);
+    $response=GoogleDrive::deleteFile($_REQUEST['fileId']);
     echo $response;
+});
+Route::set('changeFolderGoogleDrive',function(){
+    $changed_folder_id = $_REQUEST['fileId'];
+    Dropbox::Cookie("GoogleDrive",$changed_folder_id,[
+        'expires' => time() + 86400,
+        'path' => '/',
+        'secure' => false,
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
+    echo 'Cookie Folder value changed';
+ });
+ Route::set('previousFolderGoogleDrive',function(){
+    $parent_id = GoogleDrive::getParentFolderId($_COOKIE["GoogleDrive"]);
+    echo $parent_id;
+    GoogleDrive::Cookie("GoogleDrive",$parent_id,[
+        'expires' => time() + 86400,
+        'path' => '/',
+        'secure' => false,
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
+    echo 'Previous Folder';
 });
 Route::set('getMetadataFileGoogleDrive',function(){
      $response=GoogleDrive::getMetadata($_REQUEST['fileId']);
      echo $response;
 });
-
+Route::set('getFolderParentGoogleDrive',function()
+{
+    $response=GoogleDrive::getParentFolderId($_COOKIE["GoogleDrive"]);
+     echo $response;
+});
+Route::set('renameFileGoogleDrive',function(){
+    $response=GoogleDrive::renameFile($_REQUEST['fileName'],$_REQUEST['fileId']);
+    echo $response;
+});
 Route::set('downloadFileGoogleDrive',function(){
     $response=GoogleDrive::downloadSimpleFile($_REQUEST['fileId']);
     $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
@@ -191,7 +236,10 @@ Route::set('downloadFileGoogleDrive',function(){
     readfile($file_to_download);
     unlink($file_to_download);
 });
-
+Route::set('moveFileGoogleDrive',function(){
+    $response=GoogleDrive::moveFile($_REQUEST['fileId'],$_REQUEST['fileIdToMove']);
+    echo $response;
+});
 /* --------------------------------------------- Dropbox --------------------------------------------- */
 
 Route::set('uploadDropbox',function(){   
