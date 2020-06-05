@@ -203,7 +203,7 @@ Route::set('changeFolderGoogleDrive',function(){
  });
  Route::set('previousFolderGoogleDrive',function(){
     $parent_id = GoogleDrive::getParentFolderId($_COOKIE["GoogleDrive"]);
-    echo $parent_id;
+    //echo $parent_id;
     GoogleDrive::Cookie("GoogleDrive",$parent_id,[
         'expires' => time() + 86400,
         'path' => '/',
@@ -226,19 +226,51 @@ Route::set('renameFileGoogleDrive',function(){
     $response=GoogleDrive::renameFile($_REQUEST['fileName'],$_REQUEST['fileId']);
     echo $response;
 });
+Route::set('downloadFolderGoogleDrive',function(){
+    $response=GoogleDrive::downloadFolder($_REQUEST['fileId']);
+    echo $response;
+});
 Route::set('downloadFileGoogleDrive',function(){
     $response=GoogleDrive::downloadSimpleFile($_REQUEST['fileId']);
     $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
+    //$file_to_download = fopen('C:\Users\alexg\Desktop\abc.jpg','rb');
     $file_name = basename($file_to_download);
     header("Content-Type: application/octet-stream");
+    //$fileTest="def.jpg";
+    //filename="' . $file_name . '"'
     header("Content-Disposition: attachment; filename=${file_name}");
+    //header('Content-Disposition: attachment; filename="' . $fileTest . '"');
     header("Content-Length: " . filesize($file_to_download));
     readfile($file_to_download);
     unlink($file_to_download);
 });
 Route::set('moveFileGoogleDrive',function(){
-    $response=GoogleDrive::moveFile($_REQUEST['fileId'],$_REQUEST['fileIdToMove']);
-    echo $response;
+    // $response=GoogleDrive::moveFile($_REQUEST['fileId'],$_REQUEST['fileIdToMove']);
+    // echo $response;
+    if(isset($_COOKIE["GoogleDrive-MV"])){
+        $response = GoogleDrive::moveFile($_COOKIE['GoogleDrive-MV'],$_COOKIE['GoogleDrive']);
+        GoogleDrive::Cookie("GoogleDrive-MV",'invalid',[
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+        echo 'File moved';
+    } else{
+        if($_REQUEST['fileId'] != '0'){
+            GoogleDrive::Cookie("GoogleDrive-MV",$_REQUEST['fileId'],[
+                'expires' => time() + 86400,
+                'path' => '/',
+                'secure' => false,
+                'httponly' => true,
+                'samesite' => 'Strict',
+            ]);
+            echo 'File stored in cookie';
+        } else {
+            echo 'Not a valid file id';
+        }
+    }
 });
 /* --------------------------------------------- Dropbox --------------------------------------------- */
 

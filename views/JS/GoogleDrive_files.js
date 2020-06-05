@@ -2,9 +2,7 @@
 
 var checkedFiles = false;
 var checkedFileId=0;
-var locationMove=0;
-var fileIdForMove=0;
-var fileIdToMove=0;
+
 
 function openMenu()
 {
@@ -92,10 +90,10 @@ function makeRequestForGoingToPreviousFolder(){
         xhr.send();
     });
 }
-function makeRequestForMovingFile(fileId,fileIdToMove){
+function makeRequestForMovingFile(fileId){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        xhr.open('PATCH', 'moveFileGoogleDrive?fileId='+fileId+'&fileIdToMove='+fileIdToMove, true);
+        xhr.open('PATCH', 'moveFileGoogleDrive?fileId='+fileId, true);
         xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
@@ -116,7 +114,7 @@ async function getFolderFiles(folder){
     location.reload();
 }
 
-async function waitForResponse(reason,fileId,fileName,fileIdToMove) {
+async function waitForResponse(reason,fileId,fileName) {
     if(reason == 'listFiles'){
        let result = await makeRequestForFiles();
        return result;
@@ -140,12 +138,12 @@ async function waitForResponse(reason,fileId,fileName,fileIdToMove) {
     }
     else if(reason=='renameFile')
     {
-        let result=await makeRequestForRenamingFIle(fileName,fileId);
+        let result=await makeRequestForRenamingFile(fileName,fileId);
         return result;
     }
     else if(reason=='moveFile')
     {
-        let result=await makeRequestForMovingFile(fileId,fileIdToMove);
+        let result=await makeRequestForMovingFile(fileId);
         return result;
     }
 }
@@ -163,34 +161,12 @@ async function downloadFileAndFolder(){
 }
 
 async function moveFileOrFolder(){
-    if(checkedFileId == 0){
-        alert('Please select a file/folder to move');
-    }
-    else if(fileIdForMove==0)
-    {
-        fileIdForMove=checkedFileId;
-        alert('File selected');
-    }
-    else if(fileIdToMove==0)
-    {
-        fileIdToMove=checkedFileId;
-        alert('Please select where you want to move the folder/file');
-    }
-    else if(fileIdToMove==fileIdForMove)
-    {
-        alert('Please do not select the same folder/file');
-    }
-    else{
-        alert('File destination selected');
-        fileIdToMove=checkedFileId;
-        locationMove++;
-    }
-    alert(fileIdForMove);
-    alert(fileIdToMove);
-    response=await waitForResponse('moveFile',fileIdForMove,null,fileIdToMove);
-    if(locationMove!=0)
-    {
-        alert("Moved Successfully");
+    response = await waitForResponse('moveFile',checkedFileId,null);
+    if(response == 'File stored in cookie'){
+
+    } else if(response == 'Not a valid file id'){
+        alert('Please choose a file/folder to move!');
+    } else {
         location.reload();
     }
  }
@@ -208,6 +184,7 @@ async function moveFileOrFolder(){
             }
         }
         response = await waitForResponse('renameFile',checkedFileId,fileName);
+        alert(response);
         alert('File updated successfully')
         location.reload();
         

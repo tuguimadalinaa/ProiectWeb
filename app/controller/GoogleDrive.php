@@ -54,8 +54,11 @@
         
         }
 
-        public static function obtainUriForResumable($token)
+        public static function obtainUriForResumable()
         {
+            $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+            $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
+            $token = $json_token['access_token'];
         $metadata=array(
             "name"=>"gege.txt"
         );
@@ -83,6 +86,30 @@
         return  $redirect_uri;
         }
 
+        public static function uploadFileResumable()
+        {
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
+        $token = $json_token['access_token'];
+        $uri=self::obtainUriForResumable($token);
+        //echo $uri;
+        $metadata="heheee";
+        $size=strlen($metadata);
+        $curl_resource = curl_init();
+        curl_setopt($curl_resource,CURLOPT_URL,$uri);
+        curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'PUT');
+        curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+           "Authorization: Bearer ${token}",
+           "Content-Type: application/octet-stream"
+        ));
+        curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$metadata);
+        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+        $response=curl_exec($curl_resource);
+        curl_close($curl_resource); 
+        echo $response;
+        }
+        
         public static function createFolder($fileName,$fileId)
         {
             $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
@@ -111,29 +138,8 @@
             //echo $responseDecoded;
         }
 
-        public static function uploadFileResumable()
-        {
-        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
-        $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
-        $token = $json_token['access_token'];
-        $uri=self::obtainUriForResumable($token);
-        //echo $uri;
-        $metadata="heheee";
-        $size=strlen($metadata);
-        $curl_resource = curl_init();
-        curl_setopt($curl_resource,CURLOPT_URL,$uri);
-        curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'PUT');
-        curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
-           "Authorization: Bearer ${token}",
-           "Content-Type: application/octet-stream"
-        ));
-        curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$metadata);
-        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
-        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
-        $response=curl_exec($curl_resource);
-        curl_close($curl_resource); 
-        echo $response;
-        }
+        
+        
         public static function listAllFiles($fileId)
         {
             $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
@@ -203,15 +209,52 @@
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
                 curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
-                 "Authorization: Bearer ${token}"
+                 "Authorization: Bearer ${token}",
+                 //"Content-Type: application/octet-stream"
                 ));
+                // 27564
+                // CURLOPT_RANGE => $offset . '-' . ($offset + $chunk_size - 1),
+                //curl_setopt($curl_resource,CURLOPT_RANGE,"0-27563");
                 curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
                 curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
                 $response=curl_exec($curl_resource);
                 curl_close($curl_resource);
-                $file_name = $dataArray['name'];
+                $file_name = $dataArray['title'];
+                
                 $myfile = fopen("${file_name}","w");
                 file_put_contents("${file_name}",$response);
+                //file_put_contents("C:\Users\alexg\Desktop\abc.jpg",$response);
+                //echo $response;
+                return $file_name;
+            
+        }
+        public static function downloadFolder($fileId)
+        {
+            $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+            $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
+            $token = $json_token['access_token'];
+            $metadata=self::getMetadata($fileId);
+            $dataArray=json_decode($metadata,true);
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
+                $curl_resource=curl_init();
+                curl_setopt($curl_resource,CURLOPT_URL,$uri);
+                curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
+                curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+                 "Authorization: Bearer ${token}",
+                 //"Content-Type: application/octet-stream"
+                ));
+                // 27564
+                // CURLOPT_RANGE => $offset . '-' . ($offset + $chunk_size - 1),
+                curl_setopt($curl_resource,CURLOPT_RANGE,"0");
+                curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+                curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+                $response=curl_exec($curl_resource);
+                curl_close($curl_resource);
+                $file_name = $dataArray['title'];
+                
+                $myfile = fopen("${file_name}","w");
+                file_put_contents("${file_name}",$response);
+                //file_put_contents("C:\Users\alexg\Desktop\abc.jpg",$response);
                 //echo $response;
                 return $file_name;
             
@@ -241,12 +284,18 @@
             public static function getParentFolderId($fileId)
             {
                 $metadataFolder=self::getMetadata($fileId);
-                //echo $metadataFolder;
                  $metadataFolderArray=json_decode($metadataFolder,true);
-                 //print_r(array_values($metadataFolderArray["parents"]));
+                 if($metadataFolderArray["parents"][0]["id"]==null)
+                 {
+                     return "root";
+                 }
+                 else{
                  return  $metadataFolderArray["parents"][0]["id"];
-                //echo $metadataFolderArray[17]['id'];
-            }
+                 
+                }
+            }   
+
+        
 
             public static function renameFile($fileName,$fileId)
             {
@@ -286,7 +335,7 @@
                 $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
                 $token = $json_token['access_token'];
                 $fileParent=self::getParentFolderId($fileId);
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?addParents=$fileIdToMove&removeParents=${fileParent}";
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?addParents=${fileIdToMove}&removeParents=${fileParent}";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST, "PATCH");
