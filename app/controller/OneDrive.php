@@ -151,18 +151,20 @@ class OneDrive extends Controller{
         $urlForDownload = $decodedResponse['@microsoft.graph.downloadUrl'];
         return json_encode(array("status"=>'200',"urlToDownload"=>$urlForDownload));
     }
-    public static function makeRequestForListFiles($access_token,$fileName)
+    public static function makeRequestForListFiles($access_token,$fileNameToRender)
     {
+        
         $create_curl=curl_init();
         curl_setopt_array($create_curl,[
-            CURLOPT_URL=>'https://graph.microsoft.com/v1.0//me'.$fileName.':/children', //spatiile in url dau erori
+            CURLOPT_URL=>'https://graph.microsoft.com/v1.0//me'.$fileNameToRender.':/children',
             CURLOPT_RETURNTRANSFER=>1,
-           /* CURLOPT_CUSTOMREQUEST=>'GET',*/
             CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}"),
             CURLOPT_SSL_VERIFYPEER=>false
         ]); 
         $response=curl_exec($create_curl);
         curl_close($create_curl);
+        $decodedResponse = json_decode($response, true);
+        setcookie('OneDrive', $decodedResponse['value'][0]["parentReference"]["path"], time() + 86400, '/');
         return $response;
     }
     public static function ListAllFiles($fileName)
@@ -256,5 +258,39 @@ class OneDrive extends Controller{
             return json_encode(array("status"=>'401'));
         }
     }
+    public static function updateFolderRequest($newFileName,$access_token,$id)
+    {
+        $data= json_encode(array("name"=>$newFileName));
+        $create_curl=curl_init();
+        curl_setopt_array($create_curl,[
+            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drive/items/'.$id, //spatiile in url dau erori
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_CUSTOMREQUEST=>'PATCH',
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}",
+                                        "Content-Type: application/json"),
+            CURLOPT_SSL_VERIFYPEER=>false,
+            CURLOPT_POSTFIELDS=>$data
+        ]); 
+        $response=curl_exec($create_curl);
+        curl_close($create_curl);
+        return $response;
+    }
+    public static function renameFolder($newFileName,$fileName)
+    {
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
+        $response  = self::makeRequestForFile($access_token,$fileName);
+        $decodedResponse = json_decode($response, true);
+        $id = $decodedResponse['id'];
+        $response  = self::updateFolderRequest($newFileName,$access_token,$id);
+        if(isset($decodedResponse['@odata.context']))
+        {
+            return json_encode(array("status"=>'200'));
+        }
+        else{
+            return json_encode(array("status"=>'401'));
+        }
+    }
+     
 }
 ?>

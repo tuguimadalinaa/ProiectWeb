@@ -31,7 +31,7 @@ var nextFolder = function() {
     var x = this.id;
     var element = document.getElementById('renderFolders');
     element.innerHTML='';
-    getDirectory(x);
+    getDirectory(x,finished);
 };
 var selectFile  = function()
 {
@@ -46,8 +46,8 @@ function finished(){
         elements[i].addEventListener('click',selectFile,false);
     }
 };
-async function getDirectory(name,callback){
-    let result   = await responseGetDirectory(name);
+async function getDirectory(fileName,callback){
+    let result   = await responseGetDirectory(fileName,name);
     let response = JSON.parse(result);
     let typeOfPhoto='';
     var folders = document.getElementById('renderFolders');
@@ -102,6 +102,7 @@ var  getFile = async function()
         else{
             result   = await responseGetFile(selectedFile,'file');
         }
+        alert(response);
         let response = JSON.parse(result);
         if(response.status=='401'){
             alert("Error to load file: " + selectedFile);
@@ -193,8 +194,67 @@ async function responseCreateFolder(fileName,path) {
         alert("Please select a file");
     }
  }
+ function makeRequestRenameFolder(fileName,selectedFile){
+    return new Promise(function (resolve) {
+       let xhr = new XMLHttpRequest();
+       xhr.open('GET', 'renameFolder?fileTransfName='+fileName+'&oldName='+selectedFile, true);
+       xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+async function responseRename(fileName,selectedFile) {
+    let result = await makeRequestRenameFolder(fileName,selectedFile);
+    return result;
+}
+ var renameFolder = async function(){
+    if(pressedButton==true)
+    {
+        let newFolderName = window.prompt('Give new name to Folder');
+        console.log(newFolderName);
+        let result = await responseRename(newFolderName,selectedFile);
+        let response = JSON.parse(result);
+        if(response.status=='401'){
+            alert("Error at creating Folder " + newFolderName);
+        }
+        else{
+            alert("Folder " + newFolderName +" renamed")
+        }
+        pressedButton=false;
+    }
+    else{
+        alert("Please select a file");
+    }
+ }
+ function makeRequestForGoBack(){
+    return new Promise(function (resolve) {
+       let xhr = new XMLHttpRequest();
+       xhr.open('GET', 'goBack', true);
+       xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+async function responseGoBack() {
+    let result = await makeRequestForGoBack();
+    return result;
+}
+ async function goBack_()
+ {
+    var element = document.getElementById('renderFolders');
+    element.innerHTML='';
+    let result = await responseGoBack();
+    console.log(result);
+ }
  document.getElementById('download_button').addEventListener('click',getFile,false);
  document.getElementById('delete_button').addEventListener('click',deleteFile,false);
  document.getElementById('create_folder_button').addEventListener('click',createFolder,false);
  document.getElementById('move_button').addEventListener('click',moveFolder,false);
- getDirectory('/drive/root:/Documents',finished);
+ document.getElementById('rename_button').addEventListener('click',renameFolder,false);
+ getDirectory("/drive/root:/Documents",finished);

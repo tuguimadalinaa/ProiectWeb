@@ -29,6 +29,13 @@ Route::set('login',function(){
                     'httponly' => true,
                     'samesite' => 'Strict',
                 ]);
+                Login::Cookie("OneDrive","/drive/root:/Documents",[
+                    'expires' => time() + 86400,
+                    'path' => '/',
+                    'secure' => false,
+                    'httponly' => true,
+                    'samesite' => 'Strict',
+                ]);
                 echo $data;
             }else if($json_response['status']==1 ||$json_response['status']==2){
                 echo $data;
@@ -78,7 +85,6 @@ Route::set('GoogleDrive_files',function(){
 
 
 Route::set('logOut',function(){
-    //Login::EndSession();
     Login::Cookie("loggedIn","JWToken",[
         'expires' => time() - 3600,
         'path' => '/',
@@ -87,6 +93,13 @@ Route::set('logOut',function(){
         'samesite' => 'Lax',
     ]);
     Login::Cookie("Dropbox","root",[
+        'expires' => time() - 3600,
+        'path' => '/',
+        'secure' => false,
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
+    Login::Cookie("OneDrive","root",[
         'expires' => time() - 3600,
         'path' => '/',
         'secure' => false,
@@ -357,6 +370,20 @@ Route::set('createFolder',function(){
     else{
         echo json_encode(array("status"=>'1'));
     }
+    
+});
+Route::set('renameFolder',function(){
+    if(!empty($_REQUEST['fileTransfName'])  && !empty($_REQUEST['oldName'])){
+        $response = OneDrive::renameFolder($_REQUEST['fileTransfName'],$_REQUEST['oldName']);
+        echo $response;
+    }
+    else{
+        echo json_encode(array("status"=>'1'));
+    }
+    
+});
+Route::set('goBack',function(){
+    echo json_encode(array("status"=>$_COOKIE['OneDrive']));//de pus cookie cu handler
     
 });
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
