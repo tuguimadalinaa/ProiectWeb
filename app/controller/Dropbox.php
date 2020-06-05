@@ -47,14 +47,22 @@ Class Dropbox extends Controller{
             echo json_encode(array("status"=>'401'));
         }
     }
-    public static function uploadFile(){
+    public static function uploadSmallFile($file_data,$file_path_array){
         $dropbox_upload_url = "https://content.dropboxapi.com/2/files/upload";
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
         $token = $json_token['access_token'];
-        $filebits = "Hai noroc vecine";   //file content to upload
+        $file_path = $file_path_array['path'];
+        if(strpos($file_path,'/') == false){
+            $current_folder_id = $_COOKIE["Dropbox"];
+            $current_folder_metadata= self::getItemMetadata($current_folder_id);
+            $current_folder_path = $current_folder_metadata['path_display'];
+            $path = $current_folder_path . '/' . $file_path;
+        } else {
+            $path = $file_path;
+        }
         $parameters = '{' .
-            '"path": "/Langos/' . 'Costelino.txt' . '",' .
+            '"path": "' . $path . '",' .
             '"mode": "add",' .
             '"autorename": true,' .
             '"mute": false,' .
@@ -67,14 +75,13 @@ Class Dropbox extends Controller{
         "Authorization: Bearer ${token}",
         "Dropbox-API-Arg: " . $parameters,
         "Content-Type: application/octet-stream"
-         ));
+        ));
        curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
        curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
-       curl_setopt($curl_resource,CURLOPT_POSTFIELDS, $filebits);
+       curl_setopt($curl_resource,CURLOPT_POSTFIELDS, $file_data);
        $result = curl_exec($curl_resource);
        curl_close($curl_resource);
        $responseDecoded = json_decode($result,true);
-       return "http://localhost/ProiectWeb/app/home";
     }
 
     public static function getFolderFiles($folder_id){
@@ -205,7 +212,7 @@ Class Dropbox extends Controller{
         echo $response;
     }
 
-    public static function uploadSessionStart(){
+    public static function uploadSessionStart($file_data){
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $dropbox_upload_session_start_url = "https://content.dropboxapi.com/2/files/upload_session/start";
         $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
@@ -214,7 +221,6 @@ Class Dropbox extends Controller{
         $parameter = '{' .
             '"close": false' .
         '}';
-        $file_data = 'Hello';
         curl_setopt($curl_resource,CURLOPT_URL,$dropbox_upload_session_start_url);
         curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
         curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$file_data);

@@ -3,6 +3,7 @@
 var checkedFiles = false;
 var checkedFileId=0;
 
+
 function openMenu()
 {
     document.getElementById("shownMenu").removeAttribute("hidden");
@@ -28,6 +29,18 @@ function makeRequestForFiles() {
         xhr.send();
     });
 }
+function makeRequestForChangingFolder(folderId){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', 'changeFolderGoogleDrive?fileId='+folderId, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
 function makeRequestCreateFolder(fileName){
     return new Promise(function (resolve) {
        let xhr = new XMLHttpRequest();
@@ -44,7 +57,43 @@ function makeRequestCreateFolder(fileName){
 function makeRequestForDeletingFile(fileId){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        xhr.open('GET', 'deleteFileGoogleDrive?folderId='+fileId, true);
+        xhr.open('GET', 'deleteFileGoogleDrive?fileId='+fileId, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+function makeRequestForRenamingFile(fileName,fileId){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('PATCH', 'renameFileGoogleDrive?fileName='+fileName+'&fileId='+fileId, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+function makeRequestForGoingToPreviousFolder(){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', 'previousFolderGoogleDrive', true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+function makeRequestForMovingFile(fileId){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('PATCH', 'moveFileGoogleDrive?fileId='+fileId, true);
         xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
@@ -58,12 +107,25 @@ async function highlightItem(item){
     checkedFileId = itemId;
     console.log(checkedFileId);
 }
+async function getFolderFiles(folder){
+    folderId = folder.getAttribute('id');
+    alert(folderId);
+    response = await waitForResponse('visualizeFolder',folderId,null);
+    location.reload();
+}
 
 async function waitForResponse(reason,fileId,fileName) {
     if(reason == 'listFiles'){
        let result = await makeRequestForFiles();
        return result;
+    }else if(reason == 'visualizeFolder'){
+        let result = await makeRequestForChangingFolder(fileId);
+        return result;
     }
+    else if(reason == 'goBackToPreviousFolder'){
+        let result = makeRequestForGoingToPreviousFolder();
+        return result;
+     }
     else if(reason=='deleteFile')
     {
         let result=await makeRequestForDeletingFile(fileId);
@@ -72,6 +134,16 @@ async function waitForResponse(reason,fileId,fileName) {
     else if(reason=='createFolder')
     {
         let result=await makeRequestCreateFolder(fileName);
+        return result;
+    }
+    else if(reason=='renameFile')
+    {
+        let result=await makeRequestForRenamingFile(fileName,fileId);
+        return result;
+    }
+    else if(reason=='moveFile')
+    {
+        let result=await makeRequestForMovingFile(fileId);
         return result;
     }
 }
@@ -87,6 +159,41 @@ async function downloadFileAndFolder(){
         } 
     }
 }
+
+async function moveFileOrFolder(){
+    response = await waitForResponse('moveFile',checkedFileId,null);
+    if(response == 'File stored in cookie'){
+
+    } else if(response == 'Not a valid file id'){
+        alert('Please choose a file/folder to move!');
+    } else {
+        location.reload();
+    }
+ }
+
+ async function renameFileOrFolder(){
+    if(checkedFileId == 0){
+        alert('Please select a file/folder to move');
+    } else {
+        while(true){
+            fileName = window.prompt('Enter new name');
+            if(fileName == null){
+                alert('Please enter a not null new name');
+            } else {
+                break;
+            }
+        }
+        response = await waitForResponse('renameFile',checkedFileId,fileName);
+        alert(response);
+        alert('File updated successfully')
+        location.reload();
+        
+    }
+ }
+async function goBackToPreviousFolder(){
+    response = await waitForResponse('goBackToPreviousFolder',null,null);
+    location.reload();
+}
 async function deleteFile(){
     if(checkedFileId == 0){
         alert('Please select a file/folder to delete first');
@@ -97,22 +204,21 @@ async function deleteFile(){
 }
 async function createFolder()
 {
-    var folderName = window.prompt('Folder name here');
-    alert(folderName);
-    let result = await waitForResponse('createFolder',' ',folderName);
-    let response = JSON.parse(result);
-    if(response.status=='401'){
-        alert("Error at creating Folder " + folderName);
+   while(true){
+        folderName = window.prompt('Enter the name for the folder');
+        if(folderName == null){
+            alert('Please enter a not null name');
+        } else {
+            break;
+        }
     }
-    else{
-        alert("Folder " + folderName+" created");
-        location.reload();
-    }
+    response = await waitForResponse('createFolder',null,folderName);
+    location.reload();
 }
 async function checkGoogleDriveFiles(){
     if(checkedFiles == false){
      let responseJson = await waitForResponse('listFiles');
-     alert(responseJson);
+     //alert(responseJson);
      let response = JSON.parse(responseJson);
      
      var folder = document.getElementById('folderContainer');
@@ -129,7 +235,7 @@ async function checkGoogleDriveFiles(){
             htmlString = htmlString + ' class="folderIcon" src="../views/IMAGES/file-icon-v1.png" alt="fileIcon" ';
         }
          htmlString = htmlString + 'onclick="highlightItem(this)" ';
-        // htmlString = htmlString + 'ondblclick="getFolderFiles(this)" >';
+         htmlString = htmlString + 'ondblclick="getFolderFiles(this)" >';
          htmlString = htmlString + '<h4>' + currentFolders[i] + '</h4> </div>';
          folder.insertAdjacentHTML('beforeend',htmlString);
     }
