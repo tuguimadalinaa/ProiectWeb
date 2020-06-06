@@ -661,5 +661,9 @@ Route::set('goBack',function(){
     echo json_encode(array("status"=>$_COOKIE['OneDrive']));
     
 });
+Route::set('moveFile',function(){
+    echo OneDrive::moveFile($_REQUEST['newPath'],$_REQUEST['fileTransfName']);
+    
+});
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
 ?>

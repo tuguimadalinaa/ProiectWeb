@@ -30,7 +30,12 @@ async function responseGetDirectory(name) {
 var nextFolder = function() {
     var x = this.id;
     var element = document.getElementById('renderFolders');
+    let goBackArrow = document.getElementsByClassName("goBackButton");
     element.innerHTML='';
+    if(goBackArrow[0]!=undefined)
+    {
+        goBackArrow[0].innerHTML='';
+    }
     getDirectory(x,finished);
 };
 var selectFile  = function()
@@ -45,12 +50,29 @@ function finished(){
         elements[i].addEventListener('dblclick', nextFolder, false);
         elements[i].addEventListener('click',selectFile,false);
     }
+    let goBackArrow = document.getElementsByClassName("goBackButton");
+    if(goBackArrow[0]!=undefined)
+    {
+        goBackArrow[0].onclick = goBack_;
+    }
+    
 };
 async function getDirectory(fileName,callback){
     let result   = await responseGetDirectory(fileName,name);
     let response = JSON.parse(result);
     let typeOfPhoto='';
     var folders = document.getElementById('renderFolders');
+    let goBackArrow = document.getElementsByClassName("goBackButton");
+    if(goBackArrow[0]!=undefined)
+    {
+        goBackArrow[0].parentNode.removeChild(goBackArrow[0]);
+    }
+    if(fileName!="/drive/root:/Documents" || fileName!="\/drive\/root:\/Documents")
+    {
+        htmlString='<div class="goBackButton"> <img src="../views/IMAGES/GoBack.png" alt="Go_Back"></div>';
+        folders.insertAdjacentHTML('beforebegin',htmlString);
+    }
+    
     for(var i=0;i<response.value.length;i++)
     {
         if(response.value[i].folder!=undefined)
@@ -181,13 +203,33 @@ async function responseCreateFolder(fileName,path) {
         alert("Folder " + folderName+" created")
     }
  }
+ function makeRequestMoveFolder(fileName,newpath){
+    return new Promise(function (resolve) {
+       let xhr = new XMLHttpRequest();
+       xhr.open('GET', 'moveFile?fileTransfName='+fileName+'&newPath='+newpath, true);
+       xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+async function responseMoveFolder(fileName,path) {
+    let result = await makeRequestMoveFolder(fileName,path);
+    return result;
+}
  var moveFolder = async function(){
     
     if(pressedButton==true)
     {
         let folderWhereToMove = window.prompt('Give path to where to move folder');
-        console.log('In delete File ' + selectedFile);
+        console.log('In move File ' + selectedFile);
+        folderWhereToMove = '/drive/root:/'+folderWhereToMove;
         console.log(folderWhereToMove);
+        let response = await responseMoveFolder(selectedFile,folderWhereToMove);
+        //alert(response);
+        console.log(response);
         pressedButton=false;
     }
     else{
@@ -245,7 +287,7 @@ async function responseGoBack() {
     let result = await makeRequestForGoBack();
     return result;
 }
- async function goBack_()
+var goBack_ = async function()
  {
     var element = document.getElementById('renderFolders');
     element.innerHTML='';
@@ -260,3 +302,5 @@ async function responseGoBack() {
  document.getElementById('move_button').addEventListener('click',moveFolder,false);
  document.getElementById('rename_button').addEventListener('click',renameFolder,false);
  getDirectory("/drive/root:/Documents",finished);
+ //getDirectory("/drive/root:/Documents",finished);
+//https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_arrows
