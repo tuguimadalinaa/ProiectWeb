@@ -1028,6 +1028,7 @@ Route::set('APIrefreshJWT',function(){
     
 });
 
+
 Route::set('APIgetCode',function(){
     $headers = apache_request_headers();
     $responseJWTheader = Login::validateJwtRequest($headers);
