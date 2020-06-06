@@ -235,17 +235,10 @@ Class Dropbox extends Controller{
         curl_close($curl_resource);
         $responseDecoded = json_decode($response,true);
         $session_id = $responseDecoded['session_id'];
-        $file_size = strlen($file_data);
-        $max_request_size = "157286400";
-        if($file_size <= intval($max_request_size)){         
-            Dropbox::uploadSessionFinish($token,$file_data,$session_id);
-        } else {
-            Dropbox::uploadSessionAppend($token,$file_data,$session_id);
-        }
-        echo $response;
+        return $session_id;
     }
 
-    public static function uploadSessionAppend($access_token,$file_data,$session_id){
+    public static function uploadSessionAppend($file_data,$cursor_id,$offset){
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $dropbox_upload_session_append_url = "https://content.dropboxapi.com/2/files/upload_session/append_v2";
         $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
@@ -253,8 +246,8 @@ Class Dropbox extends Controller{
         $curl_resource = curl_init();
         $parameters = '{' .
             '"cursor" : {' .
-                 '"session_id": ' . $session_id . ',' .
-                 '"offset": 5' .
+                 '"session_id": "' . $cursor_id . '",' .
+                 '"offset": ' . $offset . 
             '},' .
             '"close": false' .
         '}';
@@ -270,23 +263,24 @@ Class Dropbox extends Controller{
         curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
         $response = curl_exec($curl_resource);
         curl_close($curl_resource);
-        $responseDecoded = json_decode($response,true);
-        echo $response;
+        return 'Chunk uploaded';
     }
 
-    public static function uploadSessionFinish($access_token,$file_data,$session_id){
+    public static function uploadSessionFinish($file_data,$cursor_id,$offset,$file_name,$parent_id){
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $dropbox_upload_session_finish_url = "https://content.dropboxapi.com/2/files/upload_session/finish";
         $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
         $token = $json_token['access_token'];
+        $parent_metadata = self::getItemMetadata($parent_id);
+        $parent_path = $parent_metadata['path_display'];
         $curl_resource = curl_init();
         $parameters = '{' .
             '"cursor" : {' .
-                 '"session_id": ' . '"' . $session_id . '",' .
-                 '"offset": 5' .
+                 '"session_id": ' . '"' . $cursor_id . '",' .
+                 '"offset": ' . $offset .
             '},' .
             '"commit": {' .
-                '"path": "/Langos/Cartofi.txt",' .
+                '"path": "' . $parent_path . '/' . $file_name . '",' . 
                 '"mode": "add",' . 
                 '"autorename": true,' .
                 '"mute": false,' .
@@ -306,7 +300,7 @@ Class Dropbox extends Controller{
         $response = curl_exec($curl_resource);
         curl_close($curl_resource);
         $responseDecoded = json_decode($response,true);
-        echo $response;
+        echo $parameters;
     }
 
 
