@@ -32,23 +32,28 @@ class DataBase{
         $connection  = DataBase::connect()->prepare($checkUser);
         $connection->execute();
         $result = $connection -> fetchAll();
-        foreach( $result as $row ) {
-            $response = self::approveRequest($password,$result[0][1]);
-            if($response==0)
-            {
-                $jwt=Auth::jwtGenerate($userName,$password);
+        $response = -10;
+        if($result == null){
+            $jwt="";
+        } else {
+            foreach( $result as $row ) {
+                $response = self::approveRequest($password,$result[0][1]);
+                if($response==0)
+                {
+                    $jwt=Auth::jwtGenerate($userName,$password);
+                }
+                else{
+                    //echo "Access denied!";
+                    $jwt="";
+                }
             }
-            else{
-                //echo "Access denied!";
-                $jwt="";
-            }
-            $data=array(
-                "jwt"=>$jwt,
-                "status"=>$response
-            );
-            $jsonResponse = json_encode($data);
-           
         }
+        $data=array(
+            "jwt"=>$jwt,
+            "status"=>$response
+        );
+        $jsonResponse = json_encode($data);
+        
         //echo $data['jwt'];
         //echo $data['status'];
         //echo "<pre";

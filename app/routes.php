@@ -923,51 +923,109 @@ Route::set('APIcheckJWT',function(){
 
 Route::set('APIregisterUser',function(){
     $requestBody = json_decode(file_get_contents('php://input'),true);
-    if(count($requestBody) == 2){
-        if(array_key_exists('username',$requestBody) && array_key_exists('password',$requestBody)){
-            if($requestBody['username'] != null && $requestBody['password'] != null){
-                $response = SignUp::createAccount($requestBody['username'],$requestBody['password']);
-                $status = json_decode($response,true);
-                if($status['status'] == '1'){
-                    http_response_code(200);
-                    $response = array("response" => "Registered successfully");
-                    header('Content-Type: application/json');
-                    echo json_encode($response);
-                } else if($status['status'] == '2') {
-                    http_response_code(500);
-                    $error = array("error" => "Server error, please try again");
-                    header('Content-Type: application/json');
-                    echo json_encode($error);
-                } else if($status['status'] == '3'){
-                    http_response_code(400);
-                    $error = array("error" => "Username already exists");
-                    header('Content-Type: application/json');
-                    echo json_encode($error);
+    if($requestBody != null){
+        if(count($requestBody) == 2){
+            if(array_key_exists('username',$requestBody) && array_key_exists('password',$requestBody)){
+                if($requestBody['username'] != null && $requestBody['password'] != null){
+                    $response = SignUp::createAccount($requestBody['username'],$requestBody['password']);
+                    $status = json_decode($response,true);
+                    if($status['status'] == '1'){
+                        $data = Login::getApprovalFromDB($requestBody['username'],$requestBody['password']);
+                        $json_response = json_decode($data,true);
+                        $jwt = $json_response['jwt'];
+                        http_response_code(200);
+                        $response = array("JWT" => $jwt);
+                        header('Content-Type: application/json');
+                        echo json_encode($response);
+                    } else if($status['status'] == '2') {
+                        http_response_code(500);
+                        $error = array("error" => "Server error, please try again");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    } else if($status['status'] == '3'){
+                        http_response_code(400);
+                        $error = array("error" => "Username already exists");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    } else {
+                        http_response_code(500);
+                        $error = array("error" => "Server error, please try again");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    }
+    
                 } else {
-                    http_response_code(500);
-                    $error = array("error" => "Server error, please try again");
+                    http_response_code(400);
+                    $error = array("error" => "Missing username or password field value(or both)");
                     header('Content-Type: application/json');
                     echo json_encode($error);
                 }
-
             } else {
                 http_response_code(400);
-                $error = array("error" => "Missing username or password field value(or both)");
+                $error = array("error" => "Missing username or password field(or both)");
                 header('Content-Type: application/json');
                 echo json_encode($error);
             }
         } else {
             http_response_code(400);
-            $error = array("error" => "Missing username or password field(or both)");
+            $error = array("error" => "Invalid number of fields in body");
             header('Content-Type: application/json');
             echo json_encode($error);
         }
     } else {
         http_response_code(400);
-        $error = array("error" => "Invalid number of fields in body");
+        $error = array("error" => "Malformed json");
         header('Content-Type: application/json');
         echo json_encode($error);
     }
+    
+});
+
+Route::set('APIrefreshJWT',function(){
+    $requestBody = json_decode(file_get_contents('php://input'),true);
+    if($requestBody != null){
+        if(count($requestBody) == 2){
+            if(array_key_exists('username',$requestBody) && array_key_exists('password',$requestBody)){
+                if($requestBody['username'] != null && $requestBody['password'] != null){
+                    $data = Login::getApprovalFromDB($requestBody['username'],$requestBody['password']);
+                    $json_response = json_decode($data,true);
+                    $jwt = $json_response['jwt'];
+                    if($jwt != ""){
+                        http_response_code(200);
+                        $response = array("JWT" => $jwt);
+                        header('Content-Type: application/json');
+                        echo json_encode($response);
+                    } else {
+                        http_response_code(404);
+                        $error = array("error" => "Invalid username or password(or both)");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    }
+                } else {
+                    http_response_code(400);
+                    $error = array("error" => "Missing username or password field value(or both)");
+                    header('Content-Type: application/json');
+                    echo json_encode($error);
+                }
+            } else {
+                http_response_code(400);
+                $error = array("error" => "Missing username or password field(or both)");
+                header('Content-Type: application/json');
+                echo json_encode($error);
+            }
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Invalid number of fields in body");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+    } else {
+        http_response_code(400);
+        $error = array("error" => "Malformed json");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+    
 });
 
 Route::set('APIgetCode',function(){
@@ -1008,9 +1066,19 @@ Route::set('APIgetCode',function(){
            header('Content-Type: application/json');
            echo json_encode($error);
        }
-    } else {
+    } else if($responseJWTheader == 'JWT invalid'){
         http_response_code(401);
-        $error = array("error" => "invalid JWT");
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
         header('Content-Type: application/json');
         echo json_encode($error);
     }
@@ -1027,54 +1095,71 @@ Route::set('APIregisterToken',function(){
             }
         }
         $requestBody = json_decode(file_get_contents('php://input'),true);
-        if(count($requestBody) == 2){
-            if(array_key_exists('code',$requestBody) && array_key_exists('drive',$requestBody)){
-                if($requestBody['code'] != null && $requestBody['drive'] != null){
-                    if($requestBody['drive'] == 'OneDrive'){
-
-                    } else if($requestBody['drive'] == 'Dropbox'){
-                        $response = Dropbox::APIgetToken($requestBody['code'],$jwt);
-                        if($response == 'Access Granted'){
-                            http_response_code(200);
-                            $responseJson = array("response" => "${response}");
-                            header('Content-Type: application/json');
-                            echo json_encode($responseJson);
+        if($requestBody != null){
+            if(count($requestBody) == 2){
+                if(array_key_exists('code',$requestBody) && array_key_exists('drive',$requestBody)){
+                    if($requestBody['code'] != null && $requestBody['drive'] != null){
+                        if($requestBody['drive'] == 'OneDrive'){
+    
+                        } else if($requestBody['drive'] == 'Dropbox'){
+                            $response = Dropbox::APIgetToken($requestBody['code'],$jwt);
+                            if($response == 'Access Granted'){
+                                http_response_code(200);
+                                $responseJson = array("response" => "${response}");
+                                header('Content-Type: application/json');
+                                echo json_encode($responseJson);
+                            } else {
+                                http_response_code(400);
+                                $error = array("error" => "Invalid code");
+                                header('Content-Type: application/json');
+                                echo json_encode($error);
+                            }
+                        } else if($requestBody['drive'] == 'GoogleDrive'){
+    
                         } else {
                             http_response_code(400);
-                            $error = array("error" => "Invalid code");
+                            $error = array("error" => "Invalid drive name");
                             header('Content-Type: application/json');
                             echo json_encode($error);
                         }
-                    } else if($requestBody['drive'] == 'GoogleDrive'){
-
                     } else {
                         http_response_code(400);
-                        $error = array("error" => "Invalid drive name");
+                        $error = array("error" => "Missing code or drive value(or both)");
                         header('Content-Type: application/json');
                         echo json_encode($error);
                     }
                 } else {
                     http_response_code(400);
-                    $error = array("error" => "Missing code or drive value(or both)");
+                    $error = array("error" => "Missing code or drive field(or both)");
                     header('Content-Type: application/json');
                     echo json_encode($error);
                 }
             } else {
                 http_response_code(400);
-                $error = array("error" => "Missing code or drive field(or both)");
+                $error = array("error" => "Invalid number of fields in body");
                 header('Content-Type: application/json');
                 echo json_encode($error);
             }
         } else {
             http_response_code(400);
-            $error = array("error" => "Invalid number of fields in body");
+            $error = array("error" => "Malformed json");
             header('Content-Type: application/json');
             echo json_encode($error);
         }
         
-    } else {
+    } else if($responseJWTheader == 'JWT invalid'){
         http_response_code(401);
-        $error = array("error" => "invalid JWT");
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
         header('Content-Type: application/json');
         echo json_encode($error);
     }
