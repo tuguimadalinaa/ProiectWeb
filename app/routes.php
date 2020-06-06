@@ -16,28 +16,28 @@ Route::set('login',function(){
             $json_response = json_decode($data,true);
             if($json_response['status']==0){
                 Login::Cookie("loggedIn",$json_response['jwt'],[
-                    'expires' => time() + 86400,
+                    'expires' => time() + 3600*24*7,
                     'path' => '/',
                     'secure' => false,
                     'httponly' => true,
                     'samesite' => 'Lax',
                 ]);
                 Login::Cookie("Dropbox","root",[
-                    'expires' => time() + 86400,
+                    'expires' => time() + 3600*24*7,
                     'path' => '/',
                     'secure' => false,
                     'httponly' => true,
                     'samesite' => 'Strict',
                 ]);
                 Login::Cookie("GoogleDrive","root",[
-                    'expires' => time() + 86400,
+                    'expires' => time() + 3600*24*7,
                     'path' => '/',
                     'secure' => false,
                     'httponly' => true,
                     'samesite' => 'Strict',
                 ]);
                 Login::Cookie("OneDrive","/drive/root:/Documents",[
-                    'expires' => time() + 86400,
+                    'expires' => time() + 3600*24*7,
                     'path' => '/',
                     'secure' => false,
                     'httponly' => true,
@@ -50,6 +50,7 @@ Route::set('login',function(){
         }
     }
 });
+
 Route::set('signUp', function(){
     if(empty($_REQUEST['username']) && empty($_REQUEST['password'])){
          Controller::CreateView('signUp');
@@ -63,65 +64,113 @@ Route::set('signUp', function(){
         }
     }
 });
+
 Route::set('registrationConfirmed',function(){
     ConfirmedRegistration::Createview('registrationConfirmed');
 });
+
 Route::set('home',function(){
     if(!isset($_COOKIE["loggedIn"])){
         header('Location: login');    
     }else{
-        Home::Createview('index');
+        $response_jwt_validation = Login::validateJwtCookie();
+        if($response_jwt_validation == 'JWT valid'){
+            Home::Createview('index');  
+        } else {
+           http_response_code(401);
+           echo 'Invalid JWT';
+        } 
     }
 });
+
 Route::set('about',function(){
-    Home::CreateView('about');
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        Home::CreateView('about');
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    } 
 });
 
+    // $response_jwt_validation = Login::validateJwtCookie();
+    // if($response_jwt_validation == 'JWT valid'){
+        
+    // } else {
+    //    http_response_code(401);
+    //    echo 'Invalid JWT';
+    // } 
 
 Route::set('Dropbox_files',function(){
-    Home::CreateView('Dropbox_files');
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        Home::CreateView('Dropbox_files');
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    } 
 });
 
 Route::set('OneDrive_files',function(){
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    } 
     Home::CreateView('OneDrive_files');
 });
 
 Route::set('GoogleDrive_files',function(){
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    } 
     Home::CreateView('GoogleDrive_files');
 });
 
-
 Route::set('logOut',function(){
-    Login::Cookie("loggedIn","JWToken",[
-        'expires' => time() - 3600,
-        'path' => '/',
-        'secure' => false,
-        'httponly' => true,
-        'samesite' => 'Lax',
-    ]);
-    Login::Cookie("Dropbox","root",[
-        'expires' => time() - 3600,
-        'path' => '/',
-        'secure' => false,
-        'httponly' => true,
-        'samesite' => 'Strict',
-    ]);
-    Login::Cookie("GoogleDrive","root",[
-        'expires' => time() - 3600,
-        'path' => '/',
-        'secure' => false,
-        'httponly' => true,
-        'samesite' => 'Strict',
-    ]);
-    Login::Cookie("OneDrive","/drive/root:/Documents",[
-        'expires' => time() -3600,
-        'path' => '/',
-        'secure' => false,
-        'httponly' => true,
-        'samesite' => 'Strict',
-    ]);
-    //header('Location: login');   //Robert, musai trebuie 
-    echo 'Logout';
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        Login::Cookie("loggedIn","JWToken",[
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        Login::Cookie("Dropbox","root",[
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+        Login::Cookie("GoogleDrive","root",[
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+        Login::Cookie("OneDrive","/drive/root:/Documents",[
+            'expires' => time() -3600,
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+        //header('Location: login');   //Robert, musai trebuie 
+        echo 'Logout';
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    } 
+    
 });
 Route::set('getCode', function(){
     $drive_type = $_REQUEST['drive'];
@@ -289,187 +338,266 @@ Route::set('moveFileGoogleDrive',function(){
 
 /* --------------------------------------------- Dropbox --------------------------------------------- */
 
-Route::set('parentPath',function(){ //Ruta testing
-    $parent_metadata = Dropbox::getItemMetadata($_REQUEST['parent_id']);
-    echo $parent_metadata['path_display'];
-});
+//Pentru validarea jwt-ul la fiecare ruta
+
+/*
+ $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+         
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    } 
+ */
 
 Route::set('deleteItemDropbox',function(){
-    $deleted_item_id = $_REQUEST['item_id'];
-    Dropbox::deleteItem($deleted_item_id);
-    echo 'Item deleted';
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $deleted_item_id = $_REQUEST['item_id'];
+        Dropbox::deleteItem($deleted_item_id);
+        echo 'Item deleted';
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    }
 });
 
 Route::set('changeFolderDropbox',function(){
-    $changed_folder_id = $_REQUEST['folder_id'];
-    Dropbox::Cookie("Dropbox",$changed_folder_id,[
-        'expires' => time() + 86400,
-        'path' => '/',
-        'secure' => false,
-        'httponly' => true,
-        'samesite' => 'Strict',
-    ]);
-    echo 'Cookie Folder value changed';
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $changed_folder_id = $_REQUEST['folder_id'];
+        Dropbox::Cookie("Dropbox",$changed_folder_id,[
+            'expires' => time() + 86400,
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+        echo 'Cookie Folder value changed';
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    }
  });
 
 Route::set('moveItemDropbox',function(){
-    if(isset($_COOKIE["Dropbox-MV"])){
-        if($_REQUEST['item_id'] == '0'){
-            $response = Dropbox::moveItem($_COOKIE['Dropbox'],$_COOKIE['Dropbox-MV']);
-            Dropbox::Cookie("Dropbox-MV",'invalid',[
-                'expires' => time() - 3600,
-                'path' => '/',
-                'secure' => false,
-                'httponly' => true,
-                'samesite' => 'Strict',
-            ]);
-            echo 'Item moved';
-        } else {
-            Dropbox::Cookie("Dropbox-MV",$_REQUEST['item_id'],[
-                'expires' => time() + 86400,
-                'path' => '/',
-                'secure' => false,
-                'httponly' => true,
-                'samesite' => 'Strict',
-            ]);
-            echo 'Item stored in cookie';
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        if(isset($_COOKIE["Dropbox-MV"])){
+            if($_REQUEST['item_id'] == '0'){
+                $response = Dropbox::moveItem($_COOKIE['Dropbox'],$_COOKIE['Dropbox-MV']);
+                Dropbox::Cookie("Dropbox-MV",'invalid',[
+                    'expires' => time() - 3600,
+                    'path' => '/',
+                    'secure' => false,
+                    'httponly' => true,
+                    'samesite' => 'Strict',
+                ]);
+                echo 'Item moved';
+            } else {
+                Dropbox::Cookie("Dropbox-MV",$_REQUEST['item_id'],[
+                    'expires' => time() + 86400,
+                    'path' => '/',
+                    'secure' => false,
+                    'httponly' => true,
+                    'samesite' => 'Strict',
+                ]);
+                echo 'Item stored in cookie';
+            }
+            
+        } else{
+            if($_REQUEST['item_id'] != '0'){
+                Dropbox::Cookie("Dropbox-MV",$_REQUEST['item_id'],[
+                    'expires' => time() + 86400,
+                    'path' => '/',
+                    'secure' => false,
+                    'httponly' => true,
+                    'samesite' => 'Strict',
+                ]);
+                echo 'Item stored in cookie';
+            } else {
+                echo 'Not a valid item id';
+            }
         }
-        
-    } else{
-        if($_REQUEST['item_id'] != '0'){
-            Dropbox::Cookie("Dropbox-MV",$_REQUEST['item_id'],[
-                'expires' => time() + 86400,
-                'path' => '/',
-                'secure' => false,
-                'httponly' => true,
-                'samesite' => 'Strict',
-            ]);
-            echo 'Item stored in cookie';
-        } else {
-            echo 'Not a valid item id';
-        }
+    } else {
+       http_response_code(401); 
+       echo 'Invalid JWT';
     }
 });
 
 Route::set('uploadSmallFileDropbox',function(){
-    $headers = apache_request_headers();
-    $file_path_json = 'Unknown';
-    foreach ($headers as $header => $value) {
-        if($header == 'File-Args'){
-            $file_path_json = $value;
-            break;
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $headers = apache_request_headers();
+        $file_path_json = 'Unknown';
+        foreach ($headers as $header => $value) {
+            if($header == 'File-Args'){
+                $file_path_json = $value;
+                break;
+            }
         }
+        $file_path_array = json_decode($file_path_json,true);
+        $requestBody = file_get_contents('php://input');
+        $response = Dropbox::uploadSmallFile($requestBody,$file_path_array);
+        echo 'File uploaded';
+    } else {
+       http_response_code(401); 
+       echo 'Invalid JWT';
     }
-    $file_path_array = json_decode($file_path_json,true);
-    $requestBody = file_get_contents('php://input');
-    $response = Dropbox::uploadSmallFile($requestBody,$file_path_array);
-    echo 'File uploaded';
 });
 
 Route::set('uploadLargeFileStartDropbox',function(){
-    $requestBody = file_get_contents('php://input');
-    $folder_id_file = fopen("folder_id.txt", "w");
-    $bytesWritten = fwrite($folder_id_file,$_COOKIE['Dropbox']); 
-    $response = Dropbox::uploadSessionStart($requestBody);
-    echo $response;
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $requestBody = file_get_contents('php://input');
+        $folder_id_file = fopen("folder_id.txt", "w");
+        $bytesWritten = fwrite($folder_id_file,$_COOKIE['Dropbox']); 
+        $response = Dropbox::uploadSessionStart($requestBody);
+        echo $response;
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    }
 });
 
 Route::set('uploadLargeFileAppendDropbox',function(){
-    $headers = apache_request_headers();
-    $cursor_id = 'Unknown';
-    $offset = 'Unknown';
-    $decoded_json_value = 0;
-    foreach ($headers as $header => $value) {
-        if($header == 'Session-Args'){
-            $decoded_json_value = json_decode($value,true);
-            break;
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $headers = apache_request_headers();
+        $cursor_id = 'Unknown';
+        $offset = 'Unknown';
+        $decoded_json_value = 0;
+        foreach ($headers as $header => $value) {
+            if($header == 'Session-Args'){
+                $decoded_json_value = json_decode($value,true);
+                break;
+            }
         }
+        $cursor_id = $decoded_json_value['cursorId'];
+        $offset = $decoded_json_value['offset'];
+        $requestBody = file_get_contents('php://input');
+        $response = Dropbox::uploadSessionAppend($requestBody,$cursor_id,$offset);
+        echo $response;
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
     }
-    $cursor_id = $decoded_json_value['cursorId'];
-    $offset = $decoded_json_value['offset'];
-    $requestBody = file_get_contents('php://input');
-    $response = Dropbox::uploadSessionAppend($requestBody,$cursor_id,$offset);
-    echo $response;
 });
 
 Route::set('uploadLargeFileFinishDropbox',function(){
-    $headers = apache_request_headers();
-    $cursor_id = 'Unknown';
-    $offset = 'Unknown';
-    $file_name = 'Unknown';
-    $decoded_json_value = 0;
-    foreach ($headers as $header => $value) {
-        if($header == 'Session-Args'){
-            $decoded_json_value = json_decode($value,true);
-            break;
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $headers = apache_request_headers();
+        $cursor_id = 'Unknown';
+        $offset = 'Unknown';
+        $file_name = 'Unknown';
+        $decoded_json_value = 0;
+        foreach ($headers as $header => $value) {
+            if($header == 'Session-Args'){
+                $decoded_json_value = json_decode($value,true);
+                break;
+            }
         }
+        $cursor_id = $decoded_json_value['cursorId'];
+        $offset = $decoded_json_value['offset'];
+        $file_name = $decoded_json_value['name'];
+        $requestBody = file_get_contents('php://input');
+        $parent_id = file_get_contents("folder_id.txt");
+        $response = Dropbox::uploadSessionFinish($requestBody,$cursor_id,$offset,$file_name,$parent_id);
+        unlink("folder_id.txt");
+        echo $response;
+    } else {
+       http_response_code(401);  
+       echo 'Invalid JWT';
     }
-    $cursor_id = $decoded_json_value['cursorId'];
-    $offset = $decoded_json_value['offset'];
-    $file_name = $decoded_json_value['name'];
-    $requestBody = file_get_contents('php://input');
-    $parent_id = file_get_contents("folder_id.txt");
-    $response = Dropbox::uploadSessionFinish($requestBody,$cursor_id,$offset,$file_name,$parent_id);
-    unlink("folder_id.txt");
-    echo $response;
 });
 
 
 
 Route::set('getFolderFilesDropbox',function(){ 
-   $response = DropBox::getFolderFiles($_COOKIE['Dropbox']);
-   echo $response;
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $response = DropBox::getFolderFiles($_COOKIE['Dropbox']);
+        echo $response;
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    }
 });
 
 Route::set('previousFolderDropbox',function(){
-    $parent_id = Dropbox::getParentFolderId($_COOKIE["Dropbox"]);
-    Dropbox::Cookie("Dropbox",$parent_id,[
-        'expires' => time() + 86400,
-        'path' => '/',
-        'secure' => false,
-        'httponly' => true,
-        'samesite' => 'Strict',
-    ]);
-    echo 'Previous Folder';
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $parent_id = Dropbox::getParentFolderId($_COOKIE["Dropbox"]);
+        Dropbox::Cookie("Dropbox",$parent_id,[
+            'expires' => time() + 86400,
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+        echo 'Previous Folder';
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    }
 });
 
 Route::set('downloadFileDropbox',function(){ 
-    $downloaded_item_id = $_REQUEST['file_id'];
-    $response = Dropbox::downloadFileByLink($downloaded_item_id);
-    header("Location: ${response}");
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $downloaded_item_id = $_REQUEST['file_id'];
+        $response = Dropbox::downloadFileByLink($downloaded_item_id);
+        header("Location: ${response}");
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    }
 });
 
 Route::set('downloadFolderDropbox',function(){
- $folder_id = $_REQUEST['folder_id'];
- $response = Dropbox::downloadFolder($folder_id);
- $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response . '.zip';
- $file_name = basename($file_to_download);
- header("Content-Type: application/zip");
- header("Content-Disposition: attachment; filename=${file_name}");
- header("Content-Length: " . filesize($file_to_download));
- readfile($file_to_download);
- unlink($file_to_download);
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $folder_id = $_REQUEST['folder_id'];
+        $response = Dropbox::downloadFolder($folder_id);
+        $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response . '.zip';
+        $file_name = basename($file_to_download);
+        header("Content-Type: application/zip");
+        header("Content-Disposition: attachment; filename=${file_name}");
+        header("Content-Length: " . filesize($file_to_download));
+        readfile($file_to_download);
+        unlink($file_to_download);
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    }
 });
 
 
-Route::set('createFolderDropbox',function(){ //Ruta testing
-    $response = DropBox::createFolder($_COOKIE['Dropbox'],$_REQUEST['folder_name']);
-    echo $response;
+Route::set('createFolderDropbox',function(){
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $response = DropBox::createFolder($_COOKIE['Dropbox'],$_REQUEST['folder_name']);
+        echo $response;
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    }
 });
 
 Route::set('renameItemDropbox',function(){
-   $response = Dropbox::renameItem($_REQUEST['item_id'],$_REQUEST['new_name']);
-   echo $response;
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $response = Dropbox::renameItem($_REQUEST['item_id'],$_REQUEST['new_name']);
+        echo $response;
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+    }
+   
 });
 
-Route::set('downloadFileDropbox',function(){ //Ruta testing
-       Dropbox::download();
-       //Dropbox::downloadByLink();
-});
-
-Route::set('getFileMetadataDropbox',function(){ //Ruta testing
-    Dropbox::getFileMetadata();
-});
+/* ---------------------------------------- API routes Dropbox ---------------------------------------- */
 
 /* --------------------------------------------- OneDrive --------------------------------------------- */
 
