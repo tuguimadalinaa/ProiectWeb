@@ -33,7 +33,7 @@ class Login extends Controller{
             }
         }
         if($jwt != null){
-            $decoded_jwt = self::getAuth()->jwtDecode($_COOKIE["loggedIn"]);
+            $decoded_jwt = self::getAuth()->jwtDecode($value);
             if($decoded_jwt == null){
                 return 'JWT invalid';
             } else {
