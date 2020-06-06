@@ -36,7 +36,7 @@ Route::set('login',function(){
                     'httponly' => true,
                     'samesite' => 'Strict',
                 ]);
-                Login::Cookie("OneDrive","/drive/root:/Documents",[
+                Login::Cookie("OneDrive","/drive/root",[
                     'expires' => time() + 3600*24*7,
                     'path' => '/',
                     'secure' => false,
@@ -629,22 +629,173 @@ Route::set('renameItemDropbox',function(){
 });
 
 
+/* ---------------------------------------- API routes Dropbox ---------------------------------------- */
+
+//Pattern pentru validarea JWT folosind API-ul
+
+/*
+     $headers = apache_request_headers();
+     $responseJWTheader = Login::validateJwtRequest($headers);
+     if($responseJWTheader == 'JWT valid'){
+
+     } else {
+     http_response_code(401);
+     $error = array("error" => "invalid JWT");
+     header('Content-Type: application/json');
+     echo json_encode($error);
+     }
+*/
+
+Route::set('checkJWT',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    if($responseJWTheader == 'JWT valid'){
+       echo 'E bun';
+    } else {
+       echo 'Nu e bun';
+    }
+});
+
+Route::set('APIgetCode',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    if($responseJWTheader == 'JWT valid'){
+        $api_args = null;
+        foreach ($headers as $header => $value) {
+            if($header == 'Api-Args'){
+                $api_args = $value;
+                break;
+            }
+        }
+       if($api_args != null){
+           $decoded_api_args = json_decode($value,true);
+           $drive = $decoded_api_args['drive'];
+           $drive_response = 0;
+           if($drive == 'OneDrive'){
+              $drive_response = OneDrive::GetCode();
+           } else if($drive == 'Dropbox'){
+              $drive_response = Dropbox::APIGetCode();
+              header('Location: APIhome');
+              http_response_code(200);
+              $response = array("url" => "${drive_response}");
+              header('Content-Type: application/json');
+              echo json_encode($response);
+           } else if($drive == 'GoogleDrive'){
+              $drive_response = GoogleDrive::GetCode();
+           } else {
+            http_response_code(400);
+            $error = array("error" => "Invalid Api-Args");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+           }
+       } else {
+           http_response_code(400);
+           $error = array("error" => "Missing Api-Args");
+           header('Content-Type: application/json');
+           echo json_encode($error);
+       }
+    } else {
+        http_response_code(401);
+        $error = array("error" => "invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('APIregisterToken',function(){ 
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    if($responseJWTheader == 'JWT valid'){
+        foreach ($headers as $header => $value) {
+            if($header == 'Auth'){
+                $jwt = $value;
+                break;
+            }
+        }
+        $requestBody = json_decode(file_get_contents('php://input'),true);
+        if(count($requestBody) == 2){
+            if(array_key_exists('code',$requestBody) && array_key_exists('drive',$requestBody)){
+                if($requestBody['code'] != null && $requestBody['drive'] != null){
+                    if($requestBody['drive'] == 'OneDrive'){
+
+                    } else if($requestBody['drive'] == 'Dropbox'){
+                        $response = Dropbox::APIgetToken($requestBody['code'],$jwt);
+                        if($response == 'Access Granted'){
+                            http_response_code(200);
+                            $responseJson = array("Response" => "${response}");
+                            header('Content-Type: application/json');
+                            echo json_encode($responseJson);
+                        } else {
+                            http_response_code(400);
+                            $error = array("error" => "Invalid code");
+                            header('Content-Type: application/json');
+                            echo json_encode($error);
+                        }
+                    } else if($requestBody['drive'] == 'GoogleDrive'){
+
+                    } else {
+                        http_response_code(400);
+                        $error = array("error" => "Invalid drive name");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    }
+                } else {
+                    http_response_code(400);
+                    $error = array("error" => "Missing code or drive value(or both)");
+                    header('Content-Type: application/json');
+                    echo json_encode($error);
+                }
+            } else {
+                http_response_code(400);
+                $error = array("error" => "Missing code or drive field(or both)");
+                header('Content-Type: application/json');
+                echo json_encode($error);
+            }
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Invalid number of fields in body");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+        
+    } else {
+        http_response_code(401);
+        $error = array("error" => "invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
 
 /* --------------------------------------------- OneDrive --------------------------------------------- */
 
 Route::set('transferFile',function(){
     if(!empty(file_get_contents('php://input')) && !empty($_REQUEST['fileTransfName'])&& !empty($_REQUEST['fileSize'])){
-        $response = OneDrive::UploadFile($_REQUEST['fileTransfName'],file_get_contents('php://input'),$_REQUEST['fileSize']);
-        echo $response;
+        $response_jwt_validation = Login::validateJwtCookie();
+        if($response_jwt_validation == 'JWT valid')
+        {
+            $response = OneDrive::UploadFile($_REQUEST['fileTransfName'],file_get_contents('php://input'),$_REQUEST['fileSize']);
+            echo $response;
+        }else{
+            echo json_encode(array("status"=>'1'));
+        }
+        
     }else{
         echo json_encode(array("status"=>'1'));
     }
 });
 Route::set('transferBigFile',function(){
+    
+    $response_jwt_validation = Login::validateJwtCookie();
     if((!empty(file_get_contents('php://input')) && !empty($_REQUEST['fileTransfName'])&& !empty($_REQUEST['fileSize'])&&!empty($_REQUEST['readyToGo']))
         ||$_REQUEST['readyToGo']=="true"){
-        $response = OneDrive::UploadBigFile($_REQUEST['fileTransfName'],file_get_contents('php://input'),$_REQUEST['fileSize'],$_REQUEST['readyToGo']);
-        echo $response;
+            if($response_jwt_validation == 'JWT valid')
+            {
+                $response = OneDrive::UploadBigFile($_REQUEST['fileTransfName'],file_get_contents('php://input'),$_REQUEST['fileSize'],$_REQUEST['readyToGo']);
+                echo $response;
+            }else{
+                echo json_encode(array("status"=>'1'));
+            }
+        
     }
     else{
         echo json_encode(array("status"=>'1'));
@@ -654,24 +805,49 @@ Route::set('registrationConfirmed',function(){
     ConfirmedRegistration::Createview('registrationConfirmed');
 });
 Route::set('getFile',function(){
+    $response_jwt_validation = Login::validateJwtCookie();
     if($_REQUEST['type']=='file')
     {
-        echo OneDrive::GetFile($_REQUEST['fileTransfName']);
+        if($response_jwt_validation == 'JWT valid'){
+            echo OneDrive::GetFile($_REQUEST['fileTransfName']);
+        }
+        else{
+            echo json_encode(array("status"=>'1'));
+        }
     }
     else{
         echo OneDrive::downloadDirectory($_REQUEST['fileTransfName']);
     }
 });
 Route::set('getDirectoryOneDrive', function(){
-    echo OneDrive::ListAllFiles($_REQUEST['name']);
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        echo OneDrive::ListAllFiles($_REQUEST['name']);
+    }else{
+        echo json_encode(array("status"=>'1'));
+    }
+    
 });
 Route::set('deleteFile',function(){
-    echo OneDrive::deleteFile($_REQUEST['fileTransfName']);
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid')
+    {
+        echo OneDrive::deleteFile($_REQUEST['fileTransfName']);
+    }else{
+        echo json_encode(array("status"=>'1'));
+    }
+    
 });
 Route::set('createFolder',function(){
+    $response_jwt_validation = Login::validateJwtCookie();
     if(!empty($_REQUEST['fileTransfName']) && !empty($_REQUEST['path'])){
-        $response = OneDrive::createFolder($_REQUEST['fileTransfName'],$_REQUEST['path']);
-        echo $response;
+        if($response_jwt_validation == 'JWT valid'){
+            $response = OneDrive::createFolder($_REQUEST['fileTransfName'],$_REQUEST['path']);
+            echo $response;
+        }else{
+            echo json_encode(array("status"=>'1'));
+        }
+       
     }
     else{
         echo json_encode(array("status"=>'1'));
@@ -679,9 +855,16 @@ Route::set('createFolder',function(){
     
 });
 Route::set('renameFolder',function(){
+    $response_jwt_validation = Login::validateJwtCookie();
     if(!empty($_REQUEST['fileTransfName'])  && !empty($_REQUEST['oldName'])){
-        $response = OneDrive::renameFolder($_REQUEST['fileTransfName'],$_REQUEST['oldName']);
-        echo $response;
+        if($response_jwt_validation == 'JWT valid')
+        {
+            $response = OneDrive::renameFolder($_REQUEST['fileTransfName'],$_REQUEST['oldName']);
+            echo $response;
+        }else{
+            echo json_encode(array("status"=>'1'));
+        }
+        
     }
     else{
         echo json_encode(array("status"=>'1'));
@@ -689,11 +872,24 @@ Route::set('renameFolder',function(){
     
 });
 Route::set('goBack',function(){
-    echo json_encode(array("status"=>$_COOKIE['OneDrive']));
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        echo json_encode(array("status"=>$_COOKIE['OneDrive']));
+    }else{
+        echo json_encode(array("status"=>'401'));
+    }
+   
     
 });
 Route::set('moveFile',function(){
-    echo OneDrive::moveFile($_REQUEST['newPath'],$_REQUEST['fileTransfName']);
+    //echo OneDrive::moveFile($_REQUEST['newPath'],$_REQUEST['fileTransfName']);
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        echo OneDrive::moveFile($_REQUEST['newPath'],$_REQUEST['fileTransfName']);
+    }
+    else{
+        echo json_encode(array("status"=>'401'));
+    }
     
 });
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
