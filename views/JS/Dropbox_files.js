@@ -110,7 +110,7 @@ function makeRequestForUploadingSmallItem(file){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
         fileArgs = JSON.stringify({ path: file.name });
-        xhr.open('POST', 'uploadSmallFile', true);
+        xhr.open('POST', 'uploadSmallFileDropbox', true);
         xhr.setRequestHeader('File-Args',fileArgs);
         xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
@@ -124,7 +124,7 @@ function makeRequestForUploadingSmallItem(file){
 function makeRequestForUploadSessionStart(fileSlice){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        xhr.open('POST', 'uploadLargeFileStart', true);
+        xhr.open('POST', 'uploadLargeFileStartDropbox', true);
         xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
@@ -134,10 +134,12 @@ function makeRequestForUploadSessionStart(fileSlice){
     });
 }
 
-function makeRequestForUploadSessionAppend(fileSlice){
+function makeRequestForUploadSessionAppend(fileSlice,sizeOfDataSent,cursorId){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        xhr.open('POST', 'uploadLargeFileAppend', true);
+        sessionArgs = JSON.stringify({ offset: sizeOfDataSent, cursorId: cursorId });
+        xhr.open('POST', 'uploadLargeFileAppendDropbox', true);
+        xhr.setRequestHeader('Session-Args',sessionArgs);
         xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
@@ -147,11 +149,12 @@ function makeRequestForUploadSessionAppend(fileSlice){
     });
 }
 
-function makeRequestForUploadSessionFinish(fileSlice,fileName){
+function makeRequestForUploadSessionFinish(fileSlice,sizeOfDataSent,cursorId,fileName){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        xhr.open('POST', 'uploadLargeFileFinish', true);
-        xhr.setRequestHeader('File-Name',fileName);
+        sessionArgs = JSON.stringify({ offset: sizeOfDataSent, cursorId: cursorId, name: fileName });
+        xhr.open('POST', 'uploadLargeFileFinishDropbox', true);
+        xhr.setRequestHeader('Session-Args',sessionArgs);
         xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
@@ -210,7 +213,7 @@ async function deleteItem(){
 async function prepareUpload(files){
     let numberOfFilesToUpload = files.files.length;
     let i = 0;
-    let maxUploadSize = 1048576 * 40; //40 MB
+    let maxUploadSize = 1048576 * 40; // aprox 40 MB
     while(i < numberOfFilesToUpload){
        currentFileSize = files.files[i].size;
        currentFile = files.files[i];
@@ -219,20 +222,25 @@ async function prepareUpload(files){
        } else {
            let sizeOfDataSent = 0;
            let uploadSessionStarted = 0;
+           let cursorId = 0;
            while(currentFileSize - sizeOfDataSent > maxUploadSize){
                if(uploadSessionStarted == 0){
-                   fileSliceToSend = blob.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize + 1,currentFile);
+                   fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
                    response = await makeRequestForUploadSessionStart(fileSliceToSend);
+                   cursorId = response;
+                   //alert(cursorId);
                    uploadSessionStarted = 1;
                } else {
-                   fileSliceToSend = blob.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize + 1,currentFile);
-                   response = await makeRequestForUploadSessionAppend(fileSliceToSend);
+                   fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
+                   response = await makeRequestForUploadSessionAppend(fileSliceToSend,sizeOfDataSent,cursorId);
+                   //alert(response);
                }
-               sizeOfDataSent = sizeOfDataSent + maxUploadSize + 1;
+               sizeOfDataSent = sizeOfDataSent + maxUploadSize;
            }
            if(currentFileSize - sizeOfDataSent < maxUploadSize){
-              fileSliceToSend = blob.slice(sizeOfDataSent,currentFileSize,currentFile);
-              response = await makeRequestForUploadSessionFinish(fileSliceToSend);
+              fileSliceToSend = currentFile.slice(sizeOfDataSent,currentFileSize,currentFile);
+              response = await makeRequestForUploadSessionFinish(fileSliceToSend,sizeOfDataSent,cursorId,currentFile.name);
+              alert(response);
            }
        }
        i++;
@@ -249,7 +257,7 @@ async function upload(){
             input.insertAdjacentHTML('afterend',htmlString);
             document.getElementById('uploadFile').addEventListener("change",async function(){
                 files = document.getElementById('uploadFile');
-                response = prepareUpload(files);
+                response = await prepareUpload(files);
                 //location.reload();
             });
         }

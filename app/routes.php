@@ -285,19 +285,13 @@ Route::set('moveFileGoogleDrive',function(){
         }
     }
 });
+
+
 /* --------------------------------------------- Dropbox --------------------------------------------- */
 
-Route::set('uploadDropbox',function(){   
-    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
-    $access_token_json = Controller::getModel()->getAccessToken($username,'Dropbox');
-    $access_token_decoded = json_decode($access_token_json,true);
-    $access_token = $access_token_decoded['access_token'];
-    if($access_token != null){
-          $response = Dropbox::uploadFile();
-          echo $response;
-    } else {
-        header('Location: getCode?drive=DropBox');
-    }
+Route::set('parentPath',function(){ //Ruta testing
+    $parent_metadata = Dropbox::getItemMetadata($_REQUEST['parent_id']);
+    echo $parent_metadata['path_display'];
 });
 
 Route::set('deleteItemDropbox',function(){
@@ -357,7 +351,7 @@ Route::set('moveItemDropbox',function(){
     }
 });
 
-Route::set('uploadSmallFile',function(){
+Route::set('uploadSmallFileDropbox',function(){
     $headers = apache_request_headers();
     $file_path_json = 'Unknown';
     foreach ($headers as $header => $value) {
@@ -372,19 +366,52 @@ Route::set('uploadSmallFile',function(){
     echo 'File uploaded';
 });
 
-Route::set('uploadLargeFileStart',function(){
-    $entityBody = file_get_contents('php://input');
-    echo $entityBody;
+Route::set('uploadLargeFileStartDropbox',function(){
+    $requestBody = file_get_contents('php://input');
+    $folder_id_file = fopen("folder_id.txt", "w");
+    $bytesWritten = fwrite($folder_id_file,$_COOKIE['Dropbox']); 
+    $response = Dropbox::uploadSessionStart($requestBody);
+    echo $response;
 });
 
-Route::set('uploadLargeFileAppend',function(){
-    $entityBody = file_get_contents('php://input');
-    echo $entityBody;
+Route::set('uploadLargeFileAppendDropbox',function(){
+    $headers = apache_request_headers();
+    $cursor_id = 'Unknown';
+    $offset = 'Unknown';
+    $decoded_json_value = 0;
+    foreach ($headers as $header => $value) {
+        if($header == 'Session-Args'){
+            $decoded_json_value = json_decode($value,true);
+            break;
+        }
+    }
+    $cursor_id = $decoded_json_value['cursorId'];
+    $offset = $decoded_json_value['offset'];
+    $requestBody = file_get_contents('php://input');
+    $response = Dropbox::uploadSessionAppend($requestBody,$cursor_id,$offset);
+    echo $response;
 });
 
-Route::set('uploadLargeFileFinish',function(){
-    $entityBody = file_get_contents('php://input');
-    echo $entityBody;
+Route::set('uploadLargeFileFinishDropbox',function(){
+    $headers = apache_request_headers();
+    $cursor_id = 'Unknown';
+    $offset = 'Unknown';
+    $file_name = 'Unknown';
+    $decoded_json_value = 0;
+    foreach ($headers as $header => $value) {
+        if($header == 'Session-Args'){
+            $decoded_json_value = json_decode($value,true);
+            break;
+        }
+    }
+    $cursor_id = $decoded_json_value['cursorId'];
+    $offset = $decoded_json_value['offset'];
+    $file_name = $decoded_json_value['name'];
+    $requestBody = file_get_contents('php://input');
+    $parent_id = file_get_contents("folder_id.txt");
+    $response = Dropbox::uploadSessionFinish($requestBody,$cursor_id,$offset,$file_name,$parent_id);
+    unlink("folder_id.txt");
+    echo $response;
 });
 
 
