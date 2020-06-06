@@ -13,6 +13,19 @@ Class Dropbox extends Controller{
         return $dropbox_authorize_url;
     }
 
+    public static function APIGetCode(){
+        $redirect_uri = "http://localhost/ProiectWeb/app/APIhome";
+        $app_key = 'ktix1g9yidkg1uh';
+        $query = [
+            'client_id' => $app_key,
+            'response_type' => 'code',
+        ];
+        $http_query = http_build_query($query);
+        //$dropbox_authorize_url = 'https://www.dropbox.com/oauth2/authorize' . '?' . $http_query . '&' . 'redirect_uri=' . $redirect_uri;
+        $dropbox_authorize_url = 'https://www.dropbox.com/oauth2/authorize' . '?' . $http_query;
+        return $dropbox_authorize_url;
+    }
+
     public static function GetToken($code){
         $app_secret = 'sc4obe9eblzyb5w';
         $app_key = 'ktix1g9yidkg1uh';
@@ -47,6 +60,43 @@ Class Dropbox extends Controller{
             echo json_encode(array("status"=>'401'));
         }
     }
+
+    public static function APIGetToken($code,$jwt){
+        $app_secret = 'sc4obe9eblzyb5w';
+        $app_key = 'ktix1g9yidkg1uh';
+        $dropbox_token_url = 'https://api.dropboxapi.com/oauth2/token';
+        $URLparameters = [
+            'code' => $code,
+            'grant_type' => 'authorization_code',
+            'client_id' => $app_key,
+            'client_secret' => $app_secret,
+       ];
+       $URLparameters = http_build_query($URLparameters);
+       $curl_resource = curl_init();
+       curl_setopt($curl_resource,CURLOPT_URL,$dropbox_token_url);
+       curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+       curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+       curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array('Content-Type : application/x-www-form-urlencoded'));
+       curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER, 1);
+       curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$URLparameters);
+       $result = curl_exec($curl_resource);
+       curl_close($curl_resource);
+       $responseDecoded = json_decode($result,true);
+       $username=(self::getAuth()->jwtDecode($jwt))->username;
+        try{
+            $access_token = $responseDecoded['access_token'];
+            if($access_token!=null){
+                self::getModel()->addAccessToken($access_token,$username,'Dropbox');
+                return 'Access Granted';
+            } else {
+                return 'Null token';
+            }
+        }
+        catch(Exception $e){
+            return 'Invalid code';
+        }
+    }
+
     public static function uploadSmallFile($file_data,$file_path_array){
         $dropbox_upload_url = "https://content.dropboxapi.com/2/files/upload";
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
