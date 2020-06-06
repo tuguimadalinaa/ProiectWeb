@@ -153,16 +153,31 @@ class OneDrive extends Controller{
     {
         
         $create_curl=curl_init();
-        curl_setopt_array($create_curl,[
-            CURLOPT_URL=>'https://graph.microsoft.com/v1.0//me'.$fileNameToRender.':/children',
-            CURLOPT_RETURNTRANSFER=>1,
-            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}"),
-            CURLOPT_SSL_VERIFYPEER=>false
-        ]); 
+        if($fileNameToRender=="/drive/root:/")
+        {
+            $fileNameToRender="/drive/root";
+        }
+        if($fileNameToRender=="/drive/root" || $fileNameToRender=='\/drive\/root')
+        {
+            curl_setopt_array($create_curl,[
+                CURLOPT_URL=>'https://graph.microsoft.com/v1.0//me'.$fileNameToRender.'/children',
+                CURLOPT_RETURNTRANSFER=>1,
+                CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}"),
+                CURLOPT_SSL_VERIFYPEER=>false
+            ]); 
+        }
+        else{
+            curl_setopt_array($create_curl,[
+                CURLOPT_URL=>'https://graph.microsoft.com/v1.0//me'.$fileNameToRender.':/children',
+                CURLOPT_RETURNTRANSFER=>1,
+                CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}"),
+                CURLOPT_SSL_VERIFYPEER=>false
+            ]); 
+        }
         $response=curl_exec($create_curl);
         curl_close($create_curl);
         $decodedResponse = json_decode($response, true);
-        if($fileNameToRender!='/drive/root:/Documents')
+        if($fileNameToRender!='/drive/root' || $fileNameToRender!='\/drive\/root')
         {
             $cookie_params_array = [
                 'expires' => time() + 8600,
