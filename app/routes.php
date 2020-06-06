@@ -79,6 +79,7 @@ Route::set('home',function(){
         } else {
            http_response_code(401);
            echo 'Invalid JWT';
+           header('Location: logOut');
         } 
     }
 });
@@ -90,16 +91,9 @@ Route::set('about',function(){
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     } 
 });
-
-    // $response_jwt_validation = Login::validateJwtCookie();
-    // if($response_jwt_validation == 'JWT valid'){
-        
-    // } else {
-    //    http_response_code(401);
-    //    echo 'Invalid JWT';
-    // } 
 
 Route::set('Dropbox_files',function(){
     $response_jwt_validation = Login::validateJwtCookie();
@@ -108,69 +102,63 @@ Route::set('Dropbox_files',function(){
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     } 
 });
 
 Route::set('OneDrive_files',function(){
     $response_jwt_validation = Login::validateJwtCookie();
     if($response_jwt_validation == 'JWT valid'){
-
+        Home::CreateView('OneDrive_files');
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     } 
-    Home::CreateView('OneDrive_files');
 });
 
 Route::set('GoogleDrive_files',function(){
     $response_jwt_validation = Login::validateJwtCookie();
     if($response_jwt_validation == 'JWT valid'){
-
+        Home::CreateView('GoogleDrive_files');
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     } 
-    Home::CreateView('GoogleDrive_files');
 });
 
 Route::set('logOut',function(){
-    $response_jwt_validation = Login::validateJwtCookie();
-    if($response_jwt_validation == 'JWT valid'){
-        Login::Cookie("loggedIn","JWToken",[
-            'expires' => time() - 3600,
-            'path' => '/',
-            'secure' => false,
-            'httponly' => true,
-            'samesite' => 'Lax',
-        ]);
-        Login::Cookie("Dropbox","root",[
-            'expires' => time() - 3600,
-            'path' => '/',
-            'secure' => false,
-            'httponly' => true,
-            'samesite' => 'Strict',
-        ]);
-        Login::Cookie("GoogleDrive","root",[
-            'expires' => time() - 3600,
-            'path' => '/',
-            'secure' => false,
-            'httponly' => true,
-            'samesite' => 'Strict',
-        ]);
-        Login::Cookie("OneDrive","/drive/root",[
-            'expires' => time() -3600,
-            'path' => '/',
-            'secure' => false,
-            'httponly' => true,
-            'samesite' => 'Strict',
-        ]);
-        //header('Location: login');   //Robert, musai trebuie 
-        echo 'Logout';
-    } else {
-       http_response_code(401);
-       echo 'Invalid JWT';
-    } 
-    
+    Login::Cookie("loggedIn","JWToken",[
+        'expires' => time() - 3600,
+        'path' => '/',
+        'secure' => false,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    Login::Cookie("Dropbox","root",[
+        'expires' => time() - 3600,
+        'path' => '/',
+        'secure' => false,
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
+    Login::Cookie("GoogleDrive","root",[
+        'expires' => time() - 3600,
+        'path' => '/',
+        'secure' => false,
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
+    Login::Cookie("OneDrive","/drive/root:/Documents",[
+        'expires' => time() -3600,
+        'path' => '/',
+        'secure' => false,
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
+    header('Location: login');
+    echo 'Logout';
 });
 Route::set('getCode', function(){
     $drive_type = $_REQUEST['drive'];
@@ -347,6 +335,7 @@ Route::set('moveFileGoogleDrive',function(){
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     } 
  */
 
@@ -359,6 +348,7 @@ Route::set('deleteItemDropbox',function(){
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     }
 });
 
@@ -377,6 +367,7 @@ Route::set('changeFolderDropbox',function(){
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     }
  });
 
@@ -422,6 +413,7 @@ Route::set('moveItemDropbox',function(){
     } else {
        http_response_code(401); 
        echo 'Invalid JWT';
+       header('Location: logOut');
     }
 });
 
@@ -443,6 +435,7 @@ Route::set('uploadSmallFileDropbox',function(){
     } else {
        http_response_code(401); 
        echo 'Invalid JWT';
+       header('Location: logOut');
     }
 });
 
@@ -457,6 +450,7 @@ Route::set('uploadLargeFileStartDropbox',function(){
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     }
 });
 
@@ -481,6 +475,7 @@ Route::set('uploadLargeFileAppendDropbox',function(){
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     }
 });
 
@@ -509,6 +504,7 @@ Route::set('uploadLargeFileFinishDropbox',function(){
     } else {
        http_response_code(401);  
        echo 'Invalid JWT';
+       header('Location: logOut');
     }
 });
 
@@ -522,6 +518,7 @@ Route::set('getFolderFilesDropbox',function(){
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     }
 });
 
@@ -540,6 +537,7 @@ Route::set('previousFolderDropbox',function(){
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     }
 });
 
@@ -552,6 +550,7 @@ Route::set('downloadFileDropbox',function(){
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     }
 });
 
@@ -570,6 +569,7 @@ Route::set('downloadFolderDropbox',function(){
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     }
 });
 
@@ -582,6 +582,7 @@ Route::set('createFolderDropbox',function(){
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     }
 });
 
@@ -593,6 +594,7 @@ Route::set('renameItemDropbox',function(){
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
+       header('Location: logOut');
     }
    
 });
