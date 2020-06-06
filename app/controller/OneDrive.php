@@ -134,7 +134,6 @@ class OneDrive extends Controller{
         curl_setopt_array($create_curl,[
             CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me'.$fileName, //spatiile in url dau erori
             CURLOPT_RETURNTRANSFER=>1,
-           /* CURLOPT_CUSTOMREQUEST=>'GET',*/
             CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}"),
             CURLOPT_SSL_VERIFYPEER=>false
         ]); 
@@ -303,6 +302,41 @@ class OneDrive extends Controller{
             return json_encode(array("status"=>'401'));
         }
     }
-     
+    public static function makeRequestMoveFile($access_token,$fileName,$newPath)
+    {
+        $response  = self::makeRequestForFile($access_token,$newPath);
+        $decodedResponse = json_decode($response, true);
+        if(!isset($decodedResponse['id']))
+        {
+            return json_encode(array("status"=>"Path given doesn't exist"));
+        }
+        $idNewPath = $decodedResponse['id'];
+        $response  = self::makeRequestForFile($access_token,$fileName);
+        $decodedResponse = json_decode($response, true);
+        $idOldPath = $decodedResponse['id'];
+        $parentReference  = json_encode(array("id"=>$idNewPath));
+        $parameters = json_encode(array("parentReference"=>$parentReference,"name"=>"FolderNou"));
+        $create_curl=curl_init();
+        curl_setopt_array($create_curl,[
+            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drive/items/'.$idOldPath, //spatiile in url dau erori
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_CUSTOMREQUEST=>'PATCH',
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}",
+                                        "Content-Type: application/json"),
+            CURLOPT_SSL_VERIFYPEER=>false,
+            CURLOPT_POSTFIELDS=>$parameters
+        ]); 
+        $response=curl_exec($create_curl);
+        curl_close($create_curl);
+        //return json_encode(array("acc"=>$access_token,"raspuns"=>$response));
+        return $response;
+    }
+    public static function moveFile($newPath,$fileName)
+    {
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
+        $response  = self::makeRequestMoveFile($access_token,$fileName,$newPath);
+        return $response;
+    }
 }
 ?>

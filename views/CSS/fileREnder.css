@@ -4,9 +4,12 @@
     flex-direction: column;
     flex-wrap: wrap;
     flex-flow: column wrap;
+    min-height: 100%;
+    position: relative;
 }
 .fileRegisterBody{
     background-color: #d0cfcd;
+    height: 100%;
 }
 .spanForMenu{
     font-size:30px;
@@ -60,9 +63,10 @@
 }
 
 .folder{
-     margin-left: 100px;
-     flex-direction: row;
-    
+    flex-direction: row;
+    padding: 50px 50px 0px;
+    text-align: center;
+    width: 15%;
 }
 .folder .folderIcon{
     width: 100px;
@@ -70,9 +74,10 @@
 }
 .folder h4{
     margin-left: 5%;
+    text-align: center;
 }
 .folderContainer{
-    margin-left: 5%;
+    margin-left: 10%;
     margin-top: 5%;
     margin-bottom: 5%;
     margin-right: 5%;
@@ -84,62 +89,84 @@
     align-content: center;
 }
 
-.bottom_buttons{
+#bottom_buttons{
     margin-left: 1%;
     margin-top: 30%;
-    margin-bottom: 1%;
-    margin-right: 5%;
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
     align-content: center;
-    position: absolute;
+    bottom: 0;
+    position: fixed;
+    background-color: black;
+    flex-direction: row;
+    overflow-x: auto;
+    width: 100%;
 }
 
 .bottom_button{
     margin-left: 100px;
     flex-direction: row;
     display: inline;
-    margin: 0 20px; 
 }
 
 #upload_button{
-    width: 250px;
+    width: 150px;
     height: auto;
+    margin-left: 300px;
 }
 
 #delete_button{
-    width: 250px;
+    width: 150px;
     height: auto;
 }
 
 #download_button{
-    width: 250px;
+    width: 150px;
     height: auto;
 }
 
 #move_button{
-    width: 250px;
+    width: 150px;
     height: auto;
 }
 
 #rename_button{
-    width: 250px;
+    width: 150px;
     height: auto;
 }
 
 #create_folder_button{
-    width: 250px;
+    width: 150px;
     height: auto;
+    margin-right: 20%;
 }
 
 #go_back_button{
-    width: 250px;
+    width: 150px;
     height: auto;
 }
+.arrow {
+    border: solid black;
+    border-width: 0 3px 3px 0;
+    display: inline-block;
+    padding: 3px;
+}
 
+.left {
+    transform: rotate(135deg);
+    -webkit-transform: rotate(135deg);
+    margin-left: 10%;
+}
+.goBackButton{
+    width: 5%;
+    
+}
+.goBackButton img{
+    margin-left: 100%;
+    width: 30px;
+    height: 5%;
+}
 @media (max-width: 800px) and (min-width: 375px)
 {
     .containerFlex{
@@ -177,5 +204,12 @@
         width: 100%;
         max-width: 100px;
         min-width: 100px;
+    }
+    
+}
+@media (max-width:1024px)
+{
+    #upload_button{
+        margin-left: 700px;
     }
 }
