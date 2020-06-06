@@ -60,8 +60,6 @@ function finished(){
 async function getDirectory(fileName,callback){
     console.log(fileName);
     let result   = await responseGetDirectory(fileName,name);
-    console.log(".............................................");
-    console.log(result);
     let response = JSON.parse(result);
     let typeOfPhoto='';
     var folders = document.getElementById('renderFolders');
@@ -127,7 +125,6 @@ var  getFile = async function()
         else{
             result   = await responseGetFile(selectedFile,'file');
         }
-        alert(response);
         let response = JSON.parse(result);
         if(response.status=='401'){
             alert("Error to load file: " + selectedFile);
