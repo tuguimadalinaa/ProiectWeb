@@ -186,6 +186,9 @@
         max-width: 100px;
         min-width: 100px;
     }
+    #upload_button{
+        margin-left: 1000px;
+    }
 }
 @media (max-width: 375px) and (min-width:100px){
     .containerFlex{
@@ -205,11 +208,16 @@
         max-width: 100px;
         min-width: 100px;
     }
+    #upload_button{
+        margin-left: 1050px;
+        
+    }
     
 }
-@media (max-width:1024px)
+@media (max-width:1024px) and (min-width:801px)
 {
     #upload_button{
-        margin-left: 700px;
+        margin-left: 400px;
+        
     }
 }
