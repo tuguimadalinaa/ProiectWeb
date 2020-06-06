@@ -929,8 +929,11 @@ Route::set('APIregisterUser',function(){
                 $response = SignUp::createAccount($requestBody['username'],$requestBody['password']);
                 $status = json_decode($response,true);
                 if($status['status'] == '1'){
+                    $data = Login::getApprovalFromDB($requestBody['username'],$requestBody['password']);
+                    $json_response = json_decode($data,true);
+                    $jwt = $json_response['jwt'];
                     http_response_code(200);
-                    $response = array("response" => "Registered successfully");
+                    $response = array("JWT" => $jwt);
                     header('Content-Type: application/json');
                     echo json_encode($response);
                 } else if($status['status'] == '2') {
@@ -969,6 +972,7 @@ Route::set('APIregisterUser',function(){
         echo json_encode($error);
     }
 });
+
 
 Route::set('APIgetCode',function(){
     $headers = apache_request_headers();
