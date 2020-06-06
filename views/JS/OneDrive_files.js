@@ -58,7 +58,10 @@ function finished(){
     
 };
 async function getDirectory(fileName,callback){
+    console.log(fileName);
     let result   = await responseGetDirectory(fileName,name);
+    console.log(".............................................");
+    console.log(result);
     let response = JSON.parse(result);
     let typeOfPhoto='';
     var folders = document.getElementById('renderFolders');
@@ -67,7 +70,7 @@ async function getDirectory(fileName,callback){
     {
         goBackArrow[0].parentNode.removeChild(goBackArrow[0]);
     }
-    if(fileName!="/drive/root:/Documents" || fileName!="\/drive\/root:\/Documents")
+    if(fileName!="/drive/root" || fileName!="\/drive\/root")
     {
         htmlString='<div class="goBackButton"> <img src="../views/IMAGES/GoBack.png" alt="Go_Back"></div>';
         folders.insertAdjacentHTML('beforebegin',htmlString);
@@ -301,6 +304,6 @@ var goBack_ = async function()
  document.getElementById('create_folder_button').addEventListener('click',createFolder,false);
  document.getElementById('move_button').addEventListener('click',moveFolder,false);
  document.getElementById('rename_button').addEventListener('click',renameFolder,false);
- getDirectory("/drive/root:/Documents",finished);
+ getDirectory("/drive/root",finished);
  //getDirectory("/drive/root:/Documents",finished);
 //https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_arrows

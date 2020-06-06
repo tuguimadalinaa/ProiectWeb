@@ -36,7 +36,7 @@ Route::set('login',function(){
                     'httponly' => true,
                     'samesite' => 'Strict',
                 ]);
-                Login::Cookie("OneDrive","/drive/root:/Documents",[
+                Login::Cookie("OneDrive","/drive/root",[
                     'expires' => time() + 3600*24*7,
                     'path' => '/',
                     'secure' => false,
@@ -157,7 +157,7 @@ Route::set('logOut',function(){
             'httponly' => true,
             'samesite' => 'Strict',
         ]);
-        Login::Cookie("OneDrive","/drive/root:/Documents",[
+        Login::Cookie("OneDrive","/drive/root",[
             'expires' => time() -3600,
             'path' => '/',
             'secure' => false,
@@ -603,17 +603,32 @@ Route::set('renameItemDropbox',function(){
 
 Route::set('transferFile',function(){
     if(!empty(file_get_contents('php://input')) && !empty($_REQUEST['fileTransfName'])&& !empty($_REQUEST['fileSize'])){
-        $response = OneDrive::UploadFile($_REQUEST['fileTransfName'],file_get_contents('php://input'),$_REQUEST['fileSize']);
-        echo $response;
+        $response_jwt_validation = Login::validateJwtCookie();
+        if($response_jwt_validation == 'JWT valid')
+        {
+            $response = OneDrive::UploadFile($_REQUEST['fileTransfName'],file_get_contents('php://input'),$_REQUEST['fileSize']);
+            echo $response;
+        }else{
+            echo json_encode(array("status"=>'1'));
+        }
+        
     }else{
         echo json_encode(array("status"=>'1'));
     }
 });
 Route::set('transferBigFile',function(){
+    
+    $response_jwt_validation = Login::validateJwtCookie();
     if((!empty(file_get_contents('php://input')) && !empty($_REQUEST['fileTransfName'])&& !empty($_REQUEST['fileSize'])&&!empty($_REQUEST['readyToGo']))
         ||$_REQUEST['readyToGo']=="true"){
-        $response = OneDrive::UploadBigFile($_REQUEST['fileTransfName'],file_get_contents('php://input'),$_REQUEST['fileSize'],$_REQUEST['readyToGo']);
-        echo $response;
+            if($response_jwt_validation == 'JWT valid')
+            {
+                $response = OneDrive::UploadBigFile($_REQUEST['fileTransfName'],file_get_contents('php://input'),$_REQUEST['fileSize'],$_REQUEST['readyToGo']);
+                echo $response;
+            }else{
+                echo json_encode(array("status"=>'1'));
+            }
+        
     }
     else{
         echo json_encode(array("status"=>'1'));
@@ -623,24 +638,49 @@ Route::set('registrationConfirmed',function(){
     ConfirmedRegistration::Createview('registrationConfirmed');
 });
 Route::set('getFile',function(){
+    $response_jwt_validation = Login::validateJwtCookie();
     if($_REQUEST['type']=='file')
     {
-        echo OneDrive::GetFile($_REQUEST['fileTransfName']);
+        if($response_jwt_validation == 'JWT valid'){
+            echo OneDrive::GetFile($_REQUEST['fileTransfName']);
+        }
+        else{
+            echo json_encode(array("status"=>'1'));
+        }
     }
     else{
         echo OneDrive::downloadDirectory($_REQUEST['fileTransfName']);
     }
 });
 Route::set('getDirectoryOneDrive', function(){
-    echo OneDrive::ListAllFiles($_REQUEST['name']);
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        echo OneDrive::ListAllFiles($_REQUEST['name']);
+    }else{
+        echo json_encode(array("status"=>'1'));
+    }
+    
 });
 Route::set('deleteFile',function(){
-    echo OneDrive::deleteFile($_REQUEST['fileTransfName']);
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid')
+    {
+        echo OneDrive::deleteFile($_REQUEST['fileTransfName']);
+    }else{
+        echo json_encode(array("status"=>'1'));
+    }
+    
 });
 Route::set('createFolder',function(){
+    $response_jwt_validation = Login::validateJwtCookie();
     if(!empty($_REQUEST['fileTransfName']) && !empty($_REQUEST['path'])){
-        $response = OneDrive::createFolder($_REQUEST['fileTransfName'],$_REQUEST['path']);
-        echo $response;
+        if($response_jwt_validation == 'JWT valid'){
+            $response = OneDrive::createFolder($_REQUEST['fileTransfName'],$_REQUEST['path']);
+            echo $response;
+        }else{
+            echo json_encode(array("status"=>'1'));
+        }
+       
     }
     else{
         echo json_encode(array("status"=>'1'));
@@ -648,9 +688,16 @@ Route::set('createFolder',function(){
     
 });
 Route::set('renameFolder',function(){
+    $response_jwt_validation = Login::validateJwtCookie();
     if(!empty($_REQUEST['fileTransfName'])  && !empty($_REQUEST['oldName'])){
-        $response = OneDrive::renameFolder($_REQUEST['fileTransfName'],$_REQUEST['oldName']);
-        echo $response;
+        if($response_jwt_validation == 'JWT valid')
+        {
+            $response = OneDrive::renameFolder($_REQUEST['fileTransfName'],$_REQUEST['oldName']);
+            echo $response;
+        }else{
+            echo json_encode(array("status"=>'1'));
+        }
+        
     }
     else{
         echo json_encode(array("status"=>'1'));
@@ -658,11 +705,24 @@ Route::set('renameFolder',function(){
     
 });
 Route::set('goBack',function(){
-    echo json_encode(array("status"=>$_COOKIE['OneDrive']));
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        echo json_encode(array("status"=>$_COOKIE['OneDrive']));
+    }else{
+        echo json_encode(array("status"=>'401'));
+    }
+   
     
 });
 Route::set('moveFile',function(){
-    echo OneDrive::moveFile($_REQUEST['newPath'],$_REQUEST['fileTransfName']);
+    //echo OneDrive::moveFile($_REQUEST['newPath'],$_REQUEST['fileTransfName']);
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        echo OneDrive::moveFile($_REQUEST['newPath'],$_REQUEST['fileTransfName']);
+    }
+    else{
+        echo json_encode(array("status"=>'401'));
+    }
     
 });
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
