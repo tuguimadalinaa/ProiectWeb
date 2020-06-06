@@ -65,9 +65,9 @@ class DataBase{
         $connection->execute();
         $result = $connection -> fetchAll();
         if(empty($result)==true){
-            $checkUser = "INSERT INTO users VALUES(?,?,?,?)";
+            $checkUser = "INSERT INTO users VALUES(?,?,?,?,?,?)";
             $connection = DataBase::connect()->prepare($checkUser);
-            if($connection->execute(array($userName,$password,'no','0')) == true){
+            if($connection->execute(array($userName,$password,'no','0','0','0')) == true){
                 return json_encode(array("status"=>'1')); //adaugat cu succes
             } else {
                 return json_encode(array("status"=>'2')); //eroare la adaugare in baza de date
