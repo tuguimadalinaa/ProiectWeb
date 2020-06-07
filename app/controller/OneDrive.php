@@ -16,6 +16,54 @@ class OneDrive extends Controller{
         $query_string=http_build_query($data);
         return self::$url_code.'?'.$query_string;
     }
+    public static function GetCodeAPI(){
+        $data=[
+            'client_id' => self::$client_id,
+            'client_secret'=> self::$client_secret,
+            'scope'=>'offline_access Files.ReadWrite.All',
+            'redirect_uri' => "http://localhost/ProiectWeb/app/APIhome1",
+            'response_type' =>'code',
+        ];
+        $query_string=http_build_query($data);
+        return self::$url_code.'?'.$query_string;
+    }
+    public static function GetTokenAPI($code,$jwt){
+        $data=[
+            'client_id' => self::$client_id,
+            'scope'=>'offline_access Files.ReadWrite.All',
+            'code' => $code,
+            'redirect_uri' => "http://localhost/ProiectWeb/app/APIhome1",
+            'grant_type' => 'authorization_code',
+            'client_secret'=> self::$client_secret,
+        ];
+        $query_string=http_build_query($data);
+        
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_URL => self::$url_token,
+            CURLOPT_USERAGENT => 'STOL2',
+            CURLOPT_POST => 1,
+            CURLOPT_HTTPHEADER => array('Content-Type: application/x-www-form-urlencoded'),
+            CURLOPT_POSTFIELDS => $query_string
+        ]);
+        $response=curl_exec($curl);
+        curl_close($curl);
+        $responseDecoded = json_decode($response,true);
+        try{
+            $access_token = $responseDecoded['access_token'];
+            if($access_token!=null){
+                $username=(self::getAuth()->jwtDecode($jwt))->username;
+                self::getModel()->addAccessToken($access_token,$username,'OneDrive');
+                return $access_token;
+            }
+        }
+        catch(Exception $e){
+            return $e;
+            //return  json_encode(array("status"=>'401'));
+        }
+        
+    }
     public static function GetToken($code){
         $data=[
             'client_id' => self::$client_id,
@@ -188,10 +236,10 @@ class OneDrive extends Controller{
                 'httponly' => true,
                 'samesite' => 'Strict',
             ];
-           /* $splittedExplode  = explode('/',$decodedResponse['value'][0]["parentReference"]["path"]);
+            $splittedExplode  = explode('/',$decodedResponse['value'][0]["parentReference"]["path"]);
             $end = end($splittedExplode);
             $split = explode($end,$decodedResponse['value'][0]["parentReference"]["path"]);
-            self::getCookieHandler()->Cookie('OneDrive',$split[0],$cookie_params_array);*/
+            self::getCookieHandler()->Cookie('OneDrive',$split[0],$cookie_params_array);
         }
         return $response;
     }
@@ -305,6 +353,7 @@ class OneDrive extends Controller{
     }
     public static function renameFolder($newFileName,$fileName)
     {
+        $fileName = str_replace(' ', '-', $fileName);
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $response  = self::makeRequestForFile($access_token,$fileName);
@@ -358,6 +407,7 @@ class OneDrive extends Controller{
     
     public static function StartSessionUpload($fileName)
     {
+        $fileName = str_replace(' ', '-', $fileName);
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $data= json_encode(array('item'=>array(
