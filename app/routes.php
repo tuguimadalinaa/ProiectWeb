@@ -173,7 +173,7 @@ Route::set('getCode', function(){
         else{
             $response= GoogleDrive::GetCode();
         }
-        header("Location: ${response}");
+        echo $response;
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
@@ -251,8 +251,8 @@ Route::set('uploadGoogleDrive',function()
     $access_token = $access_token_decoded['access_token'];
     //echo $access_token;
     if($access_token != null){
-         //$response = GoogleDrive::uploadFileResumable();
-         //echo $response;
+         $response = GoogleDrive::uploadFileResumable();
+         echo $response;
   } else {
       header('Location: getCode?drive=GoogleDrive');
   }
@@ -375,40 +375,24 @@ Route::set('renameFileGoogleDrive',function(){
 Route::set('downloadSmallFileGoogleDrive',function(){
     $response=GoogleDrive::downloadSmallFile($_REQUEST['fileId']);
     $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
-     $file_name = basename($file_to_download);
+    $file_name = basename($file_to_download);
     header("Content-Type: application/octet-stream");
-    header("Content-Disposition: attachment; filename=${file_name}");
+    header("Content-Disposition: attachment; filename=". $file_name);
     header("Content-Length: " . filesize($file_to_download));
     readfile($file_to_download);
     unlink($file_to_download);
+
 });
 Route::set('downloadLargeFileGoogleDrive',function(){
-    $headers= apache_request_headers();
-    $fileStatus="Unknown";
-    foreach ($headers as $header => $value) {
-        if($header == 'File-Status'){
-            $fileStatus = $value;
-            break;
-        }
-    }
-    $fileStatusArray=json_decode($fileStatus,true);
-    $response=GoogleDrive::downloadLargeFile($_REQUEST['fileId'],$fileStatusArray['Start'],$fileStatusArray['End'],$fileStatusArray['FileName']);
-    if($fileStatusArray['Status']==1)
-    {
-        $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
-        $file_name = basename($file_to_download);
-        header("Content-Type: application/octet-stream");
-        header("Content-Disposition: attachment; filename=${file_name}");
-        header("Content-Length: " . filesize($file_to_download));
-        readfile($file_to_download);
-        unlink($file_to_download);
-        echo "Download Finish";
-    }
-    else
-    {
-        echo "Download in progress";
-    }
-
+    $response=GoogleDrive::downloadLargeFile($_REQUEST['fileId']);
+    //echo $response;
+    $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
+    $file_name = basename($file_to_download);
+    header("Content-Type: application/octet-stream");
+    header("Content-Disposition: attachment; filename=". $file_name);
+    header("Content-Length: " . filesize($file_to_download));
+    readfile($file_to_download);
+    unlink($file_to_download);
 });
 Route::set('moveFileGoogleDrive',function(){
     if(isset($_COOKIE["GoogleDrive-MV"])){
@@ -937,8 +921,8 @@ Route::set('uploadLargeFileFinish',function(){
 
 //Pattern pentru validarea JWT folosind API-ul
 
-/*
-     $headers = apache_request_headers();
+
+ /*    $headers = apache_request_headers();
      $responseJWTheader = Login::validateJwtRequest($headers);
      if($responseJWTheader == 'JWT valid'){
 

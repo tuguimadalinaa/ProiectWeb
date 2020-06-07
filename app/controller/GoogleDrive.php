@@ -266,35 +266,66 @@
                 file_put_contents("${file_name}",$response);
                 return $file_name;
         }
-        public static function downloadLargeFile($fileId,$startData,$endData,$fileName)
+        public static function downloadLargeFile($fileId)
         {
             $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
             $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
             $token = $json_token['access_token'];
-            $endDataFixed=$endData-1;
-            $range="${startData}" . "-" . "${endDataFixed}";
+            $metadata=self::getMetadata($fileId);
+            $dataArray=json_decode($metadata,true);
+            $startData=0;
+            $contor="Face ce trebuie";
+            $fileSize=$dataArray['fileSize'];
+            $file_name=$dataArray['title'];
+            $maxDownloadSize=256 * 1024 * 8;
+            $endDataFixed=$maxDownloadSize-1;
+            while($fileSize-$startData>=$maxDownloadSize)
+            {
+                $range="${startData}" . "-" . "${endDataFixed}";
                 $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
                 curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
                  "Authorization: Bearer ${token}",
-                 //"Content-Type: application/octet-stream"
                 ));
-                // 27564
-                // CURLOPT_RANGE => $offset . '-' . ($offset + $chunk_size - 1),
                 curl_setopt($curl_resource,CURLOPT_RANGE,$range);
                 curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
                 curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
                 $response=curl_exec($curl_resource);
                 curl_close($curl_resource);
                 
-                $myfile = fopen("${fileName}","w");
-                file_put_contents("${fileName}",$response);
-                //file_put_contents("C:\Users\alexg\Desktop\abc.jpg",$response);
-                //echo $response;
+                file_put_contents("${file_name}",$response,FILE_APPEND);
+                $startData=$startData+$maxDownloadSize;
+                $endDataFixed=$endDataFixed+$maxDownloadSize;
+            }
+            if($fileSize-$startData==0)
+            {
                 return $file_name;
-            
+            }
+            else if($fileSize-$startData<$maxDownloadSize)
+            {
+                $endDataFixed=$fileSize-1;
+                $range="${startData}" . "-" . "${endDataFixed}";
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
+                $curl_resource=curl_init();
+                curl_setopt($curl_resource,CURLOPT_URL,$uri);
+                curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
+                curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+                 "Authorization: Bearer ${token}",
+                ));
+                curl_setopt($curl_resource,CURLOPT_RANGE,$range);
+                curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+                curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+                $response=curl_exec($curl_resource);
+                curl_close($curl_resource);
+                
+                //$myfile = fopen("${file_name}","a+");
+                file_put_contents("${file_name}",$response,FILE_APPEND);
+                $startData=$startData+$maxDownloadSize;
+                $endDataFixed=$endDataFixed+$maxDownloadSize;
+                return $file_name;
+            }
         }
         public static function downloadFolder($fileId)
         {
