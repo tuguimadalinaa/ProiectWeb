@@ -1300,7 +1300,7 @@ Route::set('APIuploadFinish',function(){
                 $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
                 echo 'Tuto bene cookie';
             }
-            Controller::fileFragmentation($file_name_custom,$jwt);
+            Controller::fileFragmentation($file_name_custom,$username);
         } else {
             http_response_code(400);
             $error = array("error" => "Header File-Args invalid");
