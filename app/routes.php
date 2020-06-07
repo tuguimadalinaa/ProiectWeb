@@ -1,4 +1,5 @@
 <?php
+ini_set('max_execution_time',240);
 Route::set('login',function(){
     if(empty($_REQUEST['username'])){
         if(isset($_COOKIE["loggedIn"])){
@@ -1295,13 +1296,11 @@ Route::set('APIuploadFinish',function(){
                 $username=(Controller::getAuth()->jwtDecode($jwt))->username;
                 $file_name_custom = $username . $file_name;
                 $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
-               // echo 'Tuto bene header';
             } else {
                 $requestBody = file_get_contents('php://input');
                 $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
                 $file_name_custom = $username . $file_name;
                 $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
-               // echo 'Tuto bene cookie';
             }
             $response = Controller::fileFragmentation($file_name_custom,$username);
             echo $response;
