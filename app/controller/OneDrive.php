@@ -526,5 +526,36 @@ class OneDrive extends Controller{
         return $response;
 
     }
+    private static function WriteFileAPI($fileName,$fileData,$access_token,$fileSize,$graph_url){
+        $fileName = str_replace ( ' ', '%20', $fileName );
+        $upload_curl=curl_init();
+        curl_setopt_array($upload_curl,[
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_URL=>$graph_url,
+            CURLOPT_CUSTOMREQUEST=>'PUT',
+            CURLOPT_SSL_VERIFYPEER=>false,
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}",
+                                "Content-Type: application/octet-stream",
+                                "Content-Length: ${fileSize}",
+                                'Content-Range: bytes '."0-".($fileSize-1).'/'.$fileSize),
+            CURLOPT_POSTFIELDS=>$fileData 
+        ]);
+        $response=curl_exec($upload_curl);
+        curl_close($upload_curl);
+        return $response;
+    }
+    public static function UploadFileAPI($fileName, $fileData,$fileSize,$username){
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
+        if(strcmp($access_token,"fail")!=0){
+            $response = self::createFile($fileName,$access_token);
+            $json_response = json_decode($response,true);
+            $graph_url = $json_response['uploadUrl'];
+            $response = self::WriteFileAPI($fileName,$fileData,$access_token,$fileSize,$graph_url);
+            $decodedResponse = json_decode($response, true);
+            $fileId = $decodedResponse['id'];
+            return json_encode(array("status"=>'200',"id"=>$fileId));
+        }
+        return json_encode(array("status"=>'401'));
+    }
 }
 ?>

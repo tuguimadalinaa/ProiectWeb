@@ -1303,7 +1303,7 @@ Route::set('APIuploadFinish',function(){
                 $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
                // echo 'Tuto bene cookie';
             }
-            $response = Controller::fileFragmentation($file_name_custom,$jwt);
+            $response = Controller::fileFragmentation($file_name_custom,$username);
             echo $response;
         } else {
             http_response_code(400);
