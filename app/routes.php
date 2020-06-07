@@ -92,6 +92,7 @@ Route::set('GoogleDrive_files',function(){
 
 
 Route::set('logOut',function(){
+    //Login::EndSession();
     Login::Cookie("loggedIn","JWToken",[
         'expires' => time() - 3600,
         'path' => '/',
@@ -113,14 +114,7 @@ Route::set('logOut',function(){
         'httponly' => true,
         'samesite' => 'Strict',
     ]);
-    Login::Cookie("OneDrive","/drive/root:/Documents",[
-        'expires' => time() -3600,
-        'path' => '/',
-        'secure' => false,
-        'httponly' => true,
-        'samesite' => 'Strict',
-    ]);
-    //header('Location: login');   //Robert, musai trebuie 
+    header('Location: login');   //Robert, musai trebuie 
     echo 'Logout';
 });
 Route::set('getCode', function(){
@@ -170,7 +164,27 @@ Route::set('createFolderGoogleDrive',function(){
       header('Location: getCode?drive=GoogleDrive');
   }
 });
-
+// Route::set('test',function(){
+//     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+//     $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
+//     $access_token_decoded = json_decode($access_token_json,true);
+//     $access_token = $access_token_decoded['access_token'];
+//     $response = GoogleDrive::obtainUriForResumable($access_token,$_REQUEST['fileName'],$_COOKIE['GoogleDrive']);
+//     echo $response;
+// });
+Route::set('obtainUriForUploadGoogleDrive',function(){
+    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
+    $access_token_decoded = json_decode($access_token_json,true);
+    $access_token = $access_token_decoded['access_token'];
+    //echo $access_token;
+    if($access_token != null){
+        $response = GoogleDrive::obtainUriForResumable($access_token,$_REQUEST['fileName'],$_COOKIE['GoogleDrive']);
+        echo $response;
+  } else {
+      header('Location: getCode?drive=GoogleDrive');
+  }
+});
 Route::set('uploadGoogleDrive',function()
 {
     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
@@ -179,12 +193,75 @@ Route::set('uploadGoogleDrive',function()
     $access_token = $access_token_decoded['access_token'];
     //echo $access_token;
     if($access_token != null){
-        $response = GoogleDrive::uploadFileResumable();
+         //$response = GoogleDrive::uploadFileResumable();
+         //echo $response;
+  } else {
+      header('Location: getCode?drive=GoogleDrive');
+  }
+});
+Route::set('uploadSmallFilesGoogleDrive',function()
+{
+    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
+    $access_token_decoded = json_decode($access_token_json,true);
+    $access_token = $access_token_decoded['access_token'];
+    //echo $access_token;
+    $headers= apache_request_headers();
+    $fileLink="Unknown";
+    foreach ($headers as $header => $value) {
+        if($header == 'File-Link'){
+            $fileLink = $value;
+            break;
+        }
+    }
+     $fileLinkArray=json_decode($fileLink,true);
+     $fileBody=file_get_contents('php://input');
+    if($access_token != null){
+        $response = GoogleDrive::uploadSmallFileResumable($fileLinkArray["linkusor"],$fileBody);
         echo $response;
   } else {
       header('Location: getCode?drive=GoogleDrive');
   }
 });
+Route::set('uploadLargeFilesGoogleDrive',function(){
+
+    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
+    $access_token_decoded = json_decode($access_token_json,true);
+    $access_token = $access_token_decoded['access_token'];
+    //echo $access_token;
+    $headers= apache_request_headers();
+    $fileLink="Unknown";
+    foreach ($headers as $header => $value) {
+        if($header == 'File-Link'){
+            $fileLink = $value;
+            break;
+        }
+    }
+     $fileLinkArray=json_decode($fileLink,true);
+     $fileBody=file_get_contents('php://input');
+    if($access_token != null){
+        $response = GoogleDrive::uploadLargeFileResumable($fileLinkArray["linkusor"],$fileBody,$fileLinkArray["Start"],$fileLinkArray["End"],$fileLinkArray["SizeFile"]);
+        echo $response;
+  } else {
+      header('Location: getCode?drive=GoogleDrive');
+  }
+});
+// Route::set('uploadSmallFile',function(){
+//     $headers = apache_request_headers();
+//     $file_path_json = 'Unknown';
+//     foreach ($headers as $header => $value) {
+//         if($header == 'File-Args'){
+//             $file_path_json = $value;
+//             break;
+//         }
+//     }
+//     $file_path_array = json_decode($file_path_json,true);
+//     $requestBody = file_get_contents('php://input');
+//     $response = Dropbox::uploadSmallFile($requestBody,$file_path_array);
+//     echo 'File uploaded';
+// });
+
 Route::set('listGoogleDrive',function(){
     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
     $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
@@ -230,6 +307,14 @@ Route::set('getMetadataFileGoogleDrive',function(){
      $response=GoogleDrive::getMetadata($_REQUEST['fileId']);
      echo $response;
 });
+Route::set('getFileNameGoogleDrive',function(){
+    $response=GoogleDrive::getNameFile($_REQUEST['fileId']);
+     echo $response;
+});
+Route::set('getFileSizeGoogleDrive',function(){
+    $response=GoogleDrive::getSizeFile($_REQUEST['fileId']);
+    echo $response;
+});
 Route::set('getFolderParentGoogleDrive',function()
 {
     $response=GoogleDrive::getParentFolderId($_COOKIE["GoogleDrive"]);
@@ -239,28 +324,51 @@ Route::set('renameFileGoogleDrive',function(){
     $response=GoogleDrive::renameFile($_REQUEST['fileName'],$_REQUEST['fileId']);
     echo $response;
 });
-Route::set('downloadFolderGoogleDrive',function(){
-    $response=GoogleDrive::downloadFolder($_REQUEST['fileId']);
-    echo $response;
-});
-Route::set('downloadFileGoogleDrive',function(){
-    $response=GoogleDrive::downloadSimpleFile($_REQUEST['fileId']);
+// Route::set('downloadFolderGoogleDrive',function(){
+//     $response=GoogleDrive::downloadFolder($_REQUEST['fileId']);
+//     echo $response;
+// });
+Route::set('downloadSmallFileGoogleDrive',function(){
+    $response=GoogleDrive::downloadSmallFile($_REQUEST['fileId']);
     $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
-    //$file_to_download = fopen('C:\Users\alexg\Desktop\abc.jpg','rb');
-    $file_name = basename($file_to_download);
+     $file_name = basename($file_to_download);
     header("Content-Type: application/octet-stream");
-    //$fileTest="def.jpg";
-    //filename="' . $file_name . '"'
     header("Content-Disposition: attachment; filename=${file_name}");
-    //header('Content-Disposition: attachment; filename="' . $fileTest . '"');
     header("Content-Length: " . filesize($file_to_download));
     readfile($file_to_download);
     unlink($file_to_download);
 });
+Route::set('downloadLargeFileGoogleDrive',function(){
+    $headers= apache_request_headers();
+    $fileStatus="Unknown";
+    foreach ($headers as $header => $value) {
+        if($header == 'File-Status'){
+            $fileStatus = $value;
+            break;
+        }
+    }
+    $fileStatusArray=json_decode($fileStatus,true);
+    $response=GoogleDrive::downloadLargeFile($_REQUEST['fileId'],$fileStatusArray['Start'],$fileStatusArray['End'],$fileStatusArray['FileName']);
+    if($fileStatusArray['Status']==1)
+    {
+        $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
+        $file_name = basename($file_to_download);
+        header("Content-Type: application/octet-stream");
+        header("Content-Disposition: attachment; filename=${file_name}");
+        header("Content-Length: " . filesize($file_to_download));
+        readfile($file_to_download);
+        unlink($file_to_download);
+        echo "Download Finish";
+    }
+    else
+    {
+        echo "Download in progress";
+    }
+
+});
 Route::set('moveFileGoogleDrive',function(){
-    // $response=GoogleDrive::moveFile($_REQUEST['fileId'],$_REQUEST['fileIdToMove']);
-    // echo $response;
     if(isset($_COOKIE["GoogleDrive-MV"])){
+        if($_REQUEST['fileId'] == '0'){
         $response = GoogleDrive::moveFile($_COOKIE['GoogleDrive-MV'],$_COOKIE['GoogleDrive']);
         GoogleDrive::Cookie("GoogleDrive-MV",'invalid',[
             'expires' => time() - 3600,
@@ -271,6 +379,16 @@ Route::set('moveFileGoogleDrive',function(){
         ]);
         echo 'File moved';
     } else{
+        GoogleDrive::Cookie("GoogleDrive-MV",$_REQUEST['fileId'],[
+            'expires' => time() + 86400,
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+        echo 'Item stored in cookie';
+    }
+}   else{
         if($_REQUEST['fileId'] != '0'){
             GoogleDrive::Cookie("GoogleDrive-MV",$_REQUEST['fileId'],[
                 'expires' => time() + 86400,
@@ -285,13 +403,19 @@ Route::set('moveFileGoogleDrive',function(){
         }
     }
 });
-
-
 /* --------------------------------------------- Dropbox --------------------------------------------- */
 
-Route::set('parentPath',function(){ //Ruta testing
-    $parent_metadata = Dropbox::getItemMetadata($_REQUEST['parent_id']);
-    echo $parent_metadata['path_display'];
+Route::set('uploadDropbox',function(){   
+    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+    $access_token_json = Controller::getModel()->getAccessToken($username,'Dropbox');
+    $access_token_decoded = json_decode($access_token_json,true);
+    $access_token = $access_token_decoded['access_token'];
+    if($access_token != null){
+          $response = Dropbox::uploadFile();
+          echo $response;
+    } else {
+        header('Location: getCode?drive=DropBox');
+    }
 });
 
 Route::set('deleteItemDropbox',function(){
@@ -366,52 +490,19 @@ Route::set('uploadSmallFileDropbox',function(){
     echo 'File uploaded';
 });
 
-Route::set('uploadLargeFileStartDropbox',function(){
-    $requestBody = file_get_contents('php://input');
-    $folder_id_file = fopen("folder_id.txt", "w");
-    $bytesWritten = fwrite($folder_id_file,$_COOKIE['Dropbox']); 
-    $response = Dropbox::uploadSessionStart($requestBody);
-    echo $response;
+Route::set('uploadLargeFileStart',function(){
+    $entityBody = file_get_contents('php://input');
+    echo $entityBody;
 });
 
-Route::set('uploadLargeFileAppendDropbox',function(){
-    $headers = apache_request_headers();
-    $cursor_id = 'Unknown';
-    $offset = 'Unknown';
-    $decoded_json_value = 0;
-    foreach ($headers as $header => $value) {
-        if($header == 'Session-Args'){
-            $decoded_json_value = json_decode($value,true);
-            break;
-        }
-    }
-    $cursor_id = $decoded_json_value['cursorId'];
-    $offset = $decoded_json_value['offset'];
-    $requestBody = file_get_contents('php://input');
-    $response = Dropbox::uploadSessionAppend($requestBody,$cursor_id,$offset);
-    echo $response;
+Route::set('uploadLargeFileAppend',function(){
+    $entityBody = file_get_contents('php://input');
+    echo $entityBody;
 });
 
-Route::set('uploadLargeFileFinishDropbox',function(){
-    $headers = apache_request_headers();
-    $cursor_id = 'Unknown';
-    $offset = 'Unknown';
-    $file_name = 'Unknown';
-    $decoded_json_value = 0;
-    foreach ($headers as $header => $value) {
-        if($header == 'Session-Args'){
-            $decoded_json_value = json_decode($value,true);
-            break;
-        }
-    }
-    $cursor_id = $decoded_json_value['cursorId'];
-    $offset = $decoded_json_value['offset'];
-    $file_name = $decoded_json_value['name'];
-    $requestBody = file_get_contents('php://input');
-    $parent_id = file_get_contents("folder_id.txt");
-    $response = Dropbox::uploadSessionFinish($requestBody,$cursor_id,$offset,$file_name,$parent_id);
-    unlink("folder_id.txt");
-    echo $response;
+Route::set('uploadLargeFileFinish',function(){
+    $entityBody = file_get_contents('php://input');
+    echo $entityBody;
 });
 
 
@@ -517,20 +608,6 @@ Route::set('createFolder',function(){
     else{
         echo json_encode(array("status"=>'1'));
     }
-    
-});
-Route::set('renameFolder',function(){
-    if(!empty($_REQUEST['fileTransfName'])  && !empty($_REQUEST['oldName'])){
-        $response = OneDrive::renameFolder($_REQUEST['fileTransfName'],$_REQUEST['oldName']);
-        echo $response;
-    }
-    else{
-        echo json_encode(array("status"=>'1'));
-    }
-    
-});
-Route::set('goBack',function(){
-    echo json_encode(array("status"=>$_COOKIE['OneDrive']));
     
 });
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php

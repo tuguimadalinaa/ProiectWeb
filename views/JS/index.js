@@ -45,6 +45,7 @@ function makeRequestForUpload(drive){
 async function waitForResponse(reason,drive) {
     if(reason=='Code'){
         let result = await makeRequestForCode(drive);
+        //alert(result);
         return result;
     }else if(reason=='Token'){
         var urlParams = new URLSearchParams(window.location.search);
@@ -115,9 +116,10 @@ async function checkUrl(){
         if(urlParams.get('scope')!=null)
         {
             let responseJson = await waitForResponse('Token','GoogleDrive'); 
+            //console.log(responseJson);
             //alert(responseJson);
             let response = JSON.parse(responseJson);
-            //alert(response);
+            alert(response);
             if(response.status=='401'){
                 alert("Authorization failed");
             }
