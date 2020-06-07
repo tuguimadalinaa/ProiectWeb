@@ -232,7 +232,6 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
                     last_range = sizeOfDataSent;
                    fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
                    response = await makeRequestForUploadSessionAppend(fileSliceToSend,sizeOfDataSent + maxUploadSize,cursorId,urlToUpload,currentFileSize,last_range);
-                    console.log("In while " + response);
                     sizeOfDataSent = sizeOfDataSent + maxUploadSize;
            }
            if((currentFileSize - sizeOfDataSent) < maxUploadSize){
@@ -264,7 +263,7 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
         }
       }    
  });
- //checkUrl();
+ checkUrl();
 //https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_fileupload_files
 //https://stackoverflow.com/questions/16210231/how-can-i-upload-a-new-file-on-click-of-image-button
 //https://codepen.io/monjer/pen/JKRLzM

@@ -296,11 +296,179 @@ var goBack_ = async function()
     let response = JSON.parse(result);
     getDirectory(response.status,finished); //butonul de go back plus de pus dbClick doar pe foldere
  }
+ function makeRequestForFileTransfer(fileData,fileName,fileSize){
+    return new Promise(function (resolve) {
+       let xhr = new XMLHttpRequest();
+       xhr.open('POST', 'transferFile?fileTransfName='+fileName + '&fileSize='+fileSize, true);
+       xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(fileData);
+    });
+}
+async function makeRequestForUploadSessionStart(fileName)
+{
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', 'uploadLargeStart?fileTransfName='+fileName, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+function makeRequestForUploadSessionAppend(fileSlice,sizeOfDataSent,cursorId,urlToAppend,currentFileSize,last_range){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        sessionArgs = JSON.stringify({ offset: sizeOfDataSent, cursorId: cursorId, url:urlToAppend,totalSize:currentFileSize,lastRange:last_range});
+        xhr.open('POST', 'uploadLargeFileAppend', true);
+        xhr.setRequestHeader('Session-Args',sessionArgs);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(fileSlice);
+    });
+}
+function makeRequestForUploadSessionFinish(fileSlice,sizeOfDataSent,cursorId,urlToAppend,currentFileSize,last_range){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        sessionArgs = JSON.stringify({ offset: sizeOfDataSent, cursorId: cursorId, url:urlToAppend,totalSize:currentFileSize,lastRange:last_range});
+        xhr.open('POST', 'uploadLargeFileFinish', true);
+        xhr.setRequestHeader('Session-Args',sessionArgs);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(fileSlice);
+    });
+}
+async function responseForFileTransfer(fileData, fileName,fileSize){
+    let result = await makeRequestForFileTransfer(fileData,fileName,fileSize);
+    return result;
+}
+ var uploadFile = async function ()
+ {
+    if(confirm("Upload only one file?")){
+        var buttonAdded = '<input type="file" id="fileOneDrive" multiple size="50" style="display: none;"/>';
+        var placeToInsert =  document.getElementsByClassName("containerFlex");
+        placeToInsert[0].insertAdjacentHTML('beforebegin',buttonAdded);
+        var element = document.getElementById('fileOneDrive');
+        if(element.getAttribute('listener')!=='true')
+        {
+            element.setAttribute('listener','false');
+        }
+        document.getElementById("fileOneDrive").addEventListener("change", async function()
+        {
+            if(this.files && this.files[0])
+            {
+                let files = this.files;
+                let numberOfFilesToUpload = files.length;
+                let i = 0;
+                let maxUploadSize = 1048576 * 4; // aprox 40 MB
+                while(i < numberOfFilesToUpload){
+                    currentFileSize = files[i].size;
+                    currentFile = files[i];
+                    console.log(currentFile.name);
+                    if(currentFileSize < maxUploadSize){
+                        response =  await responseForFileTransfer(currentFile,currentFile.name,currentFileSize);
+                        console.log(response);
+               } else {
+                   let sizeOfDataSent = 0;
+                   let uploadSessionStarted = 0;
+                   let cursorId = 0;
+                   currentFile = files[i];
+                   response = await makeRequestForUploadSessionStart(currentFile.name);
+                   console.log(response);
+                   let urlToUpload = JSON.parse(response);
+                   urlToUpload = urlToUpload.response;
+                   let last_range = 0;
+                   while(currentFileSize - sizeOfDataSent > maxUploadSize){
+                            last_range = sizeOfDataSent;
+                            fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
+                            response = await makeRequestForUploadSessionAppend(fileSliceToSend,sizeOfDataSent + maxUploadSize,cursorId,urlToUpload,currentFileSize,last_range);
+                            sizeOfDataSent = sizeOfDataSent + maxUploadSize;
+                   }
+                   if((currentFileSize - sizeOfDataSent) < maxUploadSize){
+                        last_range = sizeOfDataSent;
+                        fileSliceToSend = currentFile.slice(sizeOfDataSent,currentFileSize,currentFile);
+                        response = await makeRequestForUploadSessionFinish(fileSliceToSend,sizeOfDataSent,cursorId,urlToUpload,currentFileSize,last_range);
+                      alert(response);
+                   }
+               }
+               i++;
+            }
+        }});
+        element.click();
+        element.remove();//?
+    }
+    else{
+        var buttonAdded = '<input type="file" id="directoryOneDrive" multiple size="50" style="display: none;" webkitdirectory directory/>';
+        var placeToInsert =  document.getElementsByClassName("containerFlex");
+        placeToInsert[0].insertAdjacentHTML('beforebegin',buttonAdded);
+        var element = document.getElementById('directoryOneDrive');
+        if(element.getAttribute('listener')!=='true')
+        {
+            element.setAttribute('listener','false');
+        }
+        document.getElementById("directoryOneDrive").addEventListener("change", async function()
+        {
+            if(this.files && this.files[0])
+            {
+                let files = this.files;
+                let numberOfFilesToUpload = files.length;
+                let i = 0;
+                let maxUploadSize = 1048576 * 4; 
+                while(i < numberOfFilesToUpload){
+                    currentFileSize = files[i].size;
+                    currentFile = files[i];
+                    console.log(currentFile.name);
+                    if(currentFileSize < maxUploadSize){
+                        response =  await responseForFileTransfer(currentFile,currentFile.name,currentFileSize);
+                        console.log(response);
+               } else {
+                   let sizeOfDataSent = 0;
+                   let uploadSessionStarted = 0;
+                   let cursorId = 0;
+                   currentFile = files[i];
+                   response = await makeRequestForUploadSessionStart(currentFile.name);
+                   console.log(response);
+                   let urlToUpload = JSON.parse(response);
+                   urlToUpload = urlToUpload.response;
+                   let last_range = 0;
+                   while(currentFileSize - sizeOfDataSent > maxUploadSize){
+                            last_range = sizeOfDataSent;
+                            fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
+                            response = await makeRequestForUploadSessionAppend(fileSliceToSend,sizeOfDataSent + maxUploadSize,cursorId,urlToUpload,currentFileSize,last_range);
+                            sizeOfDataSent = sizeOfDataSent + maxUploadSize;
+                   }
+                   if((currentFileSize - sizeOfDataSent) < maxUploadSize){
+                        last_range = sizeOfDataSent;
+                        fileSliceToSend = currentFile.slice(sizeOfDataSent,currentFileSize,currentFile);
+                        response = await makeRequestForUploadSessionFinish(fileSliceToSend,sizeOfDataSent,cursorId,urlToUpload,currentFileSize,last_range);
+                      alert(response);
+                   }
+               }
+               i++;
+            }
+        }});
+        element.click();
+        element.remove();//?
+    }
+ };
+ 
  document.getElementById('download_button').addEventListener('click',getFile,false);
  document.getElementById('delete_button').addEventListener('click',deleteFile,false);
  document.getElementById('create_folder_button').addEventListener('click',createFolder,false);
  document.getElementById('move_button').addEventListener('click',moveFolder,false);
  document.getElementById('rename_button').addEventListener('click',renameFolder,false);
+ document.getElementById('upload_button').addEventListener('click',uploadFile,false);
  getDirectory("/drive/root",finished);
  //getDirectory("/drive/root:/Documents",finished);
 //https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_arrows

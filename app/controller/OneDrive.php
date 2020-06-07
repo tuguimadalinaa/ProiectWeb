@@ -66,6 +66,7 @@ class OneDrive extends Controller{
         $data= json_encode(array('item'=>array(
             '@microsoft.graph.conflictBehavior'=>'rename')
         ));
+        $fileName = str_replace(' ', '-', $fileName);
         $create_curl=curl_init();
         curl_setopt_array($create_curl,[
             CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drive/root:/Documents/'.$fileName.':/createUploadSession',
@@ -80,7 +81,24 @@ class OneDrive extends Controller{
         curl_close($create_curl);
         return $response;
     }
-    
+    private static function WriteFile($fileName,$fileData,$access_token,$fileSize,$graph_url){
+        $fileName = str_replace(' ', '-', $fileName);
+        $upload_curl=curl_init();
+        curl_setopt_array($upload_curl,[
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_URL=>$graph_url,
+            CURLOPT_CUSTOMREQUEST=>'PUT',
+            CURLOPT_SSL_VERIFYPEER=>false,
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}",
+                                "Content-Type: application/octet-stream",
+                                "Content-Length: ${fileSize}",
+                                'Content-Range: bytes '."0-".($fileSize-1).'/'.$fileSize),
+            CURLOPT_POSTFIELDS=>$fileData 
+        ]);
+        $response=curl_exec($upload_curl);
+        curl_close($upload_curl);
+        return $response;
+    }
     
     public static function UploadFile($fileName, $fileData,$fileSize){
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
@@ -170,10 +188,10 @@ class OneDrive extends Controller{
                 'httponly' => true,
                 'samesite' => 'Strict',
             ];
-            $splittedExplode  = explode('/',$decodedResponse['value'][0]["parentReference"]["path"]);
+           /* $splittedExplode  = explode('/',$decodedResponse['value'][0]["parentReference"]["path"]);
             $end = end($splittedExplode);
             $split = explode($end,$decodedResponse['value'][0]["parentReference"]["path"]);
-            self::getCookieHandler()->Cookie('OneDrive',$split[0],$cookie_params_array);
+            self::getCookieHandler()->Cookie('OneDrive',$split[0],$cookie_params_array);*/
         }
         return $response;
     }
@@ -364,23 +382,7 @@ class OneDrive extends Controller{
         }
         return json_encode(array("status"=>'401'));
     }
-    private static function WriteFile($fileName,$fileData,$access_token,$fileSize,$graph_url){
-        $upload_curl=curl_init();
-        curl_setopt_array($upload_curl,[
-            CURLOPT_RETURNTRANSFER=>1,
-            CURLOPT_URL=>$graph_url,
-            CURLOPT_CUSTOMREQUEST=>'PUT',
-            CURLOPT_SSL_VERIFYPEER=>false,
-            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}",
-                                "Content-Type: application/octet-stream",
-                                "Content-Length: ${fileSize}",
-                                'Content-Range: bytes '."0-".($fileSize-1).'/'.$fileSize),
-            CURLOPT_POSTFIELDS=>$fileData 
-        ]);
-        $response=curl_exec($upload_curl);
-        curl_close($upload_curl);
-        return $response;
-    }
+    
     private static function WriteFileBig($fileData,$access_token,$fileSize,$graph_url,$totalSize,$last_range){
         $content_length = $fileSize-$last_range;
         $upload_curl=curl_init();
