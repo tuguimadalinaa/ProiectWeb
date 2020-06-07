@@ -82,7 +82,7 @@ async function uploadGoogleDrive(){
 
 async function uploadDropBox(){
     response = await waitForResponse('Code','DropBox');
-    //location.assign(response);
+    location.assign(response);
 }
 
  async function uploadAllDrivers()

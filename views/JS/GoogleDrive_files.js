@@ -160,34 +160,33 @@ function makeRequestForUploadLargeFile(link,file,start,end,sizeFile)
         xhr.send(file);
     });
 }
-function makeRequestForDownloadSmallFile(fileId)
-{
-    return new Promise(function (resolve) {
-        let xhr = new XMLHttpRequest();
-        xhr.open('GET', 'downloadSmallFileGoogleDrive?fileId='+fileId, true);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                resolve(xhr.response);
-            }
-        };
-        xhr.send();
-    });
-}
-function makeRequestForDownloadLargeFile(start,end,status,fileName)
-{
-    return new Promise(function (resolve) {
-        let xhr = new XMLHttpRequest();
-        url = JSON.stringify({ Start: start, End: end, Status: status, FileName: fileName});
-        xhr.open('GET', 'downloadLargeFileGoogleDrive', true);
-        xhr.setRequestHeader('File-Status',url);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                resolve(xhr.response);
-            }
-        };
-        xhr.send();
-    });
-}
+// function makeRequestForDownloadSmallFile(fileId)
+// {
+//     return new Promise(function (resolve) {
+//         let xhr = new XMLHttpRequest();
+//         xhr.open('GET', 'downloadSmallFileGoogleDrive?fileId='+fileId, true);
+//         xhr.onreadystatechange = function () {
+//             if (xhr.readyState == XMLHttpRequest.DONE) {
+//                 resolve(xhr.response);
+//             }
+//         };
+//         xhr.send();
+//     });
+// }
+// function makeRequestForDownloadLargeFile(fileId)
+// {
+//     return new Promise(function (resolve) {
+//         let xhr = new XMLHttpRequest();
+//         xhr.open('GET', 'downloadLargeFileGoogleDrive?fileId='+fileId, true);
+//         xhr.setRequestHeader('File-Status',url);
+//         xhr.onreadystatechange = function () {
+//             if (xhr.readyState == XMLHttpRequest.DONE) {
+//                 resolve(xhr.response);
+//             }
+//         };
+//         xhr.send();
+//     });
+// }
 function makeRequestForGettingSizeFile(fileId)
 {
     return new Promise(function (resolve) {
@@ -201,19 +200,19 @@ function makeRequestForGettingSizeFile(fileId)
         xhr.send();
     });
 }
-function makeRequestForGettingNameFile(fileId)
-{
-    return new Promise(function (resolve) {
-        let xhr = new XMLHttpRequest();
-        xhr.open('GET', 'getFileNameGoogleDrive?fileId='+fileId, true);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                resolve(xhr.response);
-            }
-        };
-        xhr.send();
-    });
-}
+// function makeRequestForGettingNameFile(fileId)
+// {
+//     return new Promise(function (resolve) {
+//         let xhr = new XMLHttpRequest();
+//         xhr.open('GET', 'getFileNameGoogleDrive?fileId='+fileId, true);
+//         xhr.onreadystatechange = function () {
+//             if (xhr.readyState == XMLHttpRequest.DONE) {
+//                 resolve(xhr.response);
+//             }
+//         };
+//         xhr.send();
+//     });
+// }
 async function highlightItem(item){
     itemId = item.getAttribute('id');
     checkedFileId = itemId;
@@ -294,34 +293,17 @@ async function startUpload(files){
     return "Upload Done";
 }
 async function startDownload(fileId){
-    let maxUploadSize = 256 * 1024 * 8;
-    let status=0;
+    let maxDownloadSize = 256 * 1024 * 8;//2 mb
     let fileSize = await makeRequestForGettingSizeFile(fileId);
-    alert(fileSize);
-    let fileName=  await makeRequestForGettingNameFile(fileId);
-    alert(fileName);
     let sizeOfDataSent = 0;
-    if(fileSize-sizeOfDataSent<maxUploadSize)
+    if(fileSize-sizeOfDataSent<maxDownloadSize)
     {
-        response=await makeRequestForDownloadSmallFile(fileId);
-        alert(response);
+        window.location='downloadSmallFileGoogleDrive?fileId=' +fileId;
+        //alert(response);
     }
     else
     {
-        while(fileSize-sizeOfDataSent>maxUploadSize)
-        {
-            response=await makeRequestForDownloadLargeFile(sizeOfDataSent,sizeOfDataSent + maxUploadSize,status,fileName);
-            sizeOfDataSent = sizeOfDataSent + maxUploadSize;
-        }
-        if(fileSize-sizeOfDataSent<maxUploadSize)
-        {
-            response=await makeRequestForDownloadLargeFile(sizeOfDataSent,sizeOfDataSent + maxUploadSize,status,fileName);
-            status=1;
-        }
-        else if(fileSize-sizeOfDataSen==0)
-        {
-            status=1;
-        }
+        window.location='downloadLargeFileGoogleDrive?fileId=' +fileId;
     }
     return "Done";
 }
@@ -333,9 +315,13 @@ async function downloadFileAndFolder(){
         item = document.getElementById(checkedFileId);
         typeOfItem = item.getAttribute("alt");
          if(typeOfItem == 'fileIcon'){
-            response=await startDownload(checkedFileId);
+            response=startDownload(checkedFileId);
             alert(response);
         } 
+        else{
+            response=startDownload(checkedFileId);
+            alert(response);
+        }
     }
 }
 
