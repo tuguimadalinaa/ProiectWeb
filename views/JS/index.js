@@ -81,7 +81,7 @@ async function uploadGoogleDrive(){
 
 async function uploadDropBox(){
     response = await waitForResponse('Code','DropBox');
-    //location.assign(response);
+    location.assign(response);
 }
 
  async function uploadAllDrivers()
@@ -236,7 +236,6 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
            if((currentFileSize - sizeOfDataSent) < maxUploadSize){
                 last_range = sizeOfDataSent;
                 fileSliceToSend = currentFile.slice(sizeOfDataSent,currentFileSize,currentFile);
-              //response = await makeRequestForUploadSessionAppend(fileSliceToSend,sizeOfDataSent + maxUploadSize,cursorId,urlToUpload,currentFileSize,last_range);
                 response = await makeRequestForUploadSessionFinish(fileSliceToSend,sizeOfDataSent,cursorId,urlToUpload,currentFileSize,last_range);
               alert(response);
            }
@@ -246,39 +245,6 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
    // return response;
 }
 });
-/*document.getElementById("fileOneDrive").addEventListener("change", async function(){
-    let maxUploadSize = 1048576 * 4;
-    if (this.files && this.files[0]) {
-        for (var i = 0; i < this.files.length; i++) {
-            var myFile = this.files[i];
-            if(myFile.size<maxUploadSize)
-            {
-                var reader = new FileReader();
-                reader.addEventListener('load',  async function (e) {
-                    var arrayBuffer = this.result,
-                    array = new Uint8Array(arrayBuffer),
-                    binaryString = String.fromCharCode.apply(null, array);
-                    let result   = await responseForFileTransfer(binaryString, e.target.fileName,myFile.size);
-                    console.log(result);
-                    let response = JSON.parse(result);
-                    if(response.status=='401'){
-                        alert("Error to load file: " + e.target.fileName);
-                    }
-                    else{
-                        console.log(response.id);
-                    }
-                });
-                reader.fileName = myFile.name;
-                reader.readAsArrayBuffer(myFile);
-            }
-            else{
-                readByChunk(files);
-            }
-
-        }
-      }  
-    }
- );*/
  document.getElementById('directoryOneDrive').addEventListener("change", function(){
     if (this.files && this.files[0]) {
         for (var i = 0; i < this.files.length; i++) {
@@ -296,23 +262,7 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
         }
       }    
  });
-/*function makeRequestForBigFileTransfer(fileData,fileName,fileSize, readyToGo){
-    return new Promise(function (resolve) {
-       let xhr = new XMLHttpRequest();
-       xhr.open('POST', 'transferBigFile?fileTransfName='+fileName + '&fileSize='+fileSize+'&readyToGo='+readyToGo, true);
-       xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                resolve(xhr.response);
-            }
-        };
-        xhr.send(fileData);
-    });
-}
-async function responseForBigFileTransfer(fileData, fileName,fileSize, readyToGo){
-    let result = await makeRequestForBigFileTransfer(fileData,fileName,fileSize, readyToGo);
-    return result;
-}*/
- checkUrl();
+ //checkUrl();
 //https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_fileupload_files
 //https://stackoverflow.com/questions/16210231/how-can-i-upload-a-new-file-on-click-of-image-button
 //https://codepen.io/monjer/pen/JKRLzM
@@ -321,36 +271,3 @@ async function responseForBigFileTransfer(fileData, fileName,fileSize, readyToGo
 /*https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944 */
 /*http://jsfiddle.net/SYwuP/*/
 /*https://stackoverflow.com/questions/14438187/javascript-filereader-parsing-long-file-in-chunks*/
-/*
-let chunkSize  = 1024; 
-    let start = 0;
-    let chunkReaderBlock = null;
-    let readEventHandler = async function(evt) {
-        if (evt.target.error == null) {
-            start += evt.target.result.length;
-            console.log( evt.target.result);
-            console.log(name);
-            console.log(evt.target.result.length);
-            let result   = await responseForBigFileTransfer(evt.target.result, evt.target.fileName,evt.target.result.length, "false");
-        } else {
-            console.log("Read error: " + evt.target.error);
-            return;
-        }
-        if (start >= fileSize) {
-            let result   = await responseForBigFileTransfer("", "",0, "true");
-            console.log("Done reading file");
-            return;
-        }
-
-        // of to the next chunk
-        chunkReaderBlock(start, chunkSize, file);
-    }
-    /* chunkReaderBlock = function(_offset, length, _file) {
-        let r = new FileReader();
-        let blob = _file.slice(_offset, length + _offset);
-        r.onload = readEventHandler;
-        r.fileName = file.name;
-        r.readAsText(blob);
-    }
-
-    chunkReaderBlock(start, chunkSize, file);*/

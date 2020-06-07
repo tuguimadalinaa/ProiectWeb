@@ -172,7 +172,7 @@ Route::set('getCode', function(){
         else{
             $response= GoogleDrive::GetCode();
         }
-        header("Location: ${response}");
+        echo $response;
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
@@ -966,8 +966,8 @@ Route::set('uploadLargeFileFinish',function(){
 
 //Pattern pentru validarea JWT folosind API-ul
 
-/*
-     $headers = apache_request_headers();
+
+ /*    $headers = apache_request_headers();
      $responseJWTheader = Login::validateJwtRequest($headers);
      if($responseJWTheader == 'JWT valid'){
 
@@ -978,7 +978,6 @@ Route::set('uploadLargeFileFinish',function(){
      echo json_encode($error);
      }
 */
-
 Route::set('APIcheckJWT',function(){
     $headers = apache_request_headers();
     $responseJWTheader = Login::validateJwtRequest($headers);
