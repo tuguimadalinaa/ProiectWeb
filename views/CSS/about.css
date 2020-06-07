@@ -18,7 +18,7 @@ body{
     margin-top: 5%;
 }
 .whatWeDoList li{
-    margin-left: -35%;
+    margin-left: -50%;
     font-size: 20px;
 }
 .sideMenu{
@@ -71,3 +71,26 @@ body{
     margin-top: 100px;
     cursor: pointer;
 }
+.subtitle{
+    text-align: center;
+}
+.pages{
+    margin-left: 20%;
+    font-size: 20px;
+    font-weight: bold
+}
+.containerHomePage .aboutPage{
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+}
+.containerHomePage h5{
+    margin-left: 20%;
+}
+img{
+    width: 200px;
+    top: 0px;
+    right: 0px;
+    position: absolute;
+}
+/*https://stackoverflow.com/questions/7282236/placing-an-image-to-the-top-right-corner-css*/
