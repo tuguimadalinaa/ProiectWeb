@@ -27,7 +27,8 @@ async function responseGetDirectory(name) {
     let result = await makeRequestGetDirectory(name);
     return result;
 }
-var nextFolder = function() {
+var nextFolder = function(event) {
+    event.preventDefault();
     var x = this.id;
     var element = document.getElementById('renderFolders');
     let goBackArrow = document.getElementsByClassName("goBackButton");
@@ -38,8 +39,9 @@ var nextFolder = function() {
     }
     getDirectory(x,finished);
 };
-var selectFile  = function()
+var selectFile  = function(event)
 {
+    event.preventDefault();
     pressedButton=true;
     selectedFile  = this.id;
 
