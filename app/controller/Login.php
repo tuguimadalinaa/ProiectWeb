@@ -26,7 +26,7 @@ class Login extends Controller{
     }
     public static function validateJwtRequest($headers){
         $jwt = null;
-        $jwt_found == 0;
+        $jwt_found = 0;
         foreach ($headers as $header => $value) {
             if($header == 'Auth'){
                 $jwt = $value;
