@@ -22,6 +22,21 @@ class Controller{
         return $auth;
     }
 
+    public static function getFileForDownload($file_name,$username){
+       $file_exists = 0;
+       $file_in_dropbox = Dropbox::checkIfFileExist($file_name,$username);
+       if($file_in_dropbox == 1){
+         $responseDropbox = Dropbox::downloadFileAPI($file_name,$username);
+         $file_exists = 1;
+       }
+       if($file_exists == 1){
+           $file_downloaded =  $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $file_name;
+           return $file_downloaded;
+       } else {
+           return '0';
+       }
+    }
+
     public static function fileFragmentation($file_name,$username){
        $file_to_upload =  $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $file_name;
        $file_size = filesize($file_to_upload);

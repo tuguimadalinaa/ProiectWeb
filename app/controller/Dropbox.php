@@ -656,5 +656,69 @@ public static function uploadSessionFinishAPI($file_data,$session_id,$offset,$fi
     curl_close($curl_resource);
     $responseDecoded = json_decode($response,true);
 }
+
+public static function getItemMetadataAPI($file_id,$username){
+    $dropbox_metadata_url = "https://api.dropboxapi.com/2/files/get_metadata";
+    $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
+    $token = $json_token['access_token'];
+    $curl_resource = curl_init();
+    $parameter = '{' .
+        '"path": "' . $file_id . '",' .
+        '"include_media_info": false,' .
+        '"include_deleted": false,' .
+        '"include_has_explicit_shared_members": false' .
+    '}';
+    curl_setopt($curl_resource,CURLOPT_URL,$dropbox_metadata_url);
+    curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+    curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$parameter);
+    curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+        "Authorization: Bearer ${token}",
+        "Content-Type: application/json"
+    ));
+    curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+    curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+    $response = curl_exec($curl_resource);
+    curl_close($curl_resource);
+    $responseDecoded = json_decode($response,true);
+    return $responseDecoded;
+}
+
+public static function checkIfFileExist($file_name,$username){
+    $file_name_dropbox = '/1' . $username . $file_name;
+    $file_metadata = self::getItemMetadataAPI($file_name_dropbox,$username);
+    $file_name_drop = "1" . $username . $file_name;
+    if($file_metadata != null){
+        if($file_metadata['name'] == $file_name_drop){
+            return 1;
+        } 
+        return 0;
+    } else {
+        return 0;
+    }
+}
+
+public static function downloadFileAPI($file_name,$username){
+    $dropbox_download_url = "https://content.dropboxapi.com/2/files/download";
+    $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
+    $token = $json_token['access_token'];
+    $file_name_dropbox = "1" . $username . $file_name;
+    $curl_resource = curl_init();
+    $parameter = '{' .
+        '"path": "/' . $file_name_dropbox . '"' .
+    '}';
+    curl_setopt($curl_resource,CURLOPT_URL,$dropbox_download_url);
+    curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+    curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+        "Authorization: Bearer ${token}",
+        "Dropbox-API-Arg: $parameter"
+    ));
+    curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+    curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+    $response = curl_exec($curl_resource);
+    curl_close($curl_resource);
+    $file_created = file_put_contents($file_name,$response);
+    $responseDecoded = json_decode($response,true);
+    return 'Peste';
+}
 }
 ?>
