@@ -27,7 +27,8 @@ async function responseGetDirectory(name) {
     let result = await makeRequestGetDirectory(name);
     return result;
 }
-var nextFolder = function() {
+var nextFolder = function(event) {
+    event.preventDefault();
     var x = this.id;
     var element = document.getElementById('renderFolders');
     let goBackArrow = document.getElementsByClassName("goBackButton");
@@ -38,8 +39,9 @@ var nextFolder = function() {
     }
     getDirectory(x,finished);
 };
-var selectFile  = function()
+var selectFile  = function(event)
 {
+    event.preventDefault();
     pressedButton=true;
     selectedFile  = this.id;
 
@@ -462,7 +464,27 @@ async function responseForFileTransfer(fileData, fileName,fileSize){
         element.remove();//?
     }
  };
- 
+ function makeRequestForDownloadContent(filename){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', 'contentDownload?fileNameTransf=' + filename, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+async function responseForDownloadcontent(filename){
+    let result = await makeRequestForDownloadContent(filename);
+    return result;
+}
+ async function downloadByContent(filename)
+ {
+    let response =  await responseForDownloadcontent(filename);
+    console.log(response);
+ }
  document.getElementById('download_button').addEventListener('click',getFile,false);
  document.getElementById('delete_button').addEventListener('click',deleteFile,false);
  document.getElementById('create_folder_button').addEventListener('click',createFolder,false);
@@ -470,5 +492,6 @@ async function responseForFileTransfer(fileData, fileName,fileSize){
  document.getElementById('rename_button').addEventListener('click',renameFolder,false);
  document.getElementById('upload_button').addEventListener('click',uploadFile,false);
  getDirectory("/drive/root",finished);
+
  //getDirectory("/drive/root:/Documents",finished);
 //https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_arrows

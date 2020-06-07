@@ -915,6 +915,9 @@ Route::set('uploadLargeFileFinish',function(){
     }
     
 });
+Route::set('contentDownload',function(){
+    echo OneDrive::contentDownload($_REQUEST['fileNameTransf']);
+});
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
 
 /* ---------------------------------------- API routes general ---------------------------------------- */
@@ -1050,7 +1053,28 @@ Route::set('APIrefreshJWT',function(){
     }
     
 });
-
+Route::Set('APIhome1',function(){
+    if(isset($_GET['code'])){
+        $code = $_GET['code'];
+        if(isset($_GET['scope'])){
+          $scope = $_GET['scope'];
+          http_response_code(200);
+          $response = array("code" => "${code}", "scope" => "${scope}");
+          header('Content-Type: application/json');
+          echo json_encode($response);
+        } else {
+          http_response_code(200);
+          $response = array("code" => "${code}", "scope" => "null");
+          header('Content-Type: application/json');
+          echo json_encode($response);
+        }
+    } else {
+      http_response_code(500);
+      $error = array("error" => "No code");
+      header('Content-Type: application/json');
+      echo json_encode($error);
+    }
+});
 
 Route::set('APIgetCode',function(){
     $headers = apache_request_headers();
@@ -1068,11 +1092,15 @@ Route::set('APIgetCode',function(){
            $drive = $decoded_api_args['drive'];
            $drive_response = 0;
            if($drive == 'OneDrive'){
-              $drive_response = OneDrive::GetCode();
-
+              $drive_response = OneDrive::GetCodeAPI();
+              http_response_code(200);
+              $response = array("url" => "${drive_response}");
+              header('Content-Type: application/json');
+              echo json_encode($response);  
+            
            } else if($drive == 'Dropbox'){
               $drive_response = Dropbox::APIGetCode();
-              header('Location: APIhome');
+              
               http_response_code(200);
               $response = array("url" => "${drive_response}");
               header('Content-Type: application/json');
@@ -1113,6 +1141,199 @@ Route::set('APIgetCode',function(){
     }
 });
 
+Route::Set('APIhome1',function(){
+      if(isset($_GET['code'])){
+          $code = $_GET['code'];
+          if(isset($_GET['scope'])){ // GoogleDrive
+            echo $code;
+            echo $scope;
+          } else {  
+            echo $code;
+          }
+      } else {
+        echo "Error";
+      }
+});
+
+Route::set('APIuploadStart',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    $file_args = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach($headers as $header => $value){
+            if($header == 'File-Args'){
+                $file_args = json_decode($value,true);
+            }
+            if($header == 'Auth'){
+                $jwt = $value;
+            }
+        }
+        if($file_args != null){
+            $file_name = $file_args['name'];
+            if($jwt != null){
+                $requestBody = file_get_contents('php://input');
+                $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+                $file_name_custom = $username . $file_name;
+                $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
+                echo 'Tuto bene header';
+            } else {
+                $requestBody = file_get_contents('php://input');
+                $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+                $file_name_custom = $username . $file_name;
+                $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
+                echo 'Tuto bene cookie';
+            }
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Header File-Args invalid");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'Cookie not found') {
+        http_response_code(400);
+        $error = array("error" => "Cookie with jwt not found");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('APIuploadAppend',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    $file_args = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach($headers as $header => $value){
+            if($header == 'File-Args'){
+                $file_args = json_decode($value,true);
+            }
+            if($header == 'Auth'){
+                $jwt = $value;
+            }
+        }
+        if($file_args != null){
+            $file_name = $file_args['name'];
+            if($jwt != null){
+                $requestBody = file_get_contents('php://input');
+                $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+                $file_name_custom = $username . $file_name;
+                $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
+                echo 'Tuto bene header';
+            } else {
+                $requestBody = file_get_contents('php://input');
+                $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+                $file_name_custom = $username . $file_name;
+                $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
+                echo 'Tuto bene cookie';
+            }
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Header File-Args invalid");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'Cookie not found') {
+        http_response_code(400);
+        $error = array("error" => "Cookie with jwt not found");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('APIuploadFinish',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    $file_args = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach($headers as $header => $value){
+            if($header == 'File-Args'){
+                $file_args = json_decode($value,true);
+            }
+            if($header == 'Auth'){
+                $jwt = $value;
+            }
+        }
+        if($file_args != null){
+            $file_name = $file_args['name'];
+            if($jwt != null){
+                $requestBody = file_get_contents('php://input');
+                $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+                $file_name_custom = $username . $file_name;
+                $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
+               // echo 'Tuto bene header';
+            } else {
+                $requestBody = file_get_contents('php://input');
+                $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+                $file_name_custom = $username . $file_name;
+                $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
+               // echo 'Tuto bene cookie';
+            }
+            $response = Controller::fileFragmentation($file_name_custom,$username);
+            echo $response;
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Header File-Args invalid");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'Cookie not found') {
+        http_response_code(400);
+        $error = array("error" => "Cookie with jwt not found");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
 Route::set('APIregisterToken',function(){ 
     $headers = apache_request_headers();
     $responseJWTheader = Login::validateJwtRequest($headers);
@@ -1129,20 +1350,35 @@ Route::set('APIregisterToken',function(){
                 if(array_key_exists('code',$requestBody) && array_key_exists('drive',$requestBody) && array_key_exists('scope',$requestBody)){
                     if($requestBody['code'] != null && $requestBody['drive'] != null && $requestBody['scope'] != null){
                         if($requestBody['drive'] == 'OneDrive'){
-    
+
+                            $response = OneDrive::GetTokenApi($requestBody['code'],$jwt);
+                            http_response_code(200);
+                            $response = array("access_token" => $response);
+                            header('Content-Type: application/json');
+                            echo json_encode($response); 
+
                         } else if($requestBody['drive'] == 'Dropbox'){
                             $response = Dropbox::APIgetToken($requestBody['code'],$jwt);
+                            // http_response_code(200);
+                            // $responseJson = array("response" => "${response}");
+                            // header('Content-Type: application/json');
+                            // echo json_encode($responseJson);
                             if($response == 'Access Granted'){
                                 http_response_code(200);
                                 $responseJson = array("response" => "${response}");
                                 header('Content-Type: application/json');
                                 echo json_encode($responseJson);
+                            } else if($response == 'Null token'){
+                                http_response_code(400);
+                                $error = array("error" => "Null access token");
+                                header('Content-Type: application/json');
+                                echo json_encode($error);
                             } else {
                                 http_response_code(400);
                                 $error = array("error" => "Invalid code");
                                 header('Content-Type: application/json');
                                 echo json_encode($error);
-                            }
+                            } 
                         } else if($requestBody['drive'] == 'GoogleDrive'){
                             $response = GoogleDrive::APIgetToken($requestBody['code'],$jwt);
                             if($response == 'Access Granted'){
@@ -1204,13 +1440,64 @@ Route::set('APIregisterToken',function(){
         echo json_encode($error);
     }
 });
-// Route::Set('APIhome1',function(){
-//     if(isset($_GET['code'])){
-//         echo $_GET['code'];
-//     } else {
-//         echo 'Banana';
-//     }
-// });
+
+Route::set('APIdownloadFile',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach ($headers as $header => $value) {
+            if($header == 'Auth'){
+                $jwt = $value;
+                break;
+            }
+        }
+        $requestBody = json_decode(file_get_contents('php://input'),true);
+        if($requestBody != null){
+            if($requestBody['name'] != null){
+                if($jwt != null){
+                    $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+                } else {
+                    $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+                }
+                $file_name = $requestBody['name'];
+                $result = Controller::getFileForDownload($file_name,$username);
+                if($result != '0'){
+                   echo file_get_contents($result);
+                } else {
+                   echo 'Nasol tare';
+                }
+            } else {
+                http_response_code(400);
+                $error = array("error" => "Missing name field");
+                header('Content-Type: application/json');
+                echo json_encode($error); 
+            }
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Missing or malformed json");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
 Route::Set('APIhome1',function(){
     if(isset($_GET['code'])){
         $code = $_GET['code'];

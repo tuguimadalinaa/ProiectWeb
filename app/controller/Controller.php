@@ -21,5 +21,52 @@ class Controller{
         $auth=new Auth();
         return $auth;
     }
+
+    public static function getFileForDownload($file_name,$username){
+       $file_exists = 0;
+       $file_in_dropbox = Dropbox::checkIfFileExist($file_name,$username);
+       if($file_in_dropbox == 1){
+         $responseDropbox = Dropbox::downloadFileAPI($file_name,$username);
+         $file_exists = 1;
+       }
+       if($file_exists == 1){
+           $file_downloaded =  $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $file_name;
+           return $file_downloaded;
+       } else {
+           return '0';
+       }
+    }
+
+    public static function fileFragmentation($file_name,$username){
+       $file_to_upload =  $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $file_name;
+       $file_size = filesize($file_to_upload);
+       if($file_size % 2 == 0){
+        $dropbox_size = $file_size / 2;
+         $onedrive_size = $file_size - $dropbox_size;
+       } else {
+         $dropbox_size = $file_size / 2 + 0.5;
+         $onedrive_size = $file_size - $dropbox_size;
+       }
+       $offset = 0;
+       $dropbox_data = file_get_contents($file_name,FALSE,null,$offset,$dropbox_size);
+       $dropbox_file_name = "1" . $file_name;
+       if($dropbox_size <= 1048576 * 40){
+            Dropbox::uploadSmallFileAPI($dropbox_data,$dropbox_file_name,$username);
+       } else {
+            Dropbox::uploadLargeFileAPI($dropbox_data,$dropbox_file_name,$username);
+       }
+       $offset = $offset + $dropbox_size;
+       $onedrive_filename = "2".$file_name;
+       $onedrive_data = file_get_contents($file_name,FALSE,null,$offset,$onedrive_size);
+       return OneDrive::UploadFileAPI($onedrive_filename,$onedrive_data,$onedrive_size,$username);
+      
+    //    $file_to_put_togheter = 'PutTogheter' . $file_name;
+    //    $my_file = file_put_contents($file_to_put_togheter,$dropbox_data,FILE_APPEND);
+    //    $my_fule = file_put_contents($file_to_put_togheter,$onedrive_data,FILE_APPEND);
+    //    $googledrive_data = file_get_contents($file_name,FALSE,null,$offset,$googledrive_size);
+    //    $offset = $googledrive_size;
+    }
+
+
 }
 ?>
