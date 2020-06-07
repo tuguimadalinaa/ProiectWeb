@@ -93,4 +93,21 @@ img{
     right: 0px;
     position: absolute;
 }
+@media (max-width:700px){
+    img{
+        display: none;
+    }
+    .containerDescriptions{
+        margin-left: 20%;
+    }
+    .aboutPage{
+        margin-left: 10%;
+    }
+}
+@media (max-width:1100px)
+{
+    .aboutPage{
+        margin-left: 10%;
+    }
+}
 /*https://stackoverflow.com/questions/7282236/placing-an-image-to-the-top-right-corner-css*/
