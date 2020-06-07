@@ -26,21 +26,27 @@ class Login extends Controller{
     }
     public static function validateJwtRequest($headers){
         $jwt = null;
+        $jwt_found == 0;
         foreach ($headers as $header => $value) {
             if($header == 'Auth'){
                 $jwt = $value;
+                $jwt_found = 1;
                 break;
             }
         }
-        if($jwt != null){
-            $decoded_jwt = self::getAuth()->jwtDecode($_COOKIE["loggedIn"]);
-            if($decoded_jwt == null){
-                return 'JWT invalid';
+        if($jwt_found == 1){
+            if($jwt != null){
+                $decoded_jwt = self::getAuth()->jwtDecode($value);
+                if($decoded_jwt == null){
+                    return 'JWT invalid';
+                } else {
+                    return 'JWT valid';
+                }
             } else {
-                return 'JWT valid';
+                return 'JWT is empty';
             }
         } else {
-            return 'JWT is empty';
+            return 'No Auth Header';
         }
     }
 }

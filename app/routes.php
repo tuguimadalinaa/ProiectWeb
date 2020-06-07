@@ -75,7 +75,7 @@ Route::set('home',function(){
     }else{
         $response_jwt_validation = Login::validateJwtCookie();
         if($response_jwt_validation == 'JWT valid'){
-            Home::Createview('index');  
+            Home::CreateView('index');
         } else {
            http_response_code(401);
            echo 'Invalid JWT';
@@ -161,35 +161,49 @@ Route::set('logOut',function(){
     echo 'Logout';
 });
 Route::set('getCode', function(){
-    $drive_type = $_REQUEST['drive'];
-    if($drive_type =='OneDrive'){
-        $response = OneDrive::GetCode();
-    } else if($drive_type == 'DropBox'){
-        $response = Dropbox::GetCode();
-    }
-    else{
-        $response= GoogleDrive::GetCode();
-    }
-    echo $response;
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $drive_type = $_REQUEST['drive'];
+        if($drive_type =='OneDrive'){
+            $response = OneDrive::GetCode();
+        } else if($drive_type == 'DropBox'){
+            $response = Dropbox::GetCode();
+        }
+        else{
+            $response= GoogleDrive::GetCode();
+        }
+        header("Location: ${response}");
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
 });
 
 Route::set('getToken',function(){
-    if(empty($_REQUEST['code'])){
-        echo "No code";
-    }else{
-        $drive_type = $_REQUEST['drive'];
-        if($drive_type =='OneDrive'){
-            $response = OneDrive::GetToken($_REQUEST['code']);
-            echo $response;
-        } else if($drive_type =='DropBox'){
-            $response = DropBox::GetToken($_REQUEST['code']);
-            echo $response;
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        if(empty($_REQUEST['code'])){
+            echo "No code";
+        }else{
+            $drive_type = $_REQUEST['drive'];
+            if($drive_type =='OneDrive'){
+                $response = OneDrive::GetToken($_REQUEST['code']);
+                echo $response;
+            } else if($drive_type =='DropBox'){
+                $response = DropBox::GetToken($_REQUEST['code']);
+                echo $response;
+            }
+            else{
+                $response=GoogleDrive::GetToken($_REQUEST['code'],$_COOKIE["loggedIn"]);
+                echo $response;
+            }
         }
-        else{
-            $response=GoogleDrive::GetToken($_REQUEST['code'],$_COOKIE["loggedIn"]);
-            echo $response;
-        }
-    }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
 });
 
 /* --------------------------------------------- GoogleDrive --------------------------------------------- */
@@ -222,6 +236,7 @@ Route::set('uploadGoogleDrive',function()
       header('Location: getCode?drive=GoogleDrive');
   }
 });
+
 Route::set('listGoogleDrive',function(){
     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
     $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
@@ -421,17 +436,22 @@ Route::set('uploadSmallFileDropbox',function(){
     $response_jwt_validation = Login::validateJwtCookie();
     if($response_jwt_validation == 'JWT valid'){
         $headers = apache_request_headers();
-        $file_path_json = 'Unknown';
+        $file_path_json = null;
         foreach ($headers as $header => $value) {
             if($header == 'File-Args'){
                 $file_path_json = $value;
                 break;
             }
         }
-        $file_path_array = json_decode($file_path_json,true);
-        $requestBody = file_get_contents('php://input');
-        $response = Dropbox::uploadSmallFile($requestBody,$file_path_array);
-        echo 'File uploaded';
+        if($file_path_json != null){
+            $file_path_array = json_decode($file_path_json,true);
+            $requestBody = file_get_contents('php://input');
+            $response = Dropbox::uploadSmallFile($requestBody,$file_path_array);
+            echo 'File uploaded';
+        } else {
+            echo "Can't find header Session-Args ";
+        }
+        
     } else {
        http_response_code(401); 
        echo 'Invalid JWT';
@@ -460,18 +480,23 @@ Route::set('uploadLargeFileAppendDropbox',function(){
         $headers = apache_request_headers();
         $cursor_id = 'Unknown';
         $offset = 'Unknown';
-        $decoded_json_value = 0;
+        $decoded_json_value = null;
         foreach ($headers as $header => $value) {
             if($header == 'Session-Args'){
                 $decoded_json_value = json_decode($value,true);
                 break;
             }
         }
-        $cursor_id = $decoded_json_value['cursorId'];
-        $offset = $decoded_json_value['offset'];
-        $requestBody = file_get_contents('php://input');
-        $response = Dropbox::uploadSessionAppend($requestBody,$cursor_id,$offset);
-        echo $response;
+        if($decoded_json_value != null){
+            $cursor_id = $decoded_json_value['cursorId'];
+            $offset = $decoded_json_value['offset'];
+            $requestBody = file_get_contents('php://input');
+            $response = Dropbox::uploadSessionAppend($requestBody,$cursor_id,$offset);
+            echo $response;
+        } else {
+            echo "Can't find header Session-Args ";
+        }
+       
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
@@ -486,21 +511,25 @@ Route::set('uploadLargeFileFinishDropbox',function(){
         $cursor_id = 'Unknown';
         $offset = 'Unknown';
         $file_name = 'Unknown';
-        $decoded_json_value = 0;
+        $decoded_json_value = null;
         foreach ($headers as $header => $value) {
             if($header == 'Session-Args'){
                 $decoded_json_value = json_decode($value,true);
                 break;
             }
         }
-        $cursor_id = $decoded_json_value['cursorId'];
-        $offset = $decoded_json_value['offset'];
-        $file_name = $decoded_json_value['name'];
-        $requestBody = file_get_contents('php://input');
-        $parent_id = file_get_contents("folder_id.txt");
-        $response = Dropbox::uploadSessionFinish($requestBody,$cursor_id,$offset,$file_name,$parent_id);
-        unlink("folder_id.txt");
-        echo $response;
+        if($decoded_json_value != null){
+            $cursor_id = $decoded_json_value['cursorId'];
+            $offset = $decoded_json_value['offset'];
+            $file_name = $decoded_json_value['name'];
+            $requestBody = file_get_contents('php://input');
+            $parent_id = file_get_contents("folder_id.txt");
+            $response = Dropbox::uploadSessionFinish($requestBody,$cursor_id,$offset,$file_name,$parent_id);
+            unlink("folder_id.txt");
+            echo $response;
+        } else {
+            echo "Can't find header Session-Args ";
+        }
     } else {
        http_response_code(401);  
        echo 'Invalid JWT';
@@ -599,7 +628,143 @@ Route::set('renameItemDropbox',function(){
    
 });
 
+
 /* ---------------------------------------- API routes Dropbox ---------------------------------------- */
+
+//Pattern pentru validarea JWT folosind API-ul
+
+/*
+     $headers = apache_request_headers();
+     $responseJWTheader = Login::validateJwtRequest($headers);
+     if($responseJWTheader == 'JWT valid'){
+
+     } else {
+     http_response_code(401);
+     $error = array("error" => "invalid JWT");
+     header('Content-Type: application/json');
+     echo json_encode($error);
+     }
+*/
+
+Route::set('checkJWT',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    if($responseJWTheader == 'JWT valid'){
+       echo 'E bun';
+    } else {
+       echo 'Nu e bun';
+    }
+});
+
+Route::set('APIgetCode',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    if($responseJWTheader == 'JWT valid'){
+        $api_args = null;
+        foreach ($headers as $header => $value) {
+            if($header == 'Api-Args'){
+                $api_args = $value;
+                break;
+            }
+        }
+       if($api_args != null){
+           $decoded_api_args = json_decode($value,true);
+           $drive = $decoded_api_args['drive'];
+           $drive_response = 0;
+           if($drive == 'OneDrive'){
+              $drive_response = OneDrive::GetCode();
+           } else if($drive == 'Dropbox'){
+              $drive_response = Dropbox::APIGetCode();
+              header('Location: APIhome');
+              http_response_code(200);
+              $response = array("url" => "${drive_response}");
+              header('Content-Type: application/json');
+              echo json_encode($response);
+           } else if($drive == 'GoogleDrive'){
+              $drive_response = GoogleDrive::GetCode();
+           } else {
+            http_response_code(400);
+            $error = array("error" => "Invalid Api-Args");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+           }
+       } else {
+           http_response_code(400);
+           $error = array("error" => "Missing Api-Args");
+           header('Content-Type: application/json');
+           echo json_encode($error);
+       }
+    } else {
+        http_response_code(401);
+        $error = array("error" => "invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('APIregisterToken',function(){ 
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    if($responseJWTheader == 'JWT valid'){
+        foreach ($headers as $header => $value) {
+            if($header == 'Auth'){
+                $jwt = $value;
+                break;
+            }
+        }
+        $requestBody = json_decode(file_get_contents('php://input'),true);
+        if(count($requestBody) == 2){
+            if(array_key_exists('code',$requestBody) && array_key_exists('drive',$requestBody)){
+                if($requestBody['code'] != null && $requestBody['drive'] != null){
+                    if($requestBody['drive'] == 'OneDrive'){
+
+                    } else if($requestBody['drive'] == 'Dropbox'){
+                        $response = Dropbox::APIgetToken($requestBody['code'],$jwt);
+                        if($response == 'Access Granted'){
+                            http_response_code(200);
+                            $responseJson = array("Response" => "${response}");
+                            header('Content-Type: application/json');
+                            echo json_encode($responseJson);
+                        } else {
+                            http_response_code(400);
+                            $error = array("error" => "Invalid code");
+                            header('Content-Type: application/json');
+                            echo json_encode($error);
+                        }
+                    } else if($requestBody['drive'] == 'GoogleDrive'){
+
+                    } else {
+                        http_response_code(400);
+                        $error = array("error" => "Invalid drive name");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    }
+                } else {
+                    http_response_code(400);
+                    $error = array("error" => "Missing code or drive value(or both)");
+                    header('Content-Type: application/json');
+                    echo json_encode($error);
+                }
+            } else {
+                http_response_code(400);
+                $error = array("error" => "Missing code or drive field(or both)");
+                header('Content-Type: application/json');
+                echo json_encode($error);
+            }
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Invalid number of fields in body");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+        
+    } else {
+        http_response_code(401);
+        $error = array("error" => "invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
 
 /* --------------------------------------------- OneDrive --------------------------------------------- */
 
@@ -796,4 +961,279 @@ Route::set('uploadLargeFileFinish',function(){
     
 });
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
+
+/* ---------------------------------------- API routes general ---------------------------------------- */
+
+//Pattern pentru validarea JWT folosind API-ul
+
+/*
+     $headers = apache_request_headers();
+     $responseJWTheader = Login::validateJwtRequest($headers);
+     if($responseJWTheader == 'JWT valid'){
+
+     } else {
+     http_response_code(401);
+     $error = array("error" => "invalid JWT");
+     header('Content-Type: application/json');
+     echo json_encode($error);
+     }
+*/
+
+Route::set('APIcheckJWT',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    if($responseJWTheader == 'JWT valid'){
+       echo 'E bun';
+    } else {
+       echo 'Nu e bun';
+    }
+});
+
+Route::set('APIregisterUser',function(){
+    $requestBody = json_decode(file_get_contents('php://input'),true);
+    if($requestBody != null){
+        if(count($requestBody) == 2){
+            if(array_key_exists('username',$requestBody) && array_key_exists('password',$requestBody)){
+                if($requestBody['username'] != null && $requestBody['password'] != null){
+                    $response = SignUp::createAccount($requestBody['username'],$requestBody['password']);
+                    $status = json_decode($response,true);
+                    if($status['status'] == '1'){
+                        $data = Login::getApprovalFromDB($requestBody['username'],$requestBody['password']);
+                        $json_response = json_decode($data,true);
+                        $jwt = $json_response['jwt'];
+                        http_response_code(200);
+                        $response = array("JWT" => $jwt);
+                        header('Content-Type: application/json');
+                        echo json_encode($response);
+                    } else if($status['status'] == '2') {
+                        http_response_code(500);
+                        $error = array("error" => "Server error, please try again");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    } else if($status['status'] == '3'){
+                        http_response_code(400);
+                        $error = array("error" => "Username already exists");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    } else {
+                        http_response_code(500);
+                        $error = array("error" => "Server error, please try again");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    }
+    
+                } else {
+                    http_response_code(400);
+                    $error = array("error" => "Missing username or password field value(or both)");
+                    header('Content-Type: application/json');
+                    echo json_encode($error);
+                }
+            } else {
+                http_response_code(400);
+                $error = array("error" => "Missing username or password field(or both)");
+                header('Content-Type: application/json');
+                echo json_encode($error);
+            }
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Invalid number of fields in body");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+    } else {
+        http_response_code(400);
+        $error = array("error" => "Malformed json");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+    
+});
+
+Route::set('APIrefreshJWT',function(){
+    $requestBody = json_decode(file_get_contents('php://input'),true);
+    if($requestBody != null){
+        if(count($requestBody) == 2){
+            if(array_key_exists('username',$requestBody) && array_key_exists('password',$requestBody)){
+                if($requestBody['username'] != null && $requestBody['password'] != null){
+                    $data = Login::getApprovalFromDB($requestBody['username'],$requestBody['password']);
+                    $json_response = json_decode($data,true);
+                    $jwt = $json_response['jwt'];
+                    if($jwt != ""){
+                        http_response_code(200);
+                        $response = array("JWT" => $jwt);
+                        header('Content-Type: application/json');
+                        echo json_encode($response);
+                    } else {
+                        http_response_code(404);
+                        $error = array("error" => "Invalid username or password(or both)");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    }
+                } else {
+                    http_response_code(400);
+                    $error = array("error" => "Missing username or password field value(or both)");
+                    header('Content-Type: application/json');
+                    echo json_encode($error);
+                }
+            } else {
+                http_response_code(400);
+                $error = array("error" => "Missing username or password field(or both)");
+                header('Content-Type: application/json');
+                echo json_encode($error);
+            }
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Invalid number of fields in body");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+    } else {
+        http_response_code(400);
+        $error = array("error" => "Malformed json");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+    
+});
+
+
+Route::set('APIgetCode',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    if($responseJWTheader == 'JWT valid'){
+        $api_args = null;
+        foreach ($headers as $header => $value) {
+            if($header == 'Api-Args'){
+                $api_args = $value;
+                break;
+            }
+        }
+       if($api_args != null){
+           $decoded_api_args = json_decode($value,true);
+           $drive = $decoded_api_args['drive'];
+           $drive_response = 0;
+           if($drive == 'OneDrive'){
+              $drive_response = OneDrive::GetCode();
+           } else if($drive == 'Dropbox'){
+              $drive_response = Dropbox::APIGetCode();
+              header('Location: APIhome');
+              http_response_code(200);
+              $response = array("url" => "${drive_response}");
+              header('Content-Type: application/json');
+              echo json_encode($response);
+           } else if($drive == 'GoogleDrive'){
+              $drive_response = GoogleDrive::GetCode();
+           } else {
+            http_response_code(400);
+            $error = array("error" => "Invalid Api-Args");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+           }
+       } else {
+           http_response_code(400);
+           $error = array("error" => "Missing Api-Args");
+           header('Content-Type: application/json');
+           echo json_encode($error);
+       }
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('APIregisterToken',function(){ 
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    if($responseJWTheader == 'JWT valid'){
+        foreach ($headers as $header => $value) {
+            if($header == 'Auth'){
+                $jwt = $value;
+                break;
+            }
+        }
+        $requestBody = json_decode(file_get_contents('php://input'),true);
+        if($requestBody != null){
+            if(count($requestBody) == 2){
+                if(array_key_exists('code',$requestBody) && array_key_exists('drive',$requestBody)){
+                    if($requestBody['code'] != null && $requestBody['drive'] != null){
+                        if($requestBody['drive'] == 'OneDrive'){
+    
+                        } else if($requestBody['drive'] == 'Dropbox'){
+                            $response = Dropbox::APIgetToken($requestBody['code'],$jwt);
+                            if($response == 'Access Granted'){
+                                http_response_code(200);
+                                $responseJson = array("response" => "${response}");
+                                header('Content-Type: application/json');
+                                echo json_encode($responseJson);
+                            } else {
+                                http_response_code(400);
+                                $error = array("error" => "Invalid code");
+                                header('Content-Type: application/json');
+                                echo json_encode($error);
+                            }
+                        } else if($requestBody['drive'] == 'GoogleDrive'){
+    
+                        } else {
+                            http_response_code(400);
+                            $error = array("error" => "Invalid drive name");
+                            header('Content-Type: application/json');
+                            echo json_encode($error);
+                        }
+                    } else {
+                        http_response_code(400);
+                        $error = array("error" => "Missing code or drive value(or both)");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    }
+                } else {
+                    http_response_code(400);
+                    $error = array("error" => "Missing code or drive field(or both)");
+                    header('Content-Type: application/json');
+                    echo json_encode($error);
+                }
+            } else {
+                http_response_code(400);
+                $error = array("error" => "Invalid number of fields in body");
+                header('Content-Type: application/json');
+                echo json_encode($error);
+            }
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Malformed json");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+        
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+/* ---------------------------------------- API routes Dropbox ---------------------------------------- */
+
 ?>
