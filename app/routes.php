@@ -1109,6 +1109,20 @@ Route::set('APIgetCode',function(){
     }
 });
 
+Route::Set('APIhome1',function(){
+      if(isset($_GET['code'])){
+          $code = $_GET['code'];
+          if(isset($_GET['scope'])){ // GoogleDrive
+            echo $code;
+            echo $scope;
+          } else {  
+            echo $code;
+          }
+      } else {
+        echo "Error";
+      }
+});
+
 Route::set('APIregisterToken',function(){ 
     $headers = apache_request_headers();
     $responseJWTheader = Login::validateJwtRequest($headers);
@@ -1128,17 +1142,26 @@ Route::set('APIregisterToken',function(){
     
                         } else if($requestBody['drive'] == 'Dropbox'){
                             $response = Dropbox::APIgetToken($requestBody['code'],$jwt);
+                            // http_response_code(200);
+                            // $responseJson = array("response" => "${response}");
+                            // header('Content-Type: application/json');
+                            // echo json_encode($responseJson);
                             if($response == 'Access Granted'){
                                 http_response_code(200);
                                 $responseJson = array("response" => "${response}");
                                 header('Content-Type: application/json');
                                 echo json_encode($responseJson);
+                            } else if($response == 'Null token'){
+                                http_response_code(400);
+                                $error = array("error" => "Null access token");
+                                header('Content-Type: application/json');
+                                echo json_encode($error);
                             } else {
                                 http_response_code(400);
                                 $error = array("error" => "Invalid code");
                                 header('Content-Type: application/json');
                                 echo json_encode($error);
-                            }
+                            } 
                         } else if($requestBody['drive'] == 'GoogleDrive'){
     
                         } else {
