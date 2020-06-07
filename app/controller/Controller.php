@@ -29,11 +29,19 @@ class Controller{
          $responseDropbox = Dropbox::downloadFileAPI($file_name,$username);
          $file_exists = 1;
        }
-       if($file_exists == 1){
-           $file_downloaded =  $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $file_name;
-           return $file_downloaded;
-       } else {
+       if($file_exists == 0){
            return '0';
+       }
+       $file_in_onedrive  = OneDrive::checkFileExists('/drive/root:/Documents/2'.$username.$file_name,$username);
+       if($file_in_onedrive=="true")
+       {
+            $content = OneDrive::contentDownload('Documents/2'.$username.$file_name,$username);
+            $file = file_put_contents($file_name,$content,FILE_APPEND);
+            return $file_name;
+       }
+       else if($file_in_onedrive=="false")
+       {
+            return '0';
        }
     }
 
@@ -58,7 +66,8 @@ class Controller{
        $offset = $offset + $dropbox_size;
        $onedrive_filename = "2".$file_name;
        $onedrive_data = file_get_contents($file_name,FALSE,null,$offset,$onedrive_size);
-       return OneDrive::UploadFileAPI($onedrive_filename,$onedrive_data,$onedrive_size,$username);
+       return  OneDrive::UploadFileAPI($onedrive_filename,$onedrive_data,$onedrive_size,$username);
+       
     }
     
 

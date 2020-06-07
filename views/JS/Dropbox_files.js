@@ -306,7 +306,7 @@ async function prepareUpload(files){
               fileSliceToSend = currentFile.slice(sizeOfDataSent,currentFileSize,currentFile);
               //response = await makeRequestForUploadSessionFinish(fileSliceToSend,sizeOfDataSent,cursorId,currentFile.name);
               response = await makeRequestForUploadSessionFinishAPI(fileSliceToSend,currentFile.name);
-              console.log(result);
+              console.log(response);
            }
        }
        i++;
