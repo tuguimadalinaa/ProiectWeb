@@ -281,7 +281,7 @@ async function prepareUpload(files){
        if(currentFileSize < maxUploadSize){
            //response =  await makeRequestForUploadingSmallItem(currentFile);
            response =  await makeRequestForUploadingSmallItemAPI(currentFile);
-           alert(response);
+           console.log(response);
        } else {
            let sizeOfDataSent = 0;
            let uploadSessionStarted = 0;
@@ -306,7 +306,7 @@ async function prepareUpload(files){
               fileSliceToSend = currentFile.slice(sizeOfDataSent,currentFileSize,currentFile);
               //response = await makeRequestForUploadSessionFinish(fileSliceToSend,sizeOfDataSent,cursorId,currentFile.name);
               response = await makeRequestForUploadSessionFinishAPI(fileSliceToSend,currentFile.name);
-              alert(response);
+              console.log(result);
            }
        }
        i++;
