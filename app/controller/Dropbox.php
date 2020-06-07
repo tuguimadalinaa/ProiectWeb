@@ -13,19 +13,6 @@ Class Dropbox extends Controller{
         return $dropbox_authorize_url;
     }
 
-    public static function APIGetCode(){
-        $redirect_uri = "http://localhost/ProiectWeb/app/APIhome1";
-        $app_key = 'ktix1g9yidkg1uh';
-        $query = [
-            'client_id' => $app_key,
-            'response_type' => 'code',
-        ];
-        $http_query = http_build_query($query);
-        $dropbox_authorize_url = 'https://www.dropbox.com/oauth2/authorize' . '?' . $http_query . '&' . 'redirect_uri=' . $redirect_uri;
-        //$dropbox_authorize_url = 'https://www.dropbox.com/oauth2/authorize' . '?' . $http_query;
-        return $dropbox_authorize_url;
-    }
-
     public static function GetToken($code){
         $app_secret = 'sc4obe9eblzyb5w';
         $app_key = 'ktix1g9yidkg1uh';
@@ -58,48 +45,6 @@ Class Dropbox extends Controller{
         }
         catch(Exception $e){
             echo json_encode(array("status"=>'401'));
-        }
-    }
-
-    public static function APIGetToken($code,$jwt){
-        $app_secret = 'sc4obe9eblzyb5w';
-        $app_key = 'ktix1g9yidkg1uh';
-        $dropbox_token_url = 'https://api.dropboxapi.com/oauth2/token';
-        $URLparameters = [
-            'code' => $code,
-            'grant_type' => 'authorization_code',
-            'client_id' => $app_key,
-            'client_secret' => $app_secret,
-            'redirect_uri' => 'http://localhost/ProiectWeb/app/APIhome1'
-       ];
-       $URLparameters = http_build_query($URLparameters);
-       $curl_resource = curl_init();
-       curl_setopt($curl_resource,CURLOPT_URL,$dropbox_token_url);
-       curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
-       curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
-       curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array('Content-Type : application/x-www-form-urlencoded'));
-       curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER, 1);
-       curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$URLparameters);
-       $result = curl_exec($curl_resource);
-       curl_close($curl_resource);
-       $responseDecoded = json_decode($result,true);
-       $username=(self::getAuth()->jwtDecode($jwt))->username;
-       //return $result;
-        try{
-            if($responseDecoded['access_token'] != null){
-                $access_token = $responseDecoded['access_token'];
-                if($access_token!=null){
-                    self::getModel()->addAccessToken($access_token,$username,'Dropbox');
-                    return 'Access Granted';
-                } else {
-                    return 'Null token';
-                }
-            } else {
-                return 'Null token';
-            }
-        }
-        catch(Exception $e){
-            return 'Invalid code';
         }
     }
 
@@ -518,5 +463,198 @@ Class Dropbox extends Controller{
         return $response;
     }
 
+
+/* --------------------------------------------- Dropbox API functions ---------------------------------------------- */
+    
+public static function APIGetCode(){
+    $redirect_uri = "http://localhost/ProiectWeb/app/APIhome1";
+    $app_key = 'ktix1g9yidkg1uh';
+    $query = [
+        'client_id' => $app_key,
+        'response_type' => 'code',
+    ];
+    $http_query = http_build_query($query);
+    $dropbox_authorize_url = 'https://www.dropbox.com/oauth2/authorize' . '?' . $http_query . '&' . 'redirect_uri=' . $redirect_uri;
+    //$dropbox_authorize_url = 'https://www.dropbox.com/oauth2/authorize' . '?' . $http_query;
+    return $dropbox_authorize_url;
 }
 
+public static function APIGetToken($code,$jwt){
+    $app_secret = 'sc4obe9eblzyb5w';
+    $app_key = 'ktix1g9yidkg1uh';
+    $dropbox_token_url = 'https://api.dropboxapi.com/oauth2/token';
+    $URLparameters = [
+        'code' => $code,
+        'grant_type' => 'authorization_code',
+        'client_id' => $app_key,
+        'client_secret' => $app_secret,
+        'redirect_uri' => 'http://localhost/ProiectWeb/app/APIhome1'
+   ];
+   $URLparameters = http_build_query($URLparameters);
+   $curl_resource = curl_init();
+   curl_setopt($curl_resource,CURLOPT_URL,$dropbox_token_url);
+   curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+   curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+   curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array('Content-Type : application/x-www-form-urlencoded'));
+   curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER, 1);
+   curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$URLparameters);
+   $result = curl_exec($curl_resource);
+   curl_close($curl_resource);
+   $responseDecoded = json_decode($result,true);
+   $username=(self::getAuth()->jwtDecode($jwt))->username;
+   //return $result;
+    try{
+        if($responseDecoded['access_token'] != null){
+            $access_token = $responseDecoded['access_token'];
+            if($access_token!=null){
+                self::getModel()->addAccessToken($access_token,$username,'Dropbox');
+                return 'Access Granted';
+            } else {
+                return 'Null token';
+            }
+        } else {
+            return 'Null token';
+        }
+    }
+    catch(Exception $e){
+        return 'Invalid code';
+    }
+}
+
+public static function uploadSmallFileAPI($file_data,$file_name,$username){
+    $dropbox_upload_url = "https://content.dropboxapi.com/2/files/upload";
+    $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
+    $token = $json_token['access_token'];
+    $parameters = '{' .
+        '"path": "' . '/' . $file_name . '",' .
+        '"mode": "add",' .
+        '"autorename": true,' .
+        '"mute": false,' .
+        '"strict_conflict": false' .
+    '}';
+   $curl_resource = curl_init();
+   curl_setopt($curl_resource,CURLOPT_URL,$dropbox_upload_url);
+   curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+   curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+    "Authorization: Bearer ${token}",
+    "Dropbox-API-Arg: " . $parameters,
+    "Content-Type: application/octet-stream"
+    ));
+   curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+   curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+   curl_setopt($curl_resource,CURLOPT_POSTFIELDS, $file_data);
+   $result = curl_exec($curl_resource);
+   curl_close($curl_resource);
+   $responseDecoded = json_decode($result,true);
+}
+
+public static function uploadLargeFileAPI($file_data,$file_name,$username){
+    $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
+    $token = $json_token['access_token'];
+    $file_size = strlen($file_data);
+    $uploaded_data = 0;
+    $upload_session_start = 0;
+    $session_id = 0;
+    $max_upload_data = 1048576 * 40;
+    while($file_size - $uploaded_data > $max_upload_data){
+        $chunk = substr($file_data,$uploaded_data,$max_upload_data);
+        if($upload_session_start == 0){
+            $session_id = Dropbox::uploadSessionStartAPI($chunk,$username);
+            $upload_session_start = 1;
+        } else {
+            $responseAppend = Dropbox::uploadSessionAppendAPI($chunk,$session_id,$uploaded_data,$username);
+        }
+        $uploaded_data = $uploaded_data + $max_upload_data;
+    }
+    if($file_size - $uploaded_data < $max_upload_data ){
+        $chunk = substr($file_data,$uploaded_data,$max_upload_data);
+        $responseFinish = Dropbox::uploadSessionFinishAPI($chunk,$session_id,$uploaded_data,$file_name,$username);
+    }
+}
+
+public static function uploadSessionStartAPI($file_data,$username){
+    $dropbox_upload_session_start_url = "https://content.dropboxapi.com/2/files/upload_session/start";
+    $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
+    $token = $json_token['access_token'];
+    $curl_resource = curl_init();
+    $parameter = '{' .
+        '"close": false' .
+    '}';
+    curl_setopt($curl_resource,CURLOPT_URL,$dropbox_upload_session_start_url);
+    curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+    curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$file_data);
+    curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+        "Authorization: Bearer ${token}",
+        "Dropbox-API-Arg: $parameter",
+        "Content-Type: application/octet-stream"
+    ));
+    curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+    curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+    $response = curl_exec($curl_resource);
+    curl_close($curl_resource);
+    $responseDecoded = json_decode($response,true);
+    $session_id = $responseDecoded['session_id'];
+    return $session_id;
+}
+
+public static function uploadSessionAppendAPI($file_data,$session_id,$offset,$username){
+    $dropbox_upload_session_append_url = "https://content.dropboxapi.com/2/files/upload_session/append_v2";
+    $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
+    $token = $json_token['access_token'];
+    $curl_resource = curl_init();
+    $parameters = '{' .
+        '"cursor" : {' .
+             '"session_id": "' . $session_id . '",' .
+             '"offset": ' . $offset . 
+        '},' .
+        '"close": false' .
+    '}';
+    curl_setopt($curl_resource,CURLOPT_URL,$dropbox_upload_session_append_url);
+    curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+    curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$file_data);
+    curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+        "Authorization: Bearer ${token}",
+        "Dropbox-API-Arg: $parameters",
+        "Content-Type: application/octet-stream"
+    ));
+    curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+    curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+    $response = curl_exec($curl_resource);
+    curl_close($curl_resource);
+    return 'Chunk uploaded';
+}
+
+public static function uploadSessionFinishAPI($file_data,$session_id,$offset,$file_name,$username){
+    $dropbox_upload_session_finish_url = "https://content.dropboxapi.com/2/files/upload_session/finish";
+    $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
+    $token = $json_token['access_token'];
+    $curl_resource = curl_init();
+    $parameters = '{' .
+        '"cursor" : {' .
+             '"session_id": ' . '"' . $session_id . '",' .
+             '"offset": ' . $offset .
+        '},' .
+        '"commit": {' .
+            '"path": "' . '/' . $file_name . '",' . 
+            '"mode": "add",' . 
+            '"autorename": true,' .
+            '"mute": false,' .
+            '"strict_conflict": false' .
+        '}' .
+    '}';
+    curl_setopt($curl_resource,CURLOPT_URL,$dropbox_upload_session_finish_url);
+    curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+    curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$file_data);
+    curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+        "Authorization: Bearer ${token}",
+        "Dropbox-API-Arg: $parameters",
+        "Content-Type: application/octet-stream"
+    ));
+    curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+    curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+    $response = curl_exec($curl_resource);
+    curl_close($curl_resource);
+    $responseDecoded = json_decode($response,true);
+}
+}
+?>
