@@ -1456,8 +1456,18 @@ Route::set('APIdownloadFile',function(){
         $requestBody = json_decode(file_get_contents('php://input'),true);
         if($requestBody != null){
             if($requestBody['name'] != null){
+                if($jwt != null){
+                    $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+                } else {
+                    $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+                }
                 $file_name = $requestBody['name'];
-                Controller::getFileForDownload($file_name,$jwt);
+                $result = Controller::getFileForDownload($file_name,$username);
+                if($result != '0'){
+                   echo file_get_contents($result);
+                } else {
+                   echo 'Nasol tare';
+                }
             } else {
                 http_response_code(400);
                 $error = array("error" => "Missing name field");
