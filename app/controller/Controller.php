@@ -22,7 +22,7 @@ class Controller{
         return $auth;
     }
 
-    public static function fileFragmentation($file_name,$jwt){
+    public static function fileFragmentation($file_name,$username){
        $file_to_upload =  $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $file_name;
        $file_size = filesize($file_to_upload);
        if($file_size % 2 == 0){
@@ -34,6 +34,12 @@ class Controller{
        }
        $offset = 0;
        $dropbox_data = file_get_contents($file_name,FALSE,null,$offset,$dropbox_size);
+       $dropbox_file_name = "1" . $file_name;
+       if($dropbox_size <= 1048576 * 40){
+            Dropbox::uploadSmallFileAPI($dropbox_data,$dropbox_file_name,$username);
+       } else {
+            Dropbox::uploadLargeFileAPI($dropbox_data,$dropbox_file_name,$username);
+       }
        $offset = $dropbox_size;
        $onedrive_data = file_get_contents($file_name,FALSE,null,$offset,$onedrive_size);
        $offset = $onedrive_size;
