@@ -187,7 +187,7 @@
         min-width: 100px;
     }
     #upload_button{
-        margin-left: 1000px;
+        margin-left: 1300px;
     }
 }
 @media (max-width: 375px) and (min-width:100px){
@@ -209,15 +209,15 @@
         min-width: 100px;
     }
     #upload_button{
-        margin-left: 1050px;
+        margin-left: 1300px;
         
     }
     
 }
-@media (max-width:1024px) and (min-width:801px)
+@media (max-width:1200px) and (min-width:801px)
 {
     #upload_button{
-        margin-left: 400px;
+        margin-left: 700px;
         
     }
 }

@@ -1,4 +1,5 @@
 <?php
+ini_set('max_execution_time',240);
 Route::set('login',function(){
     if(empty($_REQUEST['username'])){
         if(isset($_COOKIE["loggedIn"])){

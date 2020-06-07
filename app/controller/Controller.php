@@ -1,6 +1,7 @@
 <?php
 /*include 'C:\xampp\htdocs\ProiectWeb\app\models\auth_jwt.php';*/
 include '.\models\auth_jwt.php';
+ini_set('max_execution_time',240);
 class Controller{
     public static function getModel(){
         $model = new DataBase();
