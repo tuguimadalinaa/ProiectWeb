@@ -1152,6 +1152,184 @@ Route::Set('APIhome1',function(){
       }
 });
 
+Route::set('APIuploadStart',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    $file_args = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach($headers as $header => $value){
+            if($header == 'File-Args'){
+                $file_args = json_decode($value,true);
+            }
+            if($header == 'Auth'){
+                $jwt = $value;
+            }
+        }
+        if($file_args != null){
+            $file_name = $file_args['name'];
+            if($jwt != null){
+                $requestBody = file_get_contents('php://input');
+                $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+                $file_name_custom = $username . $file_name;
+                $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
+                echo 'Tuto bene header';
+            } else {
+                $requestBody = file_get_contents('php://input');
+                $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+                $file_name_custom = $username . $file_name;
+                $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
+                echo 'Tuto bene cookie';
+            }
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Header File-Args invalid");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'Cookie not found') {
+        http_response_code(400);
+        $error = array("error" => "Cookie with jwt not found");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('APIuploadAppend',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    $file_args = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach($headers as $header => $value){
+            if($header == 'File-Args'){
+                $file_args = json_decode($value,true);
+            }
+            if($header == 'Auth'){
+                $jwt = $value;
+            }
+        }
+        if($file_args != null){
+            $file_name = $file_args['name'];
+            if($jwt != null){
+                $requestBody = file_get_contents('php://input');
+                $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+                $file_name_custom = $username . $file_name;
+                $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
+                echo 'Tuto bene header';
+            } else {
+                $requestBody = file_get_contents('php://input');
+                $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+                $file_name_custom = $username . $file_name;
+                $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
+                echo 'Tuto bene cookie';
+            }
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Header File-Args invalid");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'Cookie not found') {
+        http_response_code(400);
+        $error = array("error" => "Cookie with jwt not found");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('APIuploadFinish',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    $file_args = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach($headers as $header => $value){
+            if($header == 'File-Args'){
+                $file_args = json_decode($value,true);
+            }
+            if($header == 'Auth'){
+                $jwt = $value;
+            }
+        }
+        if($file_args != null){
+            $file_name = $file_args['name'];
+            if($jwt != null){
+                $requestBody = file_get_contents('php://input');
+                $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+                $file_name_custom = $username . $file_name;
+                $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
+                echo 'Tuto bene header';
+            } else {
+                $requestBody = file_get_contents('php://input');
+                $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+                $file_name_custom = $username . $file_name;
+                $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
+                echo 'Tuto bene cookie';
+            }
+            Controller::fileFragmentation($file_name_custom,$jwt);
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Header File-Args invalid");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'Cookie not found') {
+        http_response_code(400);
+        $error = array("error" => "Cookie with jwt not found");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
 Route::set('APIregisterToken',function(){ 
     $headers = apache_request_headers();
     $responseJWTheader = Login::validateJwtRequest($headers);
