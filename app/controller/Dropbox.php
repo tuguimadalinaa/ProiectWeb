@@ -14,15 +14,15 @@ Class Dropbox extends Controller{
     }
 
     public static function APIGetCode(){
-        $redirect_uri = "http://localhost/ProiectWeb/app/APIhome";
+        $redirect_uri = "http://localhost/ProiectWeb/app/APIhome1";
         $app_key = 'ktix1g9yidkg1uh';
         $query = [
             'client_id' => $app_key,
             'response_type' => 'code',
         ];
         $http_query = http_build_query($query);
-        //$dropbox_authorize_url = 'https://www.dropbox.com/oauth2/authorize' . '?' . $http_query . '&' . 'redirect_uri=' . $redirect_uri;
-        $dropbox_authorize_url = 'https://www.dropbox.com/oauth2/authorize' . '?' . $http_query;
+        $dropbox_authorize_url = 'https://www.dropbox.com/oauth2/authorize' . '?' . $http_query . '&' . 'redirect_uri=' . $redirect_uri;
+        //$dropbox_authorize_url = 'https://www.dropbox.com/oauth2/authorize' . '?' . $http_query;
         return $dropbox_authorize_url;
     }
 
@@ -70,6 +70,7 @@ Class Dropbox extends Controller{
             'grant_type' => 'authorization_code',
             'client_id' => $app_key,
             'client_secret' => $app_secret,
+            'redirect_uri' => 'http://localhost/ProiectWeb/app/APIhome1'
        ];
        $URLparameters = http_build_query($URLparameters);
        $curl_resource = curl_init();
@@ -83,11 +84,16 @@ Class Dropbox extends Controller{
        curl_close($curl_resource);
        $responseDecoded = json_decode($result,true);
        $username=(self::getAuth()->jwtDecode($jwt))->username;
+       //return $result;
         try{
-            $access_token = $responseDecoded['access_token'];
-            if($access_token!=null){
-                self::getModel()->addAccessToken($access_token,$username,'Dropbox');
-                return 'Access Granted';
+            if($responseDecoded['access_token'] != null){
+                $access_token = $responseDecoded['access_token'];
+                if($access_token!=null){
+                    self::getModel()->addAccessToken($access_token,$username,'Dropbox');
+                    return 'Access Granted';
+                } else {
+                    return 'Null token';
+                }
             } else {
                 return 'Null token';
             }
