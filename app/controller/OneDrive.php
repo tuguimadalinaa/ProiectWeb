@@ -80,23 +80,7 @@ class OneDrive extends Controller{
         curl_close($create_curl);
         return $response;
     }
-    private static function WriteFile($fileName,$fileData,$access_token,$fileSize,$graph_url){
-        $upload_curl=curl_init();
-        curl_setopt_array($upload_curl,[
-            CURLOPT_RETURNTRANSFER=>1,
-            CURLOPT_URL=>$graph_url,
-            CURLOPT_CUSTOMREQUEST=>'PUT',
-            CURLOPT_SSL_VERIFYPEER=>false,
-            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}",
-                                "Content-Type: application/octet-stream",
-                                "Content-Length: ${fileSize}",
-                                'Content-Range: bytes '."0-".($fileSize-1).'/'.$fileSize),
-            CURLOPT_POSTFIELDS=>$fileData 
-        ]);
-        $response=curl_exec($upload_curl);
-        curl_close($upload_curl);
-        return $response;
-    }
+    
     
     public static function UploadFile($fileName, $fileData,$fileSize){
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
@@ -351,6 +335,103 @@ class OneDrive extends Controller{
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $response  = self::makeRequestMoveFile($access_token,$fileName,$newPath);
+        return $response;
+    }
+    
+    public static function StartSessionUpload($fileName)
+    {
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
+        $data= json_encode(array('item'=>array(
+            '@microsoft.graph.conflictBehavior'=>'rename',"@odata.type"=> "microsoft.graph.driveItemUploadableProperties","name"=>$fileName)
+        )); 
+        if(strcmp($access_token,"fail")!=0){
+            $create_curl=curl_init();
+            curl_setopt_array($create_curl,[
+            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drive/root:/Documents/'.$fileName.':/createUploadSession',
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_POST=>1,
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ".$access_token,
+            "Content-Type: application/json"),
+            CURLOPT_SSL_VERIFYPEER=>false,
+            CURLOPT_POSTFIELDS=>$data
+            ]); 
+            $response=curl_exec($create_curl);
+            curl_close($create_curl);
+            $decode = json_decode($response,true);
+            $urlToUpload  = $decode['uploadUrl'];
+            return json_encode(array("status"=>'200',"response"=>$urlToUpload));
+        }
+        return json_encode(array("status"=>'401'));
+    }
+    private static function WriteFile($fileName,$fileData,$access_token,$fileSize,$graph_url){
+        $upload_curl=curl_init();
+        curl_setopt_array($upload_curl,[
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_URL=>$graph_url,
+            CURLOPT_CUSTOMREQUEST=>'PUT',
+            CURLOPT_SSL_VERIFYPEER=>false,
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}",
+                                "Content-Type: application/octet-stream",
+                                "Content-Length: ${fileSize}",
+                                'Content-Range: bytes '."0-".($fileSize-1).'/'.$fileSize),
+            CURLOPT_POSTFIELDS=>$fileData 
+        ]);
+        $response=curl_exec($upload_curl);
+        curl_close($upload_curl);
+        return $response;
+    }
+    private static function WriteFileBig($fileData,$access_token,$fileSize,$graph_url,$totalSize,$last_range){
+        $content_length = $fileSize-$last_range;
+        $upload_curl=curl_init();
+        curl_setopt_array($upload_curl,[
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_URL=>$graph_url,
+            CURLOPT_CUSTOMREQUEST=>'PUT',
+            CURLOPT_SSL_VERIFYPEER=>false,
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}",
+                                "Content-Length: ${content_length}",
+                                'Content-Range: bytes '.$last_range."-".($fileSize-1).'/'.$totalSize
+                            ),
+            CURLOPT_POSTFIELDS=>$fileData,
+            CURLOPT_BINARYTRANSFER => TRUE
+        ]);
+        $response=curl_exec($upload_curl);
+        curl_close($upload_curl);
+        return $response;
+    }
+    public static function Appendfile($requestBody,$url,$fileSize,$totalSize,$last_range)
+    {
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
+        $response = self::WriteFileBig($requestBody,$access_token,$fileSize,$url,$totalSize,$last_range);
+        return $response;
+    }
+    private static function WriteFileFinish($fileData,$access_token,$fileSize,$graph_url,$totalSize,$last_range){
+        
+        $content_length = $totalSize - $fileSize;
+        $upload_curl=curl_init();
+        curl_setopt_array($upload_curl,[
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_URL=>$graph_url,
+            CURLOPT_CUSTOMREQUEST=>'PUT',
+            CURLOPT_SSL_VERIFYPEER=>false,
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}",
+                                "Content-Length: ${content_length}",
+                                'Content-Range: bytes '.$last_range."-".($totalSize-1).'/'.$totalSize
+                            ),
+            CURLOPT_POSTFIELDS=>$fileData,
+            CURLOPT_BINARYTRANSFER => TRUE
+        ]);
+        $response=curl_exec($upload_curl);
+        curl_close($upload_curl);
+        return $response;
+    }
+    public static function Finishfile($requestBody,$url,$fileSize,$totalSize,$last_range)
+    {
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
+        $response = self::WriteFileFinish($requestBody,$access_token,$fileSize,$url,$totalSize,$last_range);
         return $response;
     }
 }

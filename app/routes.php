@@ -727,5 +727,73 @@ Route::set('moveFile',function(){
     }
     
 });
+Route::set('uploadLargeStart',function(){
+    //echo OneDrive::moveFile($_REQUEST['newPath'],$_REQUEST['fileTransfName']);
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        
+        $response = OneDrive::StartSessionUpload($_REQUEST['fileTransfName']);
+        echo $response;
+    }
+    else{
+        echo json_encode(array("status"=>'401'));
+    }
+    
+});
+Route::set('uploadLargeFileAppend',function(){
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $requestBody = file_get_contents('php://input');
+        $headers = apache_request_headers();
+        $cursor_id = 'Unknown';
+        $offset = 'Unknown';
+        $url  = 'Unknown';
+        $decoded_json_value = 0;
+        
+        foreach ($headers as $header => $value) {
+            if($header == 'Session-Args'){
+                $decoded_json_value = json_decode($value,true);
+                break;
+            }
+        } 
+        $offset = $decoded_json_value['offset'];
+        $url = $decoded_json_value['url'];
+        $totalSize = $decoded_json_value['totalSize'];
+        $last_range = $decoded_json_value['lastRange'];
+        echo OneDrive::AppendFile($requestBody,$url,$offset,$totalSize,$last_range);
+    }
+    else{
+        echo json_encode(array("status"=>'401'));
+    }
+    
+});
+Route::set('uploadLargeFileFinish',function(){
+    //echo OneDrive::moveFile($_REQUEST['newPath'],$_REQUEST['fileTransfName']);
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $requestBody = file_get_contents('php://input');
+        $headers = apache_request_headers();
+        $cursor_id = 'Unknown';
+        $offset = 'Unknown';
+        $url  = 'Unknown';
+        $decoded_json_value = 0;
+        
+        foreach ($headers as $header => $value) {
+            if($header == 'Session-Args'){
+                $decoded_json_value = json_decode($value,true);
+                break;
+            }
+        } 
+        $offset = $decoded_json_value['offset'];
+        $url = $decoded_json_value['url'];
+        $totalSize = $decoded_json_value['totalSize'];
+        $last_range = $decoded_json_value['lastRange'];
+        echo OneDrive::FinishFile($requestBody,$url,$offset,$totalSize,$last_range);
+    }
+    else{
+        echo json_encode(array("status"=>'401'));
+    }
+    
+});
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
 ?>
