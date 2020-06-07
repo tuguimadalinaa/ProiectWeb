@@ -1,16 +1,13 @@
 
-
 var updatedFiles = false;
 var clickedItemId = 0;
 
-function openMenu()
-{
+function openMenu() {
     document.getElementById("shownMenu").removeAttribute("hidden");
     document.getElementById("shownMenu").style.width = "250px";
     document.getElementById("sideMenu").style.marginLeft = "250px";
 }
-function closeMenu()
-{
+function closeMenu() {
     document.getElementById("shownMenu").style.width = "0";
     document.getElementById("sideMenu").style.marginLeft= "0";
 }

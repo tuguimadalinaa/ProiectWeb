@@ -204,7 +204,7 @@ function makeRequestForUploadSessionFinish(fileSlice,sizeOfDataSent,cursorId,url
         xhr.send(fileSlice);
     });
 }
-document.getElementById("fileOneDrive").addEventListener("change", async function(){
+/*document.getElementById("fileOneDrive").addEventListener("change", async function(){
     if(this.files && this.files[0])
     {
         let files = this.files;
@@ -262,7 +262,7 @@ document.getElementById("fileOneDrive").addEventListener("change", async functio
             reader.readAsArrayBuffer(myFile);
         }
       }    
- });
+ });*/
  checkUrl();
 //https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_fileupload_files
 //https://stackoverflow.com/questions/16210231/how-can-i-upload-a-new-file-on-click-of-image-button
