@@ -129,6 +129,7 @@ Route::set('GoogleDrive_files',function(){
 });
 
 Route::set('logOut',function(){
+    //Login::EndSession();
     Login::Cookie("loggedIn","JWToken",[
         'expires' => time() - 3600,
         'path' => '/',
@@ -221,7 +222,27 @@ Route::set('createFolderGoogleDrive',function(){
       header('Location: getCode?drive=GoogleDrive');
   }
 });
-
+// Route::set('test',function(){
+//     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+//     $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
+//     $access_token_decoded = json_decode($access_token_json,true);
+//     $access_token = $access_token_decoded['access_token'];
+//     $response = GoogleDrive::obtainUriForResumable($access_token,$_REQUEST['fileName'],$_COOKIE['GoogleDrive']);
+//     echo $response;
+// });
+Route::set('obtainUriForUploadGoogleDrive',function(){
+    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
+    $access_token_decoded = json_decode($access_token_json,true);
+    $access_token = $access_token_decoded['access_token'];
+    //echo $access_token;
+    if($access_token != null){
+        $response = GoogleDrive::obtainUriForResumable($access_token,$_REQUEST['fileName'],$_COOKIE['GoogleDrive']);
+        echo $response;
+  } else {
+      header('Location: getCode?drive=GoogleDrive');
+  }
+});
 Route::set('uploadGoogleDrive',function()
 {
     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
@@ -230,7 +251,55 @@ Route::set('uploadGoogleDrive',function()
     $access_token = $access_token_decoded['access_token'];
     //echo $access_token;
     if($access_token != null){
-        $response = GoogleDrive::uploadFileResumable();
+         //$response = GoogleDrive::uploadFileResumable();
+         //echo $response;
+  } else {
+      header('Location: getCode?drive=GoogleDrive');
+  }
+});
+Route::set('uploadSmallFilesGoogleDrive',function()
+{
+    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
+    $access_token_decoded = json_decode($access_token_json,true);
+    $access_token = $access_token_decoded['access_token'];
+    //echo $access_token;
+    $headers= apache_request_headers();
+    $fileLink="Unknown";
+    foreach ($headers as $header => $value) {
+        if($header == 'File-Link'){
+            $fileLink = $value;
+            break;
+        }
+    }
+     $fileLinkArray=json_decode($fileLink,true);
+     $fileBody=file_get_contents('php://input');
+    if($access_token != null){
+        $response = GoogleDrive::uploadSmallFileResumable($fileLinkArray["linkusor"],$fileBody);
+        echo $response;
+  } else {
+      header('Location: getCode?drive=GoogleDrive');
+  }
+});
+Route::set('uploadLargeFilesGoogleDrive',function(){
+
+    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
+    $access_token_decoded = json_decode($access_token_json,true);
+    $access_token = $access_token_decoded['access_token'];
+    //echo $access_token;
+    $headers= apache_request_headers();
+    $fileLink="Unknown";
+    foreach ($headers as $header => $value) {
+        if($header == 'File-Link'){
+            $fileLink = $value;
+            break;
+        }
+    }
+     $fileLinkArray=json_decode($fileLink,true);
+     $fileBody=file_get_contents('php://input');
+    if($access_token != null){
+        $response = GoogleDrive::uploadLargeFileResumable($fileLinkArray["linkusor"],$fileBody,$fileLinkArray["Start"],$fileLinkArray["End"],$fileLinkArray["SizeFile"]);
         echo $response;
   } else {
       header('Location: getCode?drive=GoogleDrive');
@@ -282,6 +351,14 @@ Route::set('getMetadataFileGoogleDrive',function(){
      $response=GoogleDrive::getMetadata($_REQUEST['fileId']);
      echo $response;
 });
+Route::set('getFileNameGoogleDrive',function(){
+    $response=GoogleDrive::getNameFile($_REQUEST['fileId']);
+     echo $response;
+});
+Route::set('getFileSizeGoogleDrive',function(){
+    $response=GoogleDrive::getSizeFile($_REQUEST['fileId']);
+    echo $response;
+});
 Route::set('getFolderParentGoogleDrive',function()
 {
     $response=GoogleDrive::getParentFolderId($_COOKIE["GoogleDrive"]);
@@ -291,28 +368,51 @@ Route::set('renameFileGoogleDrive',function(){
     $response=GoogleDrive::renameFile($_REQUEST['fileName'],$_REQUEST['fileId']);
     echo $response;
 });
-Route::set('downloadFolderGoogleDrive',function(){
-    $response=GoogleDrive::downloadFolder($_REQUEST['fileId']);
-    echo $response;
-});
-Route::set('downloadFileGoogleDrive',function(){
-    $response=GoogleDrive::downloadSimpleFile($_REQUEST['fileId']);
+// Route::set('downloadFolderGoogleDrive',function(){
+//     $response=GoogleDrive::downloadFolder($_REQUEST['fileId']);
+//     echo $response;
+// });
+Route::set('downloadSmallFileGoogleDrive',function(){
+    $response=GoogleDrive::downloadSmallFile($_REQUEST['fileId']);
     $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
-    //$file_to_download = fopen('C:\Users\alexg\Desktop\abc.jpg','rb');
-    $file_name = basename($file_to_download);
+     $file_name = basename($file_to_download);
     header("Content-Type: application/octet-stream");
-    //$fileTest="def.jpg";
-    //filename="' . $file_name . '"'
     header("Content-Disposition: attachment; filename=${file_name}");
-    //header('Content-Disposition: attachment; filename="' . $fileTest . '"');
     header("Content-Length: " . filesize($file_to_download));
     readfile($file_to_download);
     unlink($file_to_download);
 });
+Route::set('downloadLargeFileGoogleDrive',function(){
+    $headers= apache_request_headers();
+    $fileStatus="Unknown";
+    foreach ($headers as $header => $value) {
+        if($header == 'File-Status'){
+            $fileStatus = $value;
+            break;
+        }
+    }
+    $fileStatusArray=json_decode($fileStatus,true);
+    $response=GoogleDrive::downloadLargeFile($_REQUEST['fileId'],$fileStatusArray['Start'],$fileStatusArray['End'],$fileStatusArray['FileName']);
+    if($fileStatusArray['Status']==1)
+    {
+        $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
+        $file_name = basename($file_to_download);
+        header("Content-Type: application/octet-stream");
+        header("Content-Disposition: attachment; filename=${file_name}");
+        header("Content-Length: " . filesize($file_to_download));
+        readfile($file_to_download);
+        unlink($file_to_download);
+        echo "Download Finish";
+    }
+    else
+    {
+        echo "Download in progress";
+    }
+
+});
 Route::set('moveFileGoogleDrive',function(){
-    // $response=GoogleDrive::moveFile($_REQUEST['fileId'],$_REQUEST['fileIdToMove']);
-    // echo $response;
     if(isset($_COOKIE["GoogleDrive-MV"])){
+        if($_REQUEST['fileId'] == '0'){
         $response = GoogleDrive::moveFile($_COOKIE['GoogleDrive-MV'],$_COOKIE['GoogleDrive']);
         GoogleDrive::Cookie("GoogleDrive-MV",'invalid',[
             'expires' => time() - 3600,
@@ -323,6 +423,16 @@ Route::set('moveFileGoogleDrive',function(){
         ]);
         echo 'File moved';
     } else{
+        GoogleDrive::Cookie("GoogleDrive-MV",$_REQUEST['fileId'],[
+            'expires' => time() + 86400,
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+        echo 'Item stored in cookie';
+    }
+}   else{
         if($_REQUEST['fileId'] != '0'){
             GoogleDrive::Cookie("GoogleDrive-MV",$_REQUEST['fileId'],[
                 'expires' => time() + 86400,
@@ -337,8 +447,6 @@ Route::set('moveFileGoogleDrive',function(){
         }
     }
 });
-
-
 /* --------------------------------------------- Dropbox --------------------------------------------- */
 
 //Pentru validarea jwt-ul la fiecare ruta
