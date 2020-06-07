@@ -557,5 +557,24 @@ class OneDrive extends Controller{
         }
         return json_encode(array("status"=>'401'));
     }
+    public static function checkFileExists($fileName,$username)
+    {
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
+        if(strcmp($access_token,"fail")!=0){
+            $fileName = "2".$username.$fileName;
+            $response = self::makeRequestForFile($access_token,$fileName);
+            $decodedResponse = json_decode($response, true);
+            if(isset($decodedResponse['@microsoft.graph.downloadUrl']))
+            {
+                
+                return json_encode(array("status"=>'200',"exists"=>"true"));
+                
+            }else{
+                return json_encode(array("status"=>'200',"exists"=>"false"));
+            }
+
+        }
+        return json_encode(array("status"=>'401'));
+    }
 }
 ?>

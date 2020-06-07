@@ -26,7 +26,7 @@ class Controller{
        $file_to_upload =  $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $file_name;
        $file_size = filesize($file_to_upload);
        if($file_size % 2 == 0){
-        $dropbox_size = $file_size / 2;
+         $dropbox_size = $file_size / 2;
          $onedrive_size = $file_size - $dropbox_size;
        } else {
          $dropbox_size = $file_size / 2 + 0.5;
@@ -44,14 +44,8 @@ class Controller{
        $onedrive_filename = "2".$file_name;
        $onedrive_data = file_get_contents($file_name,FALSE,null,$offset,$onedrive_size);
        return OneDrive::UploadFileAPI($onedrive_filename,$onedrive_data,$onedrive_size,$username);
-      
-    //    $file_to_put_togheter = 'PutTogheter' . $file_name;
-    //    $my_file = file_put_contents($file_to_put_togheter,$dropbox_data,FILE_APPEND);
-    //    $my_fule = file_put_contents($file_to_put_togheter,$onedrive_data,FILE_APPEND);
-    //    $googledrive_data = file_get_contents($file_name,FALSE,null,$offset,$googledrive_size);
-    //    $offset = $googledrive_size;
     }
-
+    
 
 }
 ?>
