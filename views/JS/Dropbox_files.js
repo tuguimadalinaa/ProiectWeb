@@ -206,6 +206,7 @@ async function deleteItem(){
         alert('Please select a file/folder to delete');
     } else {
         response = await waitForResponse('deleteItem',clickedItemId,null);
+        alert(response);
         location.reload();
     }
 }

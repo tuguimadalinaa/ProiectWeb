@@ -33,12 +33,10 @@ async function registerUser()
    }
     let jsonResponse = await waitForResponse();
     let response = JSON.parse(jsonResponse);
-    
-    if(response.status=='0'){
+    if(response.status=='1'){
+        location.assign('registrationConfirmed');
+    } else if(response.status == '3'){
         alert("User already exists");
         location.assign('signUp');
-    }
-    else if(response.status=='1'){
-        location.assign('registrationConfirmed');
     }
 }

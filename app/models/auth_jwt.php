@@ -27,8 +27,12 @@ class Auth{
     {
         //echo $jwt;
         $userinfo=NULL;
-        $decoded=JWT::decode($jwt,JWT_KEY,array('HS256'));
-        $userinfo=$decoded->data;
+        try{
+            $decoded=JWT::decode($jwt,JWT_KEY,array('HS256'));
+            $userinfo=$decoded->data;
+        } catch(Exception $e){
+            $userinfo = null;
+        }
         return $userinfo;
     }
 }

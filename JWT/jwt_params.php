@@ -4,5 +4,5 @@
     define('JWT_ISS',"http://localhost/ProiectWeb/");
     define('JWT_AUD',"http://localhost/ProiectWeb/");
     define('JWT_IAT', time());
-    define('JWT_EXP',time()+7200);//valabil 2 ore
+    define('JWT_EXP',time()+3600*24*7);//valabil 1 saptamana
 ?>
