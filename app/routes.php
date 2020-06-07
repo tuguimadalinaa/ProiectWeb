@@ -1078,7 +1078,11 @@ Route::set('APIgetCode',function(){
               header('Content-Type: application/json');
               echo json_encode($response);
            } else if($drive == 'GoogleDrive'){
-              $drive_response = GoogleDrive::GetCode();
+              $drive_response = GoogleDrive::APIGetCode();
+              http_response_code(200);
+              $response = array("url" => "${drive_response}");
+              header('Content-Type: application/json');
+              echo json_encode($response);
            } else {
             http_response_code(400);
             $error = array("error" => "Invalid Api-Args");
@@ -1140,7 +1144,18 @@ Route::set('APIregisterToken',function(){
                                 echo json_encode($error);
                             }
                         } else if($requestBody['drive'] == 'GoogleDrive'){
-    
+                            $response = GoogleDrive::APIgetToken($requestBody['code'],$jwt);
+                            if($response == 'Access Granted'){
+                                http_response_code(200);
+                                $responseJson = array("response" => "${response}");
+                                header('Content-Type: application/json');
+                                echo json_encode($responseJson);
+                            } else {
+                                http_response_code(400);
+                                $error = array("error" => "Invalid code");
+                                header('Content-Type: application/json');
+                                echo json_encode($error);
+                            }
                         } else {
                             http_response_code(400);
                             $error = array("error" => "Invalid drive name");
@@ -1189,7 +1204,26 @@ Route::set('APIregisterToken',function(){
         echo json_encode($error);
     }
 });
-
+// Route::Set('APIhome1',function(){
+//     if(isset($_GET['code'])){
+//         echo $_GET['code'];
+//     } else {
+//         echo 'Banana';
+//     }
+// });
+Route::Set('APIhome1',function(){
+    if(isset($_GET['code'])){
+        $code = $_GET['code'];
+        if(isset($_GET['scope'])){ // GoogleDrive
+          echo "Code: ".$code . "\n";
+          echo "Scope: ".$_GET['scope'];
+        } else {
+           echo "Code:".$code;
+        }
+    } else {
+      echo "Error";
+    }
+});
 /* ---------------------------------------- API routes Dropbox ---------------------------------------- */
 
 ?>
