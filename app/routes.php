@@ -915,6 +915,9 @@ Route::set('uploadLargeFileFinish',function(){
     }
     
 });
+Route::set('contentDownload',function(){
+    echo OneDrive::contentDownload($_REQUEST['fileNameTransf']);
+});
 //https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
 
 /* ---------------------------------------- API routes general ---------------------------------------- */
@@ -1292,15 +1295,16 @@ Route::set('APIuploadFinish',function(){
                 $username=(Controller::getAuth()->jwtDecode($jwt))->username;
                 $file_name_custom = $username . $file_name;
                 $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
-                echo 'Tuto bene header';
+               // echo 'Tuto bene header';
             } else {
                 $requestBody = file_get_contents('php://input');
                 $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
                 $file_name_custom = $username . $file_name;
                 $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
-                echo 'Tuto bene cookie';
+               // echo 'Tuto bene cookie';
             }
-            Controller::fileFragmentation($file_name_custom,$jwt);
+            $response = Controller::fileFragmentation($file_name_custom,$jwt);
+            echo $response;
         } else {
             http_response_code(400);
             $error = array("error" => "Header File-Args invalid");

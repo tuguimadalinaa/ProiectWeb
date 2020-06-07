@@ -130,7 +130,7 @@ class OneDrive extends Controller{
         return $response;
     }
     private static function WriteFile($fileName,$fileData,$access_token,$fileSize,$graph_url){
-        $fileName = str_replace(' ', '-', $fileName);
+        $fileName = str_replace ( ' ', '%20', $fileName );
         $upload_curl=curl_init();
         curl_setopt_array($upload_curl,[
             CURLOPT_RETURNTRANSFER=>1,
@@ -179,7 +179,7 @@ class OneDrive extends Controller{
         return json_encode(array("status"=>'200',"fileName"=>$fileName,"readyToGo"=>$readyToGo));
     }
     public static function makeRequestForFile($access_token,$fileName){
-        
+        $fileName = str_replace ( ' ', '%20', $fileName );
         $create_curl=curl_init();
         curl_setopt_array($create_curl,[
             CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me'.$fileName, //spatiile in url dau erori
@@ -209,6 +209,7 @@ class OneDrive extends Controller{
         }
         if($fileNameToRender=="/drive/root" || $fileNameToRender=='\/drive\/root')
         {
+            
             curl_setopt_array($create_curl,[
                 CURLOPT_URL=>'https://graph.microsoft.com/v1.0//me'.$fileNameToRender.'/children',
                 CURLOPT_RETURNTRANSFER=>1,
@@ -217,6 +218,7 @@ class OneDrive extends Controller{
             ]); 
         }
         else{
+            $fileNameToRender = str_replace ( ' ', '%20', $fileNameToRender );
             curl_setopt_array($create_curl,[
                 CURLOPT_URL=>'https://graph.microsoft.com/v1.0//me'.$fileNameToRender.':/children',
                 CURLOPT_RETURNTRANSFER=>1,
@@ -252,6 +254,7 @@ class OneDrive extends Controller{
     }
     public static function  downloadDirectoryRequest($access_token,$fileName)
     {
+        $fileName = str_replace ( ' ', '%20', $fileName);
         $create_curl=curl_init();
         curl_setopt_array($create_curl,[
             CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me'.$fileName, //spatiile in url dau erori
@@ -298,6 +301,7 @@ class OneDrive extends Controller{
     }
     public static function createFolderRequest($fileName,$path,$access_token)
     {
+        $path= str_replace ( ' ', '%20', $path);
         $folder = '{'.$path.'}';
         $data=[
             "name"=>$fileName,
@@ -353,7 +357,7 @@ class OneDrive extends Controller{
     }
     public static function renameFolder($newFileName,$fileName)
     {
-        $fileName = str_replace(' ', '-', $fileName);
+        $fileName = str_replace ( ' ', '%20', $fileName);
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $response  = self::makeRequestForFile($access_token,$fileName);
@@ -407,7 +411,7 @@ class OneDrive extends Controller{
     
     public static function StartSessionUpload($fileName)
     {
-        $fileName = str_replace(' ', '-', $fileName);
+        $fileName = str_replace ( ' ', '%20', $fileName);
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $data= json_encode(array('item'=>array(
@@ -485,6 +489,42 @@ class OneDrive extends Controller{
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $response = self::WriteFileFinish($requestBody,$access_token,$fileSize,$url,$totalSize,$last_range);
         return $response;
+    }
+    public static function downloadByContent($fileName,$urlForDownload,$size,$access_token)
+    {
+        $size=$size-1;
+        $create_curl=curl_init();
+        curl_setopt_array($create_curl,[
+            CURLOPT_URL=>$urlForDownload,
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}",
+                                        "Range: bytes=0-${size}"),
+            CURLOPT_SSL_VERIFYPEER=>false
+        ]); 
+        $response=curl_exec($create_curl);
+        curl_close($create_curl);
+        return $response;
+    }
+    public static function contentDownload($fileName)
+    {
+        $fileName = str_replace ( ' ', '%20', $fileName);
+        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
+        $create_curl=curl_init();
+        curl_setopt_array($create_curl,[
+            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drive/root:/'.$fileName, //spatiile in url dau erori
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}"),
+            CURLOPT_SSL_VERIFYPEER=>false
+        ]); 
+        $response=curl_exec($create_curl);
+        curl_close($create_curl);
+        $decodedResponse = json_decode($response, true);
+        $urlForDownload = $decodedResponse['@microsoft.graph.downloadUrl'];
+        $size = $decodedResponse['size'];
+        $response  = self::downloadByContent($fileName,$urlForDownload, $size, $access_token);
+        return $response;
+
     }
 }
 ?>
