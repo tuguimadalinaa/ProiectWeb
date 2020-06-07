@@ -37,6 +37,7 @@ class Controller{
        $offset = $dropbox_size;
        $onedrive_data = file_get_contents($file_name,FALSE,null,$offset,$onedrive_size);
        $offset = $onedrive_size;
+       OneDrive::UploadFile($file_name,$onedrive_data,$offset);
     //    $file_to_put_togheter = 'PutTogheter' . $file_name;
     //    $my_file = file_put_contents($file_to_put_togheter,$dropbox_data,FILE_APPEND);
     //    $my_fule = file_put_contents($file_to_put_togheter,$onedrive_data,FILE_APPEND);
