@@ -286,11 +286,13 @@ async function startUpload(files){
             response=await makeRequestForUploadLargeFile(getLink,fileSliceToSend,sizeOfDataSent,currentFileSize,currentFileSize);
             sizeOfDataSent = sizeOfDataSent + maxUploadSize;
         }
+        //location.reload();
         //console.log(response);
     }
        i++;
     }
-    return "Upload Done";
+    alert("Upload Done");
+    location.reload();
 }
 async function startDownload(fileId){
     let maxDownloadSize = 256 * 1024 * 8;//2 mb
@@ -309,7 +311,7 @@ async function startDownload(fileId){
 }
 async function downloadFileAndFolder(){
     if(checkedFileId == 0){
-        alert('Please select a folder or file to download');
+        alert('Please select a  file to download');
     }
     else {
         item = document.getElementById(checkedFileId);

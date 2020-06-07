@@ -20,6 +20,56 @@
            return $google_drive_uri;
            
         }
+        public static function APIGetCode()
+        {
+            $redirect_uri='http://localhost/ProiectWeb/app/APIhome1';
+            $query=[
+                'scope'=>"https://www.googleapis.com/auth/drive",
+                 'response_type'=>'code',
+                 'redirect_uri'=>$redirect_uri,
+                 'client_id'=>self::$google_client_id
+            ];
+            $query_string=http_build_query($query);
+            $google_drive_uri=self::$google_site.'?'. $query_string;
+            return $google_drive_uri;
+        }
+        public static function APIGetToken($code,$jwt){
+            $redirect_uri='http://localhost/ProiectWeb/app/APIhome1';
+            $query=[
+                'code'=>$code,
+                'client_id'=>self::$google_client_id,
+                'client_secret'=>self::$google_client_secret,
+                'redirect_uri'=>$redirect_uri,
+                'grant_type'=>"authorization_code"
+            ];
+            $query_string=http_build_query($query);
+            $curl=curl_init();
+            curl_setopt_array($curl,[
+                CURLOPT_URL => 'https://oauth2.googleapis.com/token',
+                CURLOPT_HTTPHEADER => array('Content-Type: application/x-www-form-urlencoded'),
+                CURLOPT_RETURNTRANSFER => 1,
+                CURLOPT_SSL_VERIFYPEER => FALSE,
+                CURLOPT_POST => 1,
+                CURLOPT_POSTFIELDS => $query_string
+            ]);
+            $response=curl_exec($curl);
+            curl_close($curl);
+            $responseDecoded = json_decode($response,true);
+            $username=(self::getAuth()->jwtDecode($jwt))->username;
+            try{
+                $access_token = $responseDecoded['access_token'];
+                    if($access_token!=null){
+                        self::getModel()->addAccessToken($access_token,$username,'GoogleDrive');
+                        return 'Access Granted';
+            }
+            else{
+                return 'Null token';
+            }
+        }   catch(Exception $e){
+            return 'Invalid code';
+            }
+        
+        }
         public static function GetToken($code,$data){
             $query=[
                 'code'=>$code,
@@ -277,7 +327,7 @@
             $contor="Face ce trebuie";
             $fileSize=$dataArray['fileSize'];
             $file_name=$dataArray['title'];
-            $maxDownloadSize=256 * 1024 * 8;
+            $maxDownloadSize=256 * 1024 * 128;
             $endDataFixed=$maxDownloadSize-1;
             while($fileSize-$startData>=$maxDownloadSize)
             {
@@ -326,37 +376,6 @@
                 $endDataFixed=$endDataFixed+$maxDownloadSize;
                 return $file_name;
             }
-        }
-        public static function downloadFolder($fileId)
-        {
-            $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
-            $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
-            $token = $json_token['access_token'];
-            $metadata=self::getMetadata($fileId);
-            $dataArray=json_decode($metadata,true);
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
-                $curl_resource=curl_init();
-                curl_setopt($curl_resource,CURLOPT_URL,$uri);
-                curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
-                curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
-                 "Authorization: Bearer ${token}",
-                 //"Content-Type: application/octet-stream"
-                ));
-                // 27564
-                // CURLOPT_RANGE => $offset . '-' . ($offset + $chunk_size - 1),
-                curl_setopt($curl_resource,CURLOPT_RANGE,"0");
-                curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
-                curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
-                $response=curl_exec($curl_resource);
-                curl_close($curl_resource);
-                $file_name = $dataArray['title'];
-                
-                $myfile = fopen("${file_name}","w");
-                file_put_contents("${file_name}",$response);
-                //file_put_contents("C:\Users\alexg\Desktop\abc.jpg",$response);
-                //echo $response;
-                return $file_name;
-            
         }
         public static function deleteFile($fileId)
         {
