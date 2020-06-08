@@ -30,7 +30,7 @@ async function registerUser()
    {
         alert("Both passwords don't match!");
         location.assign('signUp');
-   }
+   }else{
     let jsonResponse = await waitForResponse();
     let response = JSON.parse(jsonResponse);
     if(response.status=='1'){
@@ -39,4 +39,6 @@ async function registerUser()
         alert("User already exists");
         location.assign('signUp');
     }
+   }
+    
 }
