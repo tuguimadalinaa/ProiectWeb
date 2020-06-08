@@ -145,7 +145,7 @@ async function responseForFileTransfer(fileData, fileName,fileSize){
 function makeRequestForUploadingSmallItemAPI(file){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        fileArgs = JSON.stringify({ name: file.name });
+        fileArgs = JSON.stringify({ name: file.name, drive: "AllDrives" });
         xhr.open('POST', 'APIuploadFinish', true);
         xhr.setRequestHeader('File-Args',fileArgs);
         xhr.onreadystatechange = function () {
@@ -233,49 +233,6 @@ async function prepareUpload(files){
     }
     return response;
 }
-function makeRequestForUploadSessionStartAPI(fileSlice,fileName){
-    return new Promise(function (resolve) {
-        let xhr = new XMLHttpRequest();
-        fileArgs = JSON.stringify({ name: fileName });
-        xhr.open('POST', 'APIuploadStart', true);
-        xhr.setRequestHeader('File-Args',fileArgs);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                resolve(xhr.response);
-            }
-        };
-        xhr.send(fileSlice);
-    });
-}
-
-function makeRequestForUploadSessionAppendAPI(fileSlice,fileName){
-    return new Promise(function (resolve) {
-        let xhr = new XMLHttpRequest();
-        fileArgs = JSON.stringify({ name: fileName });
-        xhr.open('POST', 'APIuploadAppend', true);
-        xhr.setRequestHeader('File-Args',fileArgs);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                resolve(xhr.response);
-            }
-        };
-        xhr.send(fileSlice);
-    });
-}
-function makeRequestForUploadSessionFinishAPI(fileSlice,fileName){
-    return new Promise(function (resolve) {
-        let xhr = new XMLHttpRequest();
-        fileArgs = JSON.stringify({ name: fileName });
-        xhr.open('POST', 'APIuploadFinish', true);
-        xhr.setRequestHeader('File-Args',fileArgs);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                resolve(xhr.response);
-            }
-        };
-        xhr.send(fileSlice);
-    });
-}
 
 var upload = async function (){
     input = document.getElementById('allCloudMethods');
@@ -287,7 +244,7 @@ var upload = async function (){
             document.getElementById('uploadFile').addEventListener("change",async function(){
                 files = document.getElementById('uploadFile');
                 response = await prepareUpload(files);
-                alert(response);
+                //alert(response);
             });
         }
         item = document.getElementById('uploadFile');
@@ -344,7 +301,7 @@ var download = async function(){
     }
     googleDriveId = await makeRequestForGoogleDriveID(filename);
     downloadResponse = await makeRequestForDownload(filename,googleDriveId);
-    alert(downloadResponse);
+    //alert(downloadResponse);
     //Engleza35-36.txt
     //response = await makeRequestForDownload(filename,googleDriveId);
     //alert(response);
