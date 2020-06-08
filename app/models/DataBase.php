@@ -41,6 +41,9 @@ class DataBase{
                 if($response==0)
                 {
                     $jwt=Auth::jwtGenerate($userName,$password);
+                    $updateLogged = 'UPDATE users SET logged = ? WHERE username = ? ';
+                    $connection = DataBase::connect()->prepare($updateLogged);
+                    $connection->execute(array('yes',$userName));
                 }
                 else{
                     //echo "Access denied!";
@@ -70,9 +73,10 @@ class DataBase{
         $connection->execute(array($userName));
         $result = $connection -> fetchAll();
         if(empty($result)==true){
-            $checkUser = "INSERT INTO users VALUES(?,?,?,?,?,?)";
+            $checkUser = "INSERT INTO users VALUES(?,?,?,?,?,?,?,?)";
             $connection = DataBase::connect()->prepare($checkUser);
-            if($connection->execute(array($userName,$password,'no','0','0','0')) == true){
+            $current_date = date('Y-m-d');
+            if($connection->execute(array($userName,$password,'no','0','0','0',$current_date,$current_date)) == true){
                 return json_encode(array("status"=>'1')); //adaugat cu succes
             } else {
                 return json_encode(array("status"=>'2')); //eroare la adaugare in baza de date
@@ -97,6 +101,139 @@ class DataBase{
             
         }
     }
+
+    public static function getLoggedUsers($username){
+        if($username == 'admin@app.com'){
+            $updateLogged = 'SELECT username FROM users WHERE logged = ? ';
+            $connection = DataBase::connect()->prepare($updateLogged);
+            $connection->execute(array('yes'));
+            $result = $connection->fetchAll();
+            $loggedUsers = array();
+            foreach($result as $registration){
+                if($registration[0] != 'admin@app.com'){
+                    array_push($loggedUsers,$registration[0]);
+                }
+            }
+            return array_values($loggedUsers);
+        } else {
+            return 'Forbidden Access';
+        }
+    }
+
+    public static function adminEditUser($username,$fields){
+        if($username == 'admin@app.com'){
+            $checkUser = 'SELECT * from users where username=?';
+            $connection  = DataBase::connect()->prepare($checkUser);
+            $connection->execute(array($fields['username']));
+            $result = $connection -> fetchAll();
+            if(empty($result) == false){
+                $editUser = 'UPDATE users SET ';
+                $newValues = array();
+                $ok = 0;
+                foreach($fields as $key => $value){
+                    if($key != 'username' && $value != "null"){
+                        if($ok == 0){
+                            if($key == 'new_username'){
+                                $editUser = $editUser . 'username' . ' = ? ';
+                                array_push($newValues,$value);
+                            } else {
+                                $editUser = $editUser . $key . ' = ? ';
+                                array_push($newValues,$value);
+                            }
+                            $ok = 1;
+                        } else {
+                            if($key == 'new_username'){
+                                $editUser = $editUser . "," .'username' . ' = ? ';
+                                array_push($newValues,$value);
+                            } else {
+                                $editUser = $editUser . "," . $key . ' = ? ';
+                                array_push($newValues,$value);
+                            }
+                        }
+                    }
+                }
+                array_push($newValues,$fields['username']);
+                $editUser = $editUser . "WHERE username = ?";
+                $connection = DataBase::connect()->prepare($editUser);
+                if($connection->execute($newValues) == true){
+                    return 'User fields edited';
+                } else {
+                    return 'Internal error';
+                }
+            } else {
+                return "User doesn't exist";
+            }
+        } else {
+            return 'Forbidden Access';
+        }
+    }
+
+    public static function adminAddUser($username,$fields){
+        if($username == 'admin@app.com'){
+            $checkUser = 'SELECT * from users where username=?';
+            $connection  = DataBase::connect()->prepare($checkUser);
+            $connection->execute(array($fields['username']));
+            $result = $connection -> fetchAll();
+            if(empty($result)==true){
+                $checkUser = "INSERT INTO users VALUES(?,?,?,?,?,?,?,?)";
+                $connection = DataBase::connect()->prepare($checkUser);
+                $current_date = date('Y-m-d');
+                if($connection->execute(array($fields['username'],$fields['password'],'no','0','0','0',$current_date,$current_date)) == true){
+                    return 'User added'; 
+                } else {
+                    return 'Internal error'; 
+                }
+            } else {
+                return 'Username already exist';
+            }
+        } else {
+            return 'Forbidden Access';
+        }
+    }
+
+    public static function adminDeleteUser($username,$username_to_delete){
+        if($username == 'admin@app.com' && $username_to_delete != 'admin@app.com'){
+            $checkUser = 'SELECT * from users where username=?';
+            $connection  = DataBase::connect()->prepare($checkUser);
+            $connection->execute(array($username_to_delete));
+            $result = $connection -> fetchAll();
+            if($result != null){
+                $deleteUser = 'DELETE FROM users WHERE username = ?';
+                $connection = DataBase::connect()->prepare($deleteUser);
+                if($connection->execute(array($username_to_delete)) == true){
+                    return 'User deleted';
+                } else {
+                    return 'Internal Error';
+                }
+            } else {
+                return "User doesn't exist";
+            }
+        } else {
+            return 'Forbidden Access';
+        }
+    }
+
+    public static function getNumberOfUsersLogged($username){
+        if($username == 'admin@app.com'){
+            $updateLogged = 'SELECT count(*) FROM users WHERE logged = ? ';
+            $connection = DataBase::connect()->prepare($updateLogged);
+            $connection->execute(array('yes'));
+            $result = $connection->fetchAll();
+            return $result[0][0];
+        } else {
+            return 'Forbidden Access';
+        }
+    }
+
+    public static function userLogOut($username){
+        $updateLogged = 'UPDATE users SET logged = ? WHERE username = ? ';
+        $connection = DataBase::connect()->prepare($updateLogged);
+        $connection->execute(array('no',$username));
+        $updateLastLoggedIn = 'UPDATE users SET last_logged_in  = ? WHERE username = ? ';
+        $connection = DataBase::connect()->prepare($updateLastLoggedIn);
+        $connection->execute(array(date('Y-m-d'),$username));
+    }
+
     public static function getAccessToken($userName,$drive){
         $checkUser = 'SELECT * from users where username=?';
         $connection  = DataBase::connect()->prepare($checkUser);
