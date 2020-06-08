@@ -189,6 +189,7 @@ var  deleteFile = async function()
         }
         else{
             alert("Deleted file! Please refresh");
+            location.reload();
         }
         pressedButton=false;
     }
