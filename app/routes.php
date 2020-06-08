@@ -1,4 +1,5 @@
 <?php
+ini_set('max_execution_time',240);
 Route::set('login',function(){
     if(empty($_REQUEST['username'])){
         if(isset($_COOKIE["loggedIn"])){
@@ -1100,7 +1101,6 @@ Route::set('APIgetCode',function(){
             
            } else if($drive == 'Dropbox'){
               $drive_response = Dropbox::APIGetCode();
-              
               http_response_code(200);
               $response = array("url" => "${drive_response}");
               header('Content-Type: application/json');
@@ -1139,20 +1139,6 @@ Route::set('APIgetCode',function(){
         header('Content-Type: application/json');
         echo json_encode($error);
     }
-});
-
-Route::Set('APIhome1',function(){
-      if(isset($_GET['code'])){
-          $code = $_GET['code'];
-          if(isset($_GET['scope'])){ // GoogleDrive
-            echo $code;
-            echo $scope;
-          } else {  
-            echo $code;
-          }
-      } else {
-        echo "Error";
-      }
 });
 
 Route::set('APIuploadStart',function(){
@@ -1295,13 +1281,11 @@ Route::set('APIuploadFinish',function(){
                 $username=(Controller::getAuth()->jwtDecode($jwt))->username;
                 $file_name_custom = $username . $file_name;
                 $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
-               // echo 'Tuto bene header';
             } else {
                 $requestBody = file_get_contents('php://input');
                 $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
                 $file_name_custom = $username . $file_name;
                 $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
-               // echo 'Tuto bene cookie';
             }
             $response = Controller::fileFragmentation($file_name_custom,$username);
             echo $response;
@@ -1498,19 +1482,6 @@ Route::set('APIdownloadFile',function(){
     }
 });
 
-Route::Set('APIhome1',function(){
-    if(isset($_GET['code'])){
-        $code = $_GET['code'];
-        if(isset($_GET['scope'])){ // GoogleDrive
-          echo "Code: ".$code . "\n";
-          echo "Scope: ".$_GET['scope'];
-        } else {
-           echo "Code:".$code;
-        }
-    } else {
-      echo "Error";
-    }
-});
 /* ---------------------------------------- API routes Dropbox ---------------------------------------- */
 
 ?>

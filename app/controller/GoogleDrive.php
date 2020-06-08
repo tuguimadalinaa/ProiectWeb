@@ -197,7 +197,7 @@
             $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
             $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
             $token = $json_token['access_token'];
-            //echo $token;
+            echo $token;
             $uri="https://www.googleapis.com/drive/v3/files?q='${fileId}'+in+parents";
             $curl_resource=curl_init();
             curl_setopt($curl_resource,CURLOPT_URL,$uri);
@@ -620,9 +620,146 @@ public static function APIGetToken($code,$jwt){
 
 
 
+/* --------------------------------------------- GoogleDrive API functions ---------------------------------------------- */
 
 
+// public static function APIGetCode()
+// {
+//     $redirect_uri='http://localhost/ProiectWeb/app/APIhome1';
+//     $query=[
+//         'scope'=>"https://www.googleapis.com/auth/drive",
+//          'response_type'=>'code',
+//          'redirect_uri'=>$redirect_uri,
+//          'client_id'=>self::$google_client_id
+//     ];
+//     $query_string=http_build_query($query);
+//     $google_drive_uri=self::$google_site.'?'. $query_string;
+//     return $google_drive_uri;
+// }
+// public static function APIGetToken($code,$jwt){
+//     $redirect_uri='http://localhost/ProiectWeb/app/APIhome1';
+//     $query=[
+//         'code'=>$code,
+//         'client_id'=>self::$google_client_id,
+//         'client_secret'=>self::$google_client_secret,
+//         'redirect_uri'=>$redirect_uri,
+//         'grant_type'=>"authorization_code"
+//     ];
+//     $query_string=http_build_query($query);
+//     $curl=curl_init();
+//     curl_setopt_array($curl,[
+//         CURLOPT_URL => 'https://oauth2.googleapis.com/token',
+//         CURLOPT_HTTPHEADER => array('Content-Type: application/x-www-form-urlencoded'),
+//         CURLOPT_RETURNTRANSFER => 1,
+//         CURLOPT_SSL_VERIFYPEER => FALSE,
+//         CURLOPT_POST => 1,
+//         CURLOPT_POSTFIELDS => $query_string
+//     ]);
+//     $response=curl_exec($curl);
+//     curl_close($curl);
+//     $responseDecoded = json_decode($response,true);
+//     $username=(self::getAuth()->jwtDecode($jwt))->username;
+//     try{
+//         $access_token = $responseDecoded['access_token'];
+//             if($access_token!=null){
+//                 self::getModel()->addAccessToken($access_token,$username,'GoogleDrive');
+//                 return 'Access Granted';
+//     }
+//     else{
+//         return 'Null token';
+//     }
+// }   catch(Exception $e){
+//     return 'Invalid code';
+//     }
 
+// }      
+//     public static function uploadSmallFileAPI($googledrive_data,$googledrive_file_name,$username)
+//     {
+//         $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
+//         $token = $json_token['access_token'];
+//         $uri=self::obtainUriForResumable($token,$googledrive_file_name,null);
+//         $response=self::uploadSmallFileResumableAPI($uri,$googledrive_data,$username);
+//         return $response;
+//     }
+//     public static function uploadLargeFileAPI($googledrive_data,$googledrive_file_name,$username)
+//     {
+//         $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
+//         $token = $json_token['access_token'];
+//         $uri=self::obtainUriForResumable($token,$googledrive_file_name,null);
+//         $sizeFile=strlen($googledrive_data);
+//         $maxUploadSize=256 * 1024 * 128;//32 mb
+//         // $startData=0;
+//         // $endData=$maxUploadSize;
+//         $uploadData=0;
+//         $message= $sizeFile . "/ " . $uploadData;
+//         while($sizeFile-$uploadData>$maxUploadSize)
+//         {
+//             $dataSlice=substr($googledrive_data,$uploadData,$maxUploadSize);
+//             $response=self::uploadLargeFileResumableAPI($uri,$dataSlice,$uploadData,$uploadData+$maxUploadSize-1,$sizeFile,$username);
+//             //return "DataSlice: " . $dataSlice ."StartData: " . $startData . "EndData: ". $endData;
+//             //return $response;
+//             $uploadData=$uploadData+$maxUploadSize;
+//             // $endData=$endData+$maxUploadSize;
+//             $message=$message . " lala " . $uploadData . "/" . $response;// . " / " $dataSlice;
+//             //echo "DataSlice: " . $dataSlice ."StartData: " . $startData . "EndData: ". $endData;
+//         }
+//         if($sizeFile-$uploadData<$maxUploadSize)
+//         {
+//             $dataSlice=substr($googledrive_data,$uploadData,$sizeFile);
+//             $response=self::uploadLargeFileResumableAPI($uri,$dataSlice,$uploadData,$sizeFile-1,$sizeFile,$username);
+//             $message=$message . " lala " . $uploadData . "/" . $response ;// . " / " $dataSlice;
+//             //return $response;
+//             //return "DataSlice: " . $dataSlice ."StartData: " . $startData . "EndData: ". $endData;
+//         }
+//          return $message;
+//     }
+//     public static function uploadSmallFileResumableAPI($uri,$fileData,$username)
+//     {
+//     //$username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+//     $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
+//     $token = $json_token['access_token'];
+//     $size=strlen($fileData);
+//     $curl_resource = curl_init();
+//     curl_setopt($curl_resource,CURLOPT_URL,$uri);
+//     curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'PUT');
+//     curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+//        "Authorization: Bearer ${token}",
+//        "Content-Type: application/octet-stream",
+//        "Content-Length: ${size}"
+//     ));
+//     curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$fileData);
+//     curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+//     curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+//     $response=curl_exec($curl_resource);
+//     curl_close($curl_resource); 
+//     return  $response;
+// }
+//     public static function uploadLargeFileResumableAPI($uri,$chunkData,$startData,$endData,$sizeFile,$username)
+//     {
+//     //$username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+//     $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
+//     $token = $json_token['access_token'];
+//     $size=strlen($chunkData);
+//     $curl_resource = curl_init();
+//     $endDataFixed=$endData;
+//     $range="${startData}" . "-" . "${endDataFixed}";
+//     $contentRange= "${range}" . " /" . "${sizeFile}";
+//     curl_setopt($curl_resource,CURLOPT_URL,$uri);
+//     curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'PUT');
+//     curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+//        "Authorization: Bearer ${token}",
+//        "Content-Type: application/octet-stream",
+//        "Content-Length: ${size}",
+//        "Content-Range: bytes $contentRange"
+//     ));
+//     curl_setopt($curl_resource,CURLOPT_POSTFIELDS,$chunkData);
+//     curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+//     curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+//     $response=curl_exec($curl_resource);
+//     curl_close($curl_resource); 
+//     return $response;
+    
+// }
 
 
 

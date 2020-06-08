@@ -505,10 +505,10 @@ class OneDrive extends Controller{
         curl_close($create_curl);
         return $response;
     }
-    public static function contentDownload($fileName)
+    public static function contentDownload($fileName,$username)
     {
         $fileName = str_replace ( ' ', '%20', $fileName);
-        $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        //$username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $create_curl=curl_init();
         curl_setopt_array($create_curl,[
@@ -556,6 +556,44 @@ class OneDrive extends Controller{
             return json_encode(array("status"=>'200',"id"=>$fileId));
         }
         return json_encode(array("status"=>'401'));
+    }
+    public static function checkFileExists($fileName,$username)
+    {
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
+        if(strcmp($access_token,"fail")!=0){
+            $response = self::makeRequestForFile($access_token,$fileName);
+            $decodedResponse = json_decode($response, true);
+            if(isset($decodedResponse['@microsoft.graph.downloadUrl']))
+            {
+                
+                return "true";
+
+            }else{
+                return "false";
+            }
+
+        }
+        return json_encode(array("status"=>'401'));
+    }
+    public static function getStorage($username)
+    {
+        $access_token = self::getAccesTokenFromDB($username,'OneDrive');
+        if(strcmp($access_token,"fail")!=0){
+            $create_curl=curl_init();
+            curl_setopt_array($create_curl,[
+                CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drives', //spatiile in url dau erori
+                CURLOPT_RETURNTRANSFER=>1,
+                CURLOPT_HTTPHEADER=>array("Authorization: Bearer ${access_token}"),
+                CURLOPT_SSL_VERIFYPEER=>false
+            ]); 
+            $response=curl_exec($create_curl);
+            curl_close($create_curl);
+            $decodedResponse = json_decode($response,true);
+            $remaining_size = $decodedResponse['value'][0]['quota']['remaining'];
+            return $remaining_size;
+        }
+        return json_encode(array("status"=>'401'));
+        
     }
 }
 ?>

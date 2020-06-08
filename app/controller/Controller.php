@@ -49,6 +49,17 @@ class Controller{
        } else {
            return '0';
        }
+       $file_in_onedrive  = OneDrive::checkFileExists('/drive/root:/Documents/2'.$username.$file_name,$username);
+       if($file_in_onedrive=="true")
+       {
+            $content = OneDrive::contentDownload('Documents/2'.$username.$file_name,$username);
+            $file = file_put_contents($file_name,$content,FILE_APPEND);
+            return $file_name;
+       }
+       else if($file_in_onedrive=="false")
+       {
+            return '0';
+       }
     }
 
     public static function fileFragmentation($file_name,$username){
@@ -87,7 +98,7 @@ class Controller{
        return $fileId;
       
     }
-
+    
 
 }
 ?>

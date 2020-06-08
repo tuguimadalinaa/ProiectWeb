@@ -85,7 +85,11 @@ async function getDirectory(fileName,callback){
         else{
             typeOfPhoto='src="../views/IMAGES/file-icon-v1.png"';
         }
-        htmlString = "<div class='folder' id=".concat("'").concat(response.value[i].parentReference.path.concat('/').concat(response.value[i].name)).concat("'> <a href='#'><img id=").concat(response.value[i].name).concat('"')
+        let fileName = response.value[i].name;
+        let parentReference = response.value[i].parentReference.path;
+        fileName = fileName.split(' ').join('%20');
+        parentReference = parentReference.split(' ').join('%20');
+        htmlString = "<div class='folder' id=".concat("'").concat(parentReference.concat('/').concat(fileName)).concat("'> <a href='#'><img id=").concat(fileName).concat('"')
                     .concat(' class="folderIcon" ').concat(typeOfPhoto).concat(' alt="folderIcon"></a> <h4>')
                     .concat(response.value[i].name).concat('</h4></div>');
         folders.insertAdjacentHTML('afterbegin',htmlString);
