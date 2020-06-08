@@ -212,9 +212,19 @@ Route::set('getToken',function(){
 
 Route::set('createFolderGoogleDrive',function(){
     $response_jwt_validation = Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
     if($response_jwt_validation == 'JWT valid'){
-        $response = GoogleDrive::createFolder($_REQUEST['fileName'],$_COOKIE["GoogleDrive"]);
-        echo $response;
+        if($response_token_time!=0)
+        {
+            $response = GoogleDrive::createFolder($_REQUEST['fileName'],$_COOKIE["GoogleDrive"]);
+            echo $response;
+        }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?drive=GoogleDrive');
+        }
      }
     else {
         http_response_code(401);
@@ -224,9 +234,18 @@ Route::set('createFolderGoogleDrive',function(){
 });
 Route::set('obtainUriForUploadGoogleDrive',function(){
     $response_jwt_validation = Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
     if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0){
             $response = GoogleDrive::obtainUriForResumable($_REQUEST['fileName'],$_COOKIE['GoogleDrive']);
             echo $response;
+        }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?drive=GoogleDrive');
+        }
      } 
     else {
         http_response_code(401);
@@ -236,9 +255,18 @@ Route::set('obtainUriForUploadGoogleDrive',function(){
 });
 Route::set('getStorageQuotaGoogleDrive',function(){
     $response_jwt_validation = Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
     if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0){
          $response=GoogleDrive::getStorageQuota();
          echo $response;
+        }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?drive=GoogleDrive');
+        }
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
@@ -247,74 +275,116 @@ Route::set('getStorageQuotaGoogleDrive',function(){
 });
 Route::set('uploadSmallFilesGoogleDrive',function()
 {
-    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
-    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
-    $access_token_decoded = json_decode($access_token_json,true);
-    $access_token = $access_token_decoded['access_token'];
-    //echo $access_token;
-    $headers= apache_request_headers();
-    $fileLink="Unknown";
-    foreach ($headers as $header => $value) {
-        if($header == 'File-Link'){
-            $fileLink = $value;
-            break;
+    $response_jwt_validation = Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
+    if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0)
+        {
+            $headers= apache_request_headers();
+            $fileLink="Unknown";
+            foreach ($headers as $header => $value) {
+                if($header == 'File-Link'){
+                    $fileLink = $value;
+                    break;
+                }
+            }
+             $fileLinkArray=json_decode($fileLink,true);
+             $fileBody=file_get_contents('php://input');
+             $response = GoogleDrive::uploadSmallFileResumable($fileLinkArray["linkusor"],$fileBody);
+            echo $response;
         }
-    }
-     $fileLinkArray=json_decode($fileLink,true);
-     $fileBody=file_get_contents('php://input');
-    if($access_token != null){
-        $response = GoogleDrive::uploadSmallFileResumable($fileLinkArray["linkusor"],$fileBody);
-        echo $response;
-  } else {
-      header('Location: getCode?drive=GoogleDrive');
-  }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?drive=GoogleDrive');
+        }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
 });
 Route::set('uploadLargeFilesGoogleDrive',function(){
 
-    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
-    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
-    $access_token_decoded = json_decode($access_token_json,true);
-    $access_token = $access_token_decoded['access_token'];
-    //echo $access_token;
-    $headers= apache_request_headers();
-    $fileLink="Unknown";
-    foreach ($headers as $header => $value) {
-        if($header == 'File-Link'){
+    $response_jwt_validation=Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
+    if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0)
+        {
+            $headers= apache_request_headers();
+            $fileLink="Unknown";
+            foreach ($headers as $header => $value) {
+            if($header == 'File-Link'){
             $fileLink = $value;
             break;
+                }
+            }
+            $fileLinkArray=json_decode($fileLink,true);
+            $fileBody=file_get_contents('php://input');
+            $response = GoogleDrive::uploadLargeFileResumable($fileLinkArray["linkusor"],$fileBody,$fileLinkArray["Start"],$fileLinkArray["End"],$fileLinkArray["SizeFile"]);
+            echo $response;
         }
-    }
-     $fileLinkArray=json_decode($fileLink,true);
-     $fileBody=file_get_contents('php://input');
-    if($access_token != null){
-        $response = GoogleDrive::uploadLargeFileResumable($fileLinkArray["linkusor"],$fileBody,$fileLinkArray["Start"],$fileLinkArray["End"],$fileLinkArray["SizeFile"]);
-        echo $response;
-  } else {
-      header('Location: getCode?drive=GoogleDrive');
-  }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?	drive=GoogleDrive');
+        }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
 });
 
 Route::set('listGoogleDrive',function(){
-    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
-    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
-    $access_token_decoded = json_decode($access_token_json,true);
-    $access_token = $access_token_decoded['access_token'];
-    //echo $access_token;
-    if($access_token != null){
-        $response = GoogleDrive::listAllFiles($_COOKIE['GoogleDrive']);
-        echo $response;
-  } else {
-      header('Location: getCode?drive=GoogleDrive');
-  }
+
+$response_jwt_validation=Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
+    if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0)
+        {
+            $response = GoogleDrive::listAllFiles($_COOKIE['GoogleDrive']);
+            echo $response;
+        }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?	drive=GoogleDrive');
+        }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
 });
 
 Route::set('deleteFileGoogleDrive',function(){
-    $response=GoogleDrive::deleteFile($_REQUEST['fileId']);
-    echo $response;
+    $response_jwt_validation=Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
+    if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0)
+        {
+            $response=GoogleDrive::deleteFile($_REQUEST['fileId']);
+            echo $response;
+        }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?	drive=GoogleDrive');
+        }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
 });
 Route::set('changeFolderGoogleDrive',function(){
     $changed_folder_id = $_REQUEST['fileId'];
-    Dropbox::Cookie("GoogleDrive",$changed_folder_id,[
+    GoogleDrive::Cookie("GoogleDrive",$changed_folder_id,[
         'expires' => time() + 86400,
         'path' => '/',
         'secure' => false,
@@ -323,101 +393,253 @@ Route::set('changeFolderGoogleDrive',function(){
     ]);
     echo 'Cookie Folder value changed';
  });
- Route::set('previousFolderGoogleDrive',function(){
-    $parent_id = GoogleDrive::getParentFolderId($_COOKIE["GoogleDrive"]);
-    //echo $parent_id;
-    GoogleDrive::Cookie("GoogleDrive",$parent_id,[
-        'expires' => time() + 86400,
-        'path' => '/',
-        'secure' => false,
-        'httponly' => true,
-        'samesite' => 'Strict',
-    ]);
-    echo 'Previous Folder';
-});
-Route::set('getMetadataFileGoogleDrive',function(){
-     $response=GoogleDrive::getMetadata($_REQUEST['fileId']);
-     echo $response;
-});
-Route::set('getFileNameGoogleDrive',function(){
-    $response=GoogleDrive::getNameFile($_REQUEST['fileId']);
-     echo $response;
-});
-Route::set('getFileSizeGoogleDrive',function(){
-    $response=GoogleDrive::getSizeFile($_REQUEST['fileId']);
-    echo $response;
-});
-Route::set('getFolderParentGoogleDrive',function()
-{
-    $response=GoogleDrive::getParentFolderId($_COOKIE["GoogleDrive"]);
-     echo $response;
-});
-Route::set('renameFileGoogleDrive',function(){
-    $response=GoogleDrive::renameFile($_REQUEST['fileName'],$_REQUEST['fileId']);
-    echo $response;
-});
-// Route::set('downloadFolderGoogleDrive',function(){
-//     $response=GoogleDrive::downloadFolder($_REQUEST['fileId']);
-//     echo $response;
-// });
-Route::set('downloadSmallFileGoogleDrive',function(){
-    $response=GoogleDrive::downloadSmallFile($_REQUEST['fileId']);
-    $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
-    $file_name = basename($file_to_download);
-    header("Content-Type: application/octet-stream");
-    header("Content-Disposition: attachment; filename=". $file_name);
-    header("Content-Length: " . filesize($file_to_download));
-    readfile($file_to_download);
-    unlink($file_to_download);
-
-});
-Route::set('downloadLargeFileGoogleDrive',function(){
-    $response=GoogleDrive::downloadLargeFile($_REQUEST['fileId']);
-    //echo $response;
-    $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
-    $file_name = basename($file_to_download);
-    header("Content-Type: application/octet-stream");
-    header("Content-Disposition: attachment; filename=". $file_name);
-    header("Content-Length: " . filesize($file_to_download));
-    readfile($file_to_download);
-    unlink($file_to_download);
-});
-Route::set('moveFileGoogleDrive',function(){
-    if(isset($_COOKIE["GoogleDrive-MV"])){
-        if($_REQUEST['fileId'] == '0'){
-        $response = GoogleDrive::moveFile($_COOKIE['GoogleDrive-MV'],$_COOKIE['GoogleDrive']);
-        GoogleDrive::Cookie("GoogleDrive-MV",'invalid',[
-            'expires' => time() - 3600,
-            'path' => '/',
-            'secure' => false,
-            'httponly' => true,
-            'samesite' => 'Strict',
-        ]);
-        echo 'File moved';
-    } else{
-        GoogleDrive::Cookie("GoogleDrive-MV",$_REQUEST['fileId'],[
+Route::set('previousFolderGoogleDrive',function(){
+    $response_jwt_validation=Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
+    if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0)
+        {
+            $parent_id = GoogleDrive::getParentFolderId($_COOKIE["GoogleDrive"]);
+            GoogleDrive::Cookie("GoogleDrive",$parent_id,[
             'expires' => time() + 86400,
             'path' => '/',
             'secure' => false,
             'httponly' => true,
             'samesite' => 'Strict',
         ]);
-        echo 'Item stored in cookie';
-    }
-}   else{
-        if($_REQUEST['fileId'] != '0'){
-            GoogleDrive::Cookie("GoogleDrive-MV",$_REQUEST['fileId'],[
-                'expires' => time() + 86400,
-                'path' => '/',
-                'secure' => false,
-                'httponly' => true,
-                'samesite' => 'Strict',
-            ]);
-            echo 'File stored in cookie';
-        } else {
-            echo 'Not a valid file id';
+        echo 'Previous Folder';
         }
-    }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?	drive=GoogleDrive');
+        }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
+});
+Route::set('getMetadataFileGoogleDrive',function(){
+    $response_jwt_validation=Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
+    if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0)
+        {
+            $response=GoogleDrive::getMetadata($_REQUEST['fileId']);
+            echo $response;
+        }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?	drive=GoogleDrive');
+        }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
+});
+Route::set('getFileNameGoogleDrive',function(){
+    $response_jwt_validation=Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
+    if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0)
+        {
+            $response=GoogleDrive::getNameFile($_REQUEST['fileId']);
+            echo $response;
+        }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?	drive=GoogleDrive');
+        }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
+});
+Route::set('getFileSizeGoogleDrive',function(){
+    $response_jwt_validation=Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
+    if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0)
+        {
+            $response=GoogleDrive::getSizeFile($_REQUEST['fileId']);
+            echo $response;
+        }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?	drive=GoogleDrive');
+        }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
+});
+Route::set('getFolderParentGoogleDrive',function()
+{
+    $response_jwt_validation=Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
+    if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0)
+        {
+            $response=GoogleDrive::getParentFolderId($_COOKIE["GoogleDrive"]);
+            echo $response;
+        }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?	drive=GoogleDrive');
+        }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
+});
+Route::set('renameFileGoogleDrive',function(){
+    $response_jwt_validation=Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
+    if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0)
+        {
+            $response=GoogleDrive::renameFile($_REQUEST['fileName'],$_REQUEST['fileId']);
+            echo $response;
+        }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?	drive=GoogleDrive');
+        }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
+});
+
+Route::set('downloadSmallFileGoogleDrive',function(){
+    $response_jwt_validation=Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
+    if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0)
+        {
+            $response=GoogleDrive::downloadSmallFile($_REQUEST['fileId']);
+            $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
+            $file_name = basename($file_to_download);
+            header("Content-Type: application/octet-stream");
+            header("Content-Disposition: attachment; filename=". $file_name);
+            header("Content-Length: " . filesize($file_to_download));
+            readfile($file_to_download);
+            unlink($file_to_download);
+        }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?	drive=GoogleDrive');
+        }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
+});
+Route::set('downloadLargeFileGoogleDrive',function(){
+    $response_jwt_validation=Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
+    if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0)
+        {
+            $response=GoogleDrive::downloadLargeFile($_REQUEST['fileId']);
+            $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $response;
+            $file_name = basename($file_to_download);
+            header("Content-Type: application/octet-stream");
+            header("Content-Disposition: attachment; filename=". $file_name);
+            header("Content-Length: " . filesize($file_to_download));
+            readfile($file_to_download);
+            unlink($file_to_download);
+        }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?	drive=GoogleDrive');
+        }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
+});
+Route::set('moveFileGoogleDrive',function(){
+    $response_jwt_validation=Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
+    if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0)
+        {
+            if(isset($_COOKIE["GoogleDrive-MV"])){
+                if($_REQUEST['fileId'] == '0'){
+                $response = GoogleDrive::moveFile($_COOKIE['GoogleDrive-MV'],$_COOKIE['GoogleDrive']);
+                GoogleDrive::Cookie("GoogleDrive-MV",'invalid',[
+                    'expires' => time() - 3600,
+                    'path' => '/',
+                    'secure' => false,
+                    'httponly' => true,
+                    'samesite' => 'Strict',
+                ]);
+                echo 'File moved';
+            } else{
+                GoogleDrive::Cookie("GoogleDrive-MV",$_REQUEST['fileId'],[
+                    'expires' => time() + 86400,
+                    'path' => '/',
+                    'secure' => false,
+                    'httponly' => true,
+                    'samesite' => 'Strict',
+                ]);
+                echo 'Item stored in cookie';
+            }
+        }   else{
+                if($_REQUEST['fileId'] != '0'){
+                    GoogleDrive::Cookie("GoogleDrive-MV",$_REQUEST['fileId'],[
+                        'expires' => time() + 86400,
+                        'path' => '/',
+                        'secure' => false,
+                        'httponly' => true,
+                        'samesite' => 'Strict',
+                    ]);
+                    echo 'File stored in cookie';
+                } else {
+                    echo 'Not a valid file id';
+                }
+            }
+        }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?	drive=GoogleDrive');
+        }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
+});
+Route::set('test',function()
+{
+    $response=GoogleDrive::getInfoToken();
+    echo $response;
 });
 /* --------------------------------------------- Dropbox --------------------------------------------- */
 

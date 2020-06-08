@@ -45,7 +45,6 @@ function makeRequestForUpload(drive){
 async function waitForResponse(reason,drive) {
     if(reason=='Code'){
         let result = await makeRequestForCode(drive);
-        //alert(result);
         return result;
     }else if(reason=='Token'){
         var urlParams = new URLSearchParams(window.location.search);
@@ -76,7 +75,6 @@ async function uploadOneDrive(){
 }
 async function uploadGoogleDrive(){
     response = await waitForResponse('Code','GoogleDrive');
-    //alert(response);
     location.assign(response);
 }
 
@@ -116,8 +114,6 @@ async function checkUrl(){
         if(urlParams.get('scope')!=null)
         {
             let responseJson = await waitForResponse('Token','GoogleDrive'); 
-            //console.log(responseJson);
-            //alert(responseJson);
             let response = JSON.parse(responseJson);
             alert("Authorization granted");
             if(response.status=='401'){
@@ -131,11 +127,6 @@ async function checkUrl(){
             } else {
                 var responseJson2 = await waitForResponse('Token','DropBox');
             }
-            let response = JSON.parse(responseJson2);
-            //alert(response);
-            /*if(response.status=='401'){
-                alert("Authorization failed");
-            }*/
         } 
     } 
 }

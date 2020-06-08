@@ -3,6 +3,14 @@
 var checkedFiles = false;
 var checkedFileId=0;
 
+function IsJsonString(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
 
 function openMenu()
 {
@@ -160,33 +168,7 @@ function makeRequestForUploadLargeFile(link,file,start,end,sizeFile)
         xhr.send(file);
     });
 }
-// function makeRequestForDownloadSmallFile(fileId)
-// {
-//     return new Promise(function (resolve) {
-//         let xhr = new XMLHttpRequest();
-//         xhr.open('GET', 'downloadSmallFileGoogleDrive?fileId='+fileId, true);
-//         xhr.onreadystatechange = function () {
-//             if (xhr.readyState == XMLHttpRequest.DONE) {
-//                 resolve(xhr.response);
-//             }
-//         };
-//         xhr.send();
-//     });
-// }
-// function makeRequestForDownloadLargeFile(fileId)
-// {
-//     return new Promise(function (resolve) {
-//         let xhr = new XMLHttpRequest();
-//         xhr.open('GET', 'downloadLargeFileGoogleDrive?fileId='+fileId, true);
-//         xhr.setRequestHeader('File-Status',url);
-//         xhr.onreadystatechange = function () {
-//             if (xhr.readyState == XMLHttpRequest.DONE) {
-//                 resolve(xhr.response);
-//             }
-//         };
-//         xhr.send();
-//     });
-// }
+
 function makeRequestForGettingSizeFile(fileId)
 {
     return new Promise(function (resolve) {
@@ -200,19 +182,7 @@ function makeRequestForGettingSizeFile(fileId)
         xhr.send();
     });
 }
-// function makeRequestForGettingNameFile(fileId)
-// {
-//     return new Promise(function (resolve) {
-//         let xhr = new XMLHttpRequest();
-//         xhr.open('GET', 'getFileNameGoogleDrive?fileId='+fileId, true);
-//         xhr.onreadystatechange = function () {
-//             if (xhr.readyState == XMLHttpRequest.DONE) {
-//                 resolve(xhr.response);
-//             }
-//         };
-//         xhr.send();
-//     });
-// }
+
 async function highlightItem(item){
     itemId = item.getAttribute('id');
     checkedFileId = itemId;
@@ -267,10 +237,8 @@ async function startUpload(files){
        let currentFile = files.files[i];
        let sizeOfDataSent = 0;
        var getLink=await makeRequestForUploadUriFile(currentFile);
-       //alert(getLink);
        if(currentFileSize < maxUploadSize){
         response =  await makeRequestForUploadSmallFile(getLink,currentFile);
-        //alert(response);
         console.log(response);
         location.reload();
     }
@@ -286,8 +254,6 @@ async function startUpload(files){
             response=await makeRequestForUploadLargeFile(getLink,fileSliceToSend,sizeOfDataSent,currentFileSize,currentFileSize);
             sizeOfDataSent = sizeOfDataSent + maxUploadSize;
         }
-        //location.reload();
-        //console.log(response);
     }
        i++;
     }
@@ -301,7 +267,6 @@ async function startDownload(fileId){
     if(fileSize-sizeOfDataSent<maxDownloadSize)
     {
         window.location='downloadSmallFileGoogleDrive?fileId=' +fileId;
-        //alert(response);
     }
     else
     {
@@ -318,13 +283,13 @@ async function downloadFileAndFolder(){
         typeOfItem = item.getAttribute("alt");
          if(typeOfItem == 'fileIcon'){
             response=startDownload(checkedFileId);
-            alert(response);
         } 
         else{
             response=startDownload(checkedFileId);
-            alert(response);
+
         }
     }
+    return "Download done";
 }
 
 async function moveFileOrFolder(){
@@ -391,33 +356,27 @@ async function uploadFiles(){
             input.insertAdjacentHTML('afterend',htmlString);
             document.getElementById('uploadFile').addEventListener("change",async function(){
                 files = document.getElementById('uploadFile');
-                //alert(files.files[0].slice(0,10000,files.files[0]));
-                //console.log(files.files[0].name);
                 response = await startUpload(files);
-                //alert(response);
-                //location.reload();
+
             });
         }
         item = document.getElementById('uploadFile');
-    } else { 
-        htmlString = '<input type="file" id="uploadFolder" multiple size="50" style="display: none;" webkitdirectory directory/>';
-        if(document.getElementById('uploadFolder') == null){
-            input.insertAdjacentHTML('afterend',htmlString);
-            document.getElementById('uploadFolder').addEventListener("change",async function(){
-                folder = document.getElementById('uploadFolder').value;
-                alert(folder);
-            });
-        }
-        item = document.getElementById('uploadFolder');
-    }
-    item.click();
+        item.click();
+    } 
 }
 async function checkGoogleDriveFiles(){
     if(checkedFiles == false){
      let responseJson = await waitForResponse('listFiles');
-     //alert(responseJson);
-     let response = JSON.parse(responseJson);
-     
+     var response;
+     if(IsJsonString(responseJson)==true)
+     {
+        response = JSON.parse(responseJson);
+    
+     }
+     else
+     {
+        alert("Ups, your token has expired or doesn't exist for this service. Go to home page and press GoogleDrive icon to get another!");
+     }
      var folder = document.getElementById('folderContainer');
      var htmlString;
      var currentFolders = Array.from(response);
@@ -442,5 +401,5 @@ async function checkGoogleDriveFiles(){
      }
 
  }
-
+ 
  checkGoogleDriveFiles();
