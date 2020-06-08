@@ -75,6 +75,7 @@
 .folder h4{
     margin-left: 5%;
     text-align: center;
+    overflow-wrap: break-word;
 }
 .folderContainer{
     margin-left: 10%;
@@ -139,12 +140,12 @@
 #create_folder_button{
     width: 150px;
     height: auto;
-    margin-right: 20%;
 }
 
 #go_back_button{
     width: 150px;
     height: auto;
+    margin-right: 20%;
 }
 .arrow {
     border: solid black;

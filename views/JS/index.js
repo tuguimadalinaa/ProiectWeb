@@ -85,12 +85,12 @@ function openMenu()
 {
     document.getElementById("shownMenu").removeAttribute("hidden");
     document.getElementById("shownMenu").style.width = "250px";
-    document.getElementById("sideMenu").style.marginLeft = "250px";
+    document.getElementsByClassName("sideMenu")[0].style.marginLeft = "0";
 }
 function closeMenu()
 {
     document.getElementById("shownMenu").style.width = "0";
-    document.getElementById("sideMenu").style.marginLeft= "0";
+    document.getElementsByClassName("sideMenu")[0].style.marginLeft = "0";;
 }
 function logOutUser(){
     let xhr = new XMLHttpRequest();

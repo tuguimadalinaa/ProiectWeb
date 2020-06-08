@@ -32,12 +32,12 @@ var nextFolder = function(event) {
     event.preventDefault();
     var x = this.id;
     var element = document.getElementById('renderFolders');
-    let goBackArrow = document.getElementsByClassName("goBackButton");
+    //let goBackArrow = document.getElementsByClassName("goBackButton");
     element.innerHTML='';
-    if(goBackArrow[0]!=undefined)
+    /*if(goBackArrow[0]!=undefined)
     {
         goBackArrow[0].innerHTML='';
-    }
+    }*/
     current_directory = x;
     getDirectory(x,finished);
 };
@@ -54,20 +54,25 @@ function finished(){
         elements[i].addEventListener('dblclick', nextFolder, false);
         elements[i].addEventListener('click',selectFile,false);
     }
-    let goBackArrow = document.getElementsByClassName("goBackButton");
+    /*let goBackArrow = document.getElementsByClassName("goBackButton");
     if(goBackArrow[0]!=undefined)
     {
         goBackArrow[0].onclick = goBack_;
-    }
+    }*/
     
 };
 async function getDirectory(fileName,callback){
     console.log(fileName);
     let result   = await responseGetDirectory(fileName,name);
     let response = JSON.parse(result);
+    if(response.status=="Expired Token")
+    {
+        alert("Your token expired! Please Login again in home page!");
+        return;
+    }
     let typeOfPhoto='';
     var folders = document.getElementById('renderFolders');
-    let goBackArrow = document.getElementsByClassName("goBackButton");
+    /*let goBackArrow = document.getElementsByClassName("goBackButton");
     if(goBackArrow[0]!=undefined)
     {
         goBackArrow[0].parentNode.removeChild(goBackArrow[0]);
@@ -76,7 +81,7 @@ async function getDirectory(fileName,callback){
     {
         htmlString='<div class="goBackButton"> <img src="../views/IMAGES/GoBack.png" alt="Go_Back"></div>';
         folders.insertAdjacentHTML('beforebegin',htmlString);
-    }
+    }*/
     
     for(var i=0;i<response.value.length;i++)
     {
@@ -174,7 +179,17 @@ var  deleteFile = async function()
         var div = document.getElementById(selectedFile).childNodes;
         var image =div[1].childNodes;
         let result = await responseDeleteFile(selectedFile);
-        console.log(result);
+        if(result.type==undefined)
+        {
+            let response  = JSON.parse(result);
+            if(response.status=="Expired Token")
+            {
+                alert("Your token expired! Please Login again in home page!");
+            }
+        }
+        else{
+            alert("Deleted file! Please refresh");
+        }
         pressedButton=false;
     }
     else{
@@ -198,19 +213,22 @@ async function responseCreateFolder(fileName,path) {
     return result;
 }
  var createFolder =  async function (){
+
     var folderName = window.prompt('Folder name here');
-    var elements = document.getElementsByClassName('folder');
+    /*var elements = document.getElementsByClassName('folder');
     let path  = elements[0].id.split(elements[0].id.match('[\\/][A-za-z]+[\\s]*[\\(]*[0-9]*[\\)]*[\\.]+[a-zA-z]+'));
-    let pathWithoutComa  = path[0].split(',');
-    let result = await responseCreateFolder(folderName,pathWithoutComa);
-    console.log(result);
-    /*let response = JSON.parse(result);
+    let pathWithoutComa  = path[0].split(',');*/
+    let result = await responseCreateFolder(folderName,"drive/root:/Documents");//pathWithoutCom
+    let response = JSON.parse(result);
     if(response.status=='401'){
         alert("Error at creating Folder " + folderName);
+    } else if (response.status=="Expired Token")
+    {
+        alert("Your token expired! Please Login again in home page!");
     }
     else{
         alert("Folder " + folderName+" created")
-    }*/
+    }
  }
  function makeRequestMoveFolder(fileName,newpath){
     return new Promise(function (resolve) {
@@ -268,7 +286,11 @@ async function responseRename(fileName,selectedFile) {
         console.log(newFolderName);
         let result = await responseRename(newFolderName,selectedFile);
         let response = JSON.parse(result);
-        if(response.status=='401'){
+        if(response.status=="Expired Token")
+        {
+            alert("Your token expired! Please Login again in home page!");
+        }
+        else if(response.status=='401'){
             alert("Error at creating Folder " + newFolderName);
         }
         else{
@@ -312,7 +334,6 @@ var goBack_ = async function()
         getDirectory(response.status,finished);
     }
     
-     //butonul de go back plus de pus dbClick doar pe foldere
  }
  function makeRequestForFileTransfer(fileData,fileName,fileSize){
     return new Promise(function (resolve) {
@@ -397,7 +418,13 @@ async function responseForFileTransfer(fileData, fileName,fileSize){
                     if(currentFileSize < maxUploadSize){
                         
                         response =  await responseForFileTransfer(currentFile,current_directory + '/'+currentFile.name,currentFileSize);
-                        console.log(response);
+                        let result= JSON.parse(response);
+                        if(result.status=="Expired Token")
+                        {
+                            alert("Your token expired! Please Login again in home page!");
+                        }else{
+                            alert("File uploaded");
+                        }
                } else {
                    let sizeOfDataSent = 0;
                    let uploadSessionStarted = 0;
@@ -406,6 +433,10 @@ async function responseForFileTransfer(fileData, fileName,fileSize){
                    response = await makeRequestForUploadSessionStart(current_directory + '/'+currentFile.name);
                    console.log(response);
                    let urlToUpload = JSON.parse(response);
+                   if(urlToUpload.status=="Expired Token")
+                   {
+                       alert("Your token expired! Please Login again in home page!");
+                   }
                    urlToUpload = urlToUpload.response;
                    let last_range = 0;
                    while(currentFileSize - sizeOfDataSent > maxUploadSize){
@@ -504,9 +535,9 @@ async function responseForDownloadcontent(filename){
  document.getElementById('download_button').addEventListener('click',getFile,false);
  document.getElementById('delete_button').addEventListener('click',deleteFile,false);
  document.getElementById('create_folder_button').addEventListener('click',createFolder,false);
- document.getElementById('move_button').addEventListener('click',moveFolder,false);
  document.getElementById('rename_button').addEventListener('click',renameFolder,false);
  document.getElementById('upload_button').addEventListener('click',uploadFile,false);
+ document.getElementById('go_back_button').addEventListener('click',goBack_,false);
  getDirectory("/drive/root",finished);
 
  //getDirectory("/drive/root:/Documents",finished);
