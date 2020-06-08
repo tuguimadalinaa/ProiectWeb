@@ -57,20 +57,8 @@ async function waitForResponse(reason,drive) {
 }
 
 async function uploadOneDrive(){
-    var urlParams = new URLSearchParams(window.location.search);
-    if(urlParams.get('code')!=null){
-        if(confirm("Upload directory?")){
-            
-            changeStatusOneDriveDirectoryUpload();
-        }
-        else{
-            changeStatusOneDrive();
-        }
-    }else{
-        
-        response = await waitForResponse('Code','OneDrive');
-        location.assign(response);
-    }
+    response = await waitForResponse('Code','OneDrive');
+    location.assign(response);
   
 }
 async function uploadGoogleDrive(){
@@ -95,12 +83,12 @@ function openMenu()
 {
     document.getElementById("shownMenu").removeAttribute("hidden");
     document.getElementById("shownMenu").style.width = "250px";
-    document.getElementById("sideMenu").style.marginLeft = "250px";
+    document.getElementsByClassName("sideMenu")[0].style.marginLeft = "0";
 }
 function closeMenu()
 {
     document.getElementById("shownMenu").style.width = "0";
-    document.getElementById("sideMenu").style.marginLeft= "0";
+    document.getElementsByClassName("sideMenu")[0].style.marginLeft = "0";;
 }
 function logOutUser(){
     let xhr = new XMLHttpRequest();
@@ -154,39 +142,26 @@ async function responseForFileTransfer(fileData, fileName,fileSize){
     let result = await makeRequestForFileTransfer(fileData,fileName,fileSize);
     return result;
 }
-async function makeRequestForUploadSessionStart(fileName)
-{
+function makeRequestForUploadingSmallItemAPI(file){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        xhr.open('POST', 'uploadLargeStart?fileTransfName='+fileName, true);
+        fileArgs = JSON.stringify({ name: file.name });
+        xhr.open('POST', 'APIuploadFinish', true);
+        xhr.setRequestHeader('File-Args',fileArgs);
         xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
             }
         };
-        xhr.send();
+        xhr.send(file);
     });
 }
-function makeRequestForUploadSessionAppend(fileSlice,sizeOfDataSent,cursorId,urlToAppend,currentFileSize,last_range){
+function makeRequestForUploadSessionStartAPI(fileSlice,fileName){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        sessionArgs = JSON.stringify({ offset: sizeOfDataSent, cursorId: cursorId, url:urlToAppend,totalSize:currentFileSize,lastRange:last_range});
-        xhr.open('POST', 'uploadLargeFileAppend', true);
-        xhr.setRequestHeader('Session-Args',sessionArgs);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-                resolve(xhr.response);
-            }
-        };
-        xhr.send(fileSlice);
-    });
-}
-function makeRequestForUploadSessionFinish(fileSlice,sizeOfDataSent,cursorId,urlToAppend,currentFileSize,last_range){
-    return new Promise(function (resolve) {
-        let xhr = new XMLHttpRequest();
-        sessionArgs = JSON.stringify({ offset: sizeOfDataSent, cursorId: cursorId, url:urlToAppend,totalSize:currentFileSize,lastRange:last_range});
-        xhr.open('POST', 'uploadLargeFileFinish', true);
-        xhr.setRequestHeader('Session-Args',sessionArgs);
+        fileArgs = JSON.stringify({ name: fileName });
+        xhr.open('POST', 'APIuploadStart', true);
+        xhr.setRequestHeader('File-Args',fileArgs);
         xhr.onreadystatechange = function () {
             if (xhr.readyState == XMLHttpRequest.DONE) {
                 resolve(xhr.response);
@@ -195,71 +170,143 @@ function makeRequestForUploadSessionFinish(fileSlice,sizeOfDataSent,cursorId,url
         xhr.send(fileSlice);
     });
 }
-/*document.getElementById("fileOneDrive").addEventListener("change", async function(){
-    if(this.files && this.files[0])
-    {
-        let files = this.files;
-        let numberOfFilesToUpload = files.length;
-        let i = 0;
-        let maxUploadSize = 1048576 * 4; // aprox 40 MB
-        while(i < numberOfFilesToUpload){
-            currentFileSize = files[i].size;
-            currentFile = files[i];
-            console.log(currentFile.name);
-            if(currentFileSize < maxUploadSize){
-                response =  await responseForFileTransfer(currentFile,currentFile.name,currentFileSize);
-                console.log(response);
+function makeRequestForUploadSessionAppendAPI(fileSlice,fileName){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        fileArgs = JSON.stringify({ name: fileName });
+        xhr.open('POST', 'APIuploadAppend', true);
+        xhr.setRequestHeader('File-Args',fileArgs);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(fileSlice);
+    });
+}
+function makeRequestForUploadSessionFinishAPI(fileSlice,fileName){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        fileArgs = JSON.stringify({ name: fileName });
+        xhr.open('POST', 'APIuploadFinish', true);
+        xhr.setRequestHeader('File-Args',fileArgs);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(fileSlice);
+    });
+}
+async function prepareUpload(files){
+    let numberOfFilesToUpload = files.files.length;
+    let i = 0;
+    let maxUploadSize = 1048576 * 40; // aprox 40 MB
+    while(i < numberOfFilesToUpload){
+       currentFileSize = files.files[i].size;
+       currentFile = files.files[i];
+       if(currentFileSize < maxUploadSize){
+           response =  await makeRequestForUploadingSmallItemAPI(currentFile);
+           console.log(response);
        } else {
            let sizeOfDataSent = 0;
            let uploadSessionStarted = 0;
            let cursorId = 0;
-           currentFile = files[i];
-           response = await makeRequestForUploadSessionStart(currentFile.name);
-           console.log(response);
-           let urlToUpload = JSON.parse(response);
-           urlToUpload = urlToUpload.response;
-           let last_range = 0;
            while(currentFileSize - sizeOfDataSent > maxUploadSize){
-                    last_range = sizeOfDataSent;
+               if(uploadSessionStarted == 0){
                    fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
-                   response = await makeRequestForUploadSessionAppend(fileSliceToSend,sizeOfDataSent + maxUploadSize,cursorId,urlToUpload,currentFileSize,last_range);
-                    sizeOfDataSent = sizeOfDataSent + maxUploadSize;
+                   response = await makeRequestForUploadSessionStartAPI(fileSliceToSend,currentFile.name);
+                   uploadSessionStarted = 1;
+               } else {
+                   fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
+                   response = await makeRequestForUploadSessionAppendAPI(fileSliceToSend,currentFile.name);
+               }
+               sizeOfDataSent = sizeOfDataSent + maxUploadSize;
            }
-           if((currentFileSize - sizeOfDataSent) < maxUploadSize){
-                last_range = sizeOfDataSent;
-                fileSliceToSend = currentFile.slice(sizeOfDataSent,currentFileSize,currentFile);
-                response = await makeRequestForUploadSessionFinish(fileSliceToSend,sizeOfDataSent,cursorId,urlToUpload,currentFileSize,last_range);
-              alert(response);
+           if(currentFileSize - sizeOfDataSent < maxUploadSize){
+              fileSliceToSend = currentFile.slice(sizeOfDataSent,currentFileSize,currentFile);
+              response = await makeRequestForUploadSessionFinishAPI(fileSliceToSend,currentFile.name);
+              console.log(response);
            }
        }
        i++;
     }
-   // return response;
+    return response;
 }
-});
- document.getElementById('directoryOneDrive').addEventListener("change", function(){
-    if (this.files && this.files[0]) {
-        for (var i = 0; i < this.files.length; i++) {
-            var myFile = this.files[i];
-            var reader = new FileReader();
-            reader.addEventListener('load',  async function (e) {
-                var arrayBuffer = this.result,
-                array = new Uint8Array(arrayBuffer),
-                binaryString = String.fromCharCode(array);
-                let result   = await responseForFileTransfer(binaryString, e.target.fileName);
-                console.log(result);
+function makeRequestForUploadSessionStartAPI(fileSlice,fileName){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        fileArgs = JSON.stringify({ name: fileName });
+        xhr.open('POST', 'APIuploadStart', true);
+        xhr.setRequestHeader('File-Args',fileArgs);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(fileSlice);
+    });
+}
+
+function makeRequestForUploadSessionAppendAPI(fileSlice,fileName){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        fileArgs = JSON.stringify({ name: fileName });
+        xhr.open('POST', 'APIuploadAppend', true);
+        xhr.setRequestHeader('File-Args',fileArgs);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(fileSlice);
+    });
+}
+function makeRequestForUploadSessionFinishAPI(fileSlice,fileName){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        fileArgs = JSON.stringify({ name: fileName });
+        xhr.open('POST', 'APIuploadFinish', true);
+        xhr.setRequestHeader('File-Args',fileArgs);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(fileSlice);
+    });
+}
+
+var upload = async function (){
+    input = document.getElementById('allCloudMethods');
+    uploadFile = window.confirm('Upload a file?');
+    if(uploadFile == true ){
+        htmlString = '<input type="file" id="uploadFile" multiple size="50" style="display: none;"/>';
+        if(document.getElementById('uploadFile') == null){
+            input.insertAdjacentHTML('afterend',htmlString);
+            document.getElementById('uploadFile').addEventListener("change",async function(){
+                files = document.getElementById('uploadFile');
+                response = await prepareUpload(files);
+                alert(response);
             });
-            reader.fileName = myFile.name;
-            reader.readAsArrayBuffer(myFile);
         }
-      }    
- });*/
- checkUrl();
-//https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_fileupload_files
-//https://stackoverflow.com/questions/16210231/how-can-i-upload-a-new-file-on-click-of-image-button
-//https://codepen.io/monjer/pen/JKRLzM
-/*https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944 */
-/*https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file */
-/*https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944 */
-/*http://jsfiddle.net/SYwuP/*/
-/*https://stackoverflow.com/questions/14438187/javascript-filereader-parsing-long-file-in-chunks*/
+        item = document.getElementById('uploadFile');
+    } else { 
+        htmlString = '<input type="file" id="uploadFolder" multiple size="50" style="display: none;" webkitdirectory directory/>';
+        if(document.getElementById('uploadFolder') == null){
+            input.insertAdjacentHTML('afterend',htmlString);
+            document.getElementById('uploadFolder').addEventListener("change",async function(){
+                folder = document.getElementById('uploadFolder').value;
+                alert(folder);
+            });
+        }
+        item = document.getElementById('uploadFolder');
+    }
+    item.click();
+}
+var download = async function(){
+    alert("Hello");
+}
+document.getElementById("allCloudMethods").addEventListener('click',upload,false);
+document.getElementById("allCloudMethodsDownload").addEventListener('click',download,false);
+checkUrl();

@@ -94,7 +94,6 @@
             $limit=$responseDecoded['storageQuota']['limit'];
             $usage=$responseDecoded['storageQuota']['usage'];
             return $limit-$usage;
-            //return $responseDecoded['storageQuota']['limit']-$responseDecoded['storageQuota']['usage'];
         }
         public static function obtainUriForResumable($fileName,$parent)
         {

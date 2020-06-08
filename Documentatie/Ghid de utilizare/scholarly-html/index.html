@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Scholarly HTML</title>
+    <link rel="stylesheet" href="css/scholarly.min.css">
+    <script src="js/scholarly.min.js"></script>
+  </head>
+  <body prefix="schema: http://schema.org">
+    <header>
+      <div class="banner">
+        <img src="scholarly-html.svg" width="227" height="50" alt="Scholarly HTML logo">
+        <div class="status">Community Draft</div>
+      </div>
+      <h1>Scholarly HTML</h1>
+    </header>
+
+    <div role="contentinfo">
+      <dl>
+        <dt>Authors</dt>
+        <dd>
+          Tugui Ioana Madalina<br>
+          Frentz Robert<br>
+          Cazan Alex Gabriel<br>
+        </dd>
+      </dl>
+    </div>
+    <section typeof="sa:Abstract" id="abstract" role="doc-abstract">
+      <h2>Abstract</h2>
+      <p>
+        STOL este un API care pune la dispozitia clientilor posibilitatea de gestiona resurse de pe OneDrive, GoogleDrive si DropBox.
+      </p>
+    </section>
+    <section id="introduction" role="doc-introduction">
+      <h2>Introducere</h2>
+      <p>
+        STOL este una din aplicatiile care vine in ajutorul oricui prin imbinarea mai multor servicii cloud in unul singur.
+		
+      </p>
+      <p>
+        Scopurile acestei aplicatii web sunt:
+      </p>
+      <ul>
+        <li>Folosirea unei singure aplicatii pentru utilizarea mai multor servicii cloud.</li>
+        <li>O buna gestionare a memoriei in toate cele 3 drivere.</li>
+        <li>Fragmentarea si recompunerea fisierelor in functie de spatiul disponibil.</li>
+      </ul>
+    </section>
+    -<section id="ghid">
+      <h2>Ghid de utilizare</h2>
+      <section id="register">
+        <h2>Register</h2>
+        <p>Pentru a te inregistra se poate apasa pe butonul de signUp din ruta de login. Userul va fi redirectat catre o pagina de SignUp</p>
+        <p>Conditiile pentru a crea un cont valid sunt: </p>
+        <ul>
+          <li>Un username care nu e deja existent</li>
+          <li>Userul trebuie sa fie sub format e-mail</li>
+          <li>O parola mai mare de 5 caractere</li>
+        </ul>
+        <p>Dupa inregistrare userul este nevoit sa se logheze cu noul cont</p>
+      </section>
+      <section id="login">
+        <h2>Login</h2>
+        <p>Logarea se face pe baza unui user deja existent si cu o parola valida.</p>
+        <p>O data logat userului i se vor atribui mai multe Cookie-uri:</p>
+        <ul>
+          <li>Primul va fi un JWT cu datele sale necesare.</li>
+          <li>Cate un Cookie pentru fiecare drive</li>
+        </ul>
+      </section>
+     <section id="home"> 
+        <h2>Home</h2>
+        <p>Pagina de Home este pagina de pe care userul se poate loga catre driverele la care vrea sa aiba access.</p>
+        <p>Spre exemplu, pentru a putea avea acces la un drive, clientul trebuie sa:</p>
+        <ul>
+          <li>Dea click pe una din cele 3 iconite</li>
+          <li>Va fi directat pe o pagina de logare</li>
+          <li>Userul trebuie sa se logheze cu un cont valid pentru acele API-uri(daca userul are cont de gmail: user@gmail.com, acesta va fi introdus si in link-ul de logare de la Google Drive spre exemplu)
+          </li>
+          <li>Daca logarea s-a produs cu success, userul va fi redirectat pe pagina de Home STOL.</li>
+        </ul>
+      </section>
+      <section id="about">
+        <h2>About</h2>
+        <p>About este o pagina utilizata pentru a putea intelege, inclusiv din interfata, cum ar trebui utilizat API-ul STOL.</p>
+      </section>
+      <section id="fisiere">
+        <h2>DropBox &amp; OneDrive &amp; GoogleDrive</h2>
+        <p>Aici se gasesc paginile care au functionalitatile pentru fisiere</p>
+        <p>In partea de jos se pot gasi mai multe butoane. Pentru mai multe butoane vizibile se poate da scroll</p>
+        <p>Pentru a naviga intre fisiere trebuie dat dubluc click</p>
+        <p>In cazul in care se da doar click, acel fisier va fi setat ca si selectat. O data ce un fisier selectat se poate da click pe unul din butoanele care implica gestionarea unui fisier existent(cum ar fi delete, move, etc)</p>
+        <p>Upload nu are nevoie de selectarea unui fisier deja existent. Dand click pe upload se vor urca fisierele in path-ul curent.</p>
+        <p>Pentru a naviga inapoi in pagina anterioara se va da click pe butonul de goBack</p>
+      </section>
+      <section id="logout">
+        <h2>LogOut</h2>
+        <p>LogOut va deloga userul si ii va sterge cookie-urile.</p>
+      </section>
+    </section>
+  </body>
+</html>

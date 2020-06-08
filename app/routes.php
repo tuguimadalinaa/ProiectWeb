@@ -131,36 +131,43 @@ Route::set('GoogleDrive_files',function(){
 
 Route::set('logOut',function(){
     //Login::EndSession();
-    Login::Cookie("loggedIn","JWToken",[
-        'expires' => time() - 3600,
-        'path' => '/',
-        'secure' => false,
-        'httponly' => true,
-        'samesite' => 'Lax',
-    ]);
-    Login::Cookie("Dropbox","root",[
-        'expires' => time() - 3600,
-        'path' => '/',
-        'secure' => false,
-        'httponly' => true,
-        'samesite' => 'Strict',
-    ]);
-    Login::Cookie("GoogleDrive","root",[
-        'expires' => time() - 3600,
-        'path' => '/',
-        'secure' => false,
-        'httponly' => true,
-        'samesite' => 'Strict',
-    ]);
-    Login::Cookie("OneDrive","/drive/root:/Documents",[
-        'expires' => time() -3600,
-        'path' => '/',
-        'secure' => false,
-        'httponly' => true,
-        'samesite' => 'Strict',
-    ]);
-    header('Location: login');
-    echo 'Logout';
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+        $username = (Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        Login::getModel()->userLogOut($username);
+        Login::Cookie("loggedIn","JWToken",[
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+        Login::Cookie("Dropbox","root",[
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+        Login::Cookie("GoogleDrive","root",[
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+        Login::Cookie("OneDrive","/drive/root:/Documents",[
+            'expires' => time() -3600,
+            'path' => '/',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+        Login::CreateView('login');
+        echo 'Logout';
+    } else {
+        echo 'Invalid JWT';
+    }
 });
 Route::set('getCode', function(){
     $response_jwt_validation = Login::validateJwtCookie();
@@ -207,6 +214,7 @@ Route::set('getToken',function(){
        header('Location: logOut');
     } 
 });
+
 
 /* --------------------------------------------- GoogleDrive --------------------------------------------- */
 
@@ -1128,7 +1136,7 @@ Route::set('uploadLargeFileFinish',function(){
 Route::set('contentDownload',function(){
     echo OneDrive::contentDownload($_REQUEST['fileNameTransf']);
 });
-//https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php
+//
 
 /* ---------------------------------------- API routes general ---------------------------------------- */
 
@@ -1431,13 +1439,13 @@ Route::set('APIuploadAppend',function(){
                 $username=(Controller::getAuth()->jwtDecode($jwt))->username;
                 $file_name_custom = $username . $file_name;
                 $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
-                echo 'Tuto bene header';
+                //echo 'Tuto bene header';
             } else {
                 $requestBody = file_get_contents('php://input');
                 $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
                 $file_name_custom = $username . $file_name;
                 $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
-                echo 'Tuto bene cookie';
+               // echo 'Tuto bene cookie';
             }
         } else {
             http_response_code(400);
@@ -1496,11 +1504,18 @@ Route::set('APIuploadFinish',function(){
                 $file_name_custom = $username . $file_name;
                 $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
             }
-            $response = Controller::fileFragmentationDEMO($file_name_custom,$username);
-            http_response_code(200);
-            $response = array("response" => "File ${file_name} uploaded","googledrive_id" => "${response}");
-            header('Content-Type: application/json');
-            echo json_encode($response);
+            $response = Controller::fileFragmentation($file_name_custom,$username);
+            if($response != 'No space for upload'){
+                http_response_code(200);
+                $response = array("response" => "File ${file_name} uploaded","googledrive_id" => "${response}");
+                header('Content-Type: application/json');
+                echo json_encode($response);
+            } else {
+                http_response_code(507);
+                $error = array("error" => "No space left for this file");
+                header('Content-Type: application/json');
+                echo json_encode($error);
+            }
         } else {
             http_response_code(400);
             $error = array("error" => "Header File-Args invalid");
@@ -1706,7 +1721,118 @@ Route::set('APIdownloadFile',function(){
 
 /* ---------------------------------------- API routes Dropbox ---------------------------------------- */
 
-Route::set('getStorageDropbox',function(){
+Route::set('getTotalRemainingSpace',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach ($headers as $header => $value) {
+            if($header == 'Auth'){
+                $jwt = $value;
+                break;
+            }
+        }
+        $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+        $remaining_space_google = GoogleDrive::getStorageQuota($username);
+        $remaining_space_dropbox = Dropbox::getStorage($username);
+        $remaining_space_onedrive = OneDrive::getStorage($username);
+        $remaining_space_total = $remaining_space_dropbox + $remaining_space_google + $remaining_space_onedrive;
+        http_response_code(200);
+        $responseJson = array("space_left" => "${remaining_space_total}");
+        header('Content-Type: application/json');
+        echo json_encode($responseJson);
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('getRemainingSpaceGoogleDrive',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach ($headers as $header => $value) {
+            if($header == 'Auth'){
+                $jwt = $value;
+                break;
+            }
+        }
+        $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+        $remaining_space = GoogleDrive::getStorageQuota($username);
+        http_response_code(200);
+        $responseJson = array("space_left" => "${remaining_space}");
+        header('Content-Type: application/json');
+        echo json_encode($responseJson);
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('getRemainingSpaceOneDrive',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach ($headers as $header => $value) {
+            if($header == 'Auth'){
+                $jwt = $value;
+                break;
+            }
+        }
+        $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+        $remaining_space = OneDrive::getStorage($username);
+        http_response_code(200);
+        $responseJson = array("space_left" => "${remaining_space}");
+        header('Content-Type: application/json');
+        echo json_encode($responseJson);
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('getRemainingSpaceDropbox',function(){
     $headers = apache_request_headers();
     $responseJWTheader = Login::validateJwtRequest($headers);
     $responseJWTcookie = Login::validateJwtCookie();
@@ -1741,5 +1867,441 @@ Route::set('getStorageDropbox',function(){
         echo json_encode($error);
     }
 });
+
+/* --------------------------------------------- Admin API Routes -------------------------------------------- */
+
+Route::set('adminGetNumberOfLoggedUsers',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach($headers as $header => $value){
+            if($header == 'Auth'){
+                $jwt = $value;
+            }
+        }
+        if($jwt != null){
+            $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+        } else {
+            $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        }
+        $response = Controller::getModel()->adminGetNumberOfUsersLogged($username);
+        if($response != 'Forbidden Access'){
+            http_response_code(200);
+            $response = array("number_of_logged_users" => "${response}");
+            header('Content-Type: application/json');
+            echo json_encode($response);
+        } else {
+            http_response_code(401);
+            $error = array("error" => "${response}");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('adminGetLoggedUsers',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach($headers as $header => $value){
+            if($header == 'Auth'){
+                $jwt = $value;
+            }
+        }
+        if($jwt != null){
+            $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+        } else {
+            $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        }
+        $response = Controller::getModel()->adminGetLoggedUsers($username);
+        if($response != 'Forbidden Access'){
+            http_response_code(200);
+            $responseArray = json_encode($response);
+            $response = array("users" => "${responseArray}");
+            header('Content-Type: application/json');
+            echo json_encode($response);
+        } else {
+            http_response_code(401);
+            $error = array("error" => "${response}");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('adminDeleteUser',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach($headers as $header => $value){
+            if($header == 'Auth'){
+                $jwt = $value;
+            }
+        }
+        $requestBody = json_decode(file_get_contents('php://input'),true);
+        if($requestBody != null){
+            if($requestBody['username_to_delete'] != null){
+                $username_to_delete = $requestBody['username_to_delete'];
+                if($jwt != null){
+                    $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+                } else {
+                    $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+                }
+                $response = Controller::getModel()->adminDeleteUser($username,$username_to_delete);
+                if($response == "User deleted"){
+                    http_response_code(200);
+                    $response = array("response" => "${response}");
+                    header('Content-Type: application/json');
+                    echo json_encode($response);
+                } else {
+                    http_response_code(400);
+                    $error = array("error" => "${response}");
+                    header('Content-Type: application/json');
+                    echo json_encode($error);
+                }
+            } else {
+                http_response_code(400);
+                $error = array("error" => "Missing username_to_delete field value");
+                header('Content-Type: application/json');
+                echo json_encode($error);
+            }
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Missing or malformed body");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+        
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('adminEditUser',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach($headers as $header => $value){
+            if($header == 'Auth'){
+                $jwt = $value;
+            }
+        }
+        $requestBody = json_decode(file_get_contents('php://input'),true);
+        if($requestBody != null){
+            if($requestBody['username'] != null && $requestBody['new_username'] != null && $requestBody['password'] != null && $requestBody['logged'] != null && $requestBody['OneDrive_access_token'] != null && $requestBody['Dropbox_access_token'] != null && $requestBody['GoogleDrive_access_token'] != null && $requestBody['registration_date'] != null && $requestBody['last_logged_in'] != null ){
+                    if($jwt != null){
+                        $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+                    } else {
+                        $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+                    }
+                    $response = Controller::getModel()->adminEditUser($username,$requestBody);
+                    if($response == 'User added'){
+                        http_response_code(200);
+                        $response = array("response" => "${response}");
+                        header('Content-Type: application/json');
+                        echo json_encode($response);
+                    } else {
+                        http_response_code(400);
+                        $error = array("error" => "${response}");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    }
+            } else {
+                http_response_code(400);
+                $error = array("error" => "Missing some body fields");
+                header('Content-Type: application/json');
+                echo json_encode($error);
+            }
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Missing or malformed body");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+        
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('adminAddUser',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach($headers as $header => $value){
+            if($header == 'Auth'){
+                $jwt = $value;
+            }
+        }
+        $requestBody = json_decode(file_get_contents('php://input'),true);
+        if($requestBody != null){
+            if($requestBody['username'] != null && $requestBody['password'] != null){
+                    if($jwt != null){
+                        $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+                    } else {
+                        $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+                    }
+                    $response = Controller::getModel()->adminAddUser($username,$requestBody);
+                    if($response == 'User added'){
+                        http_response_code(200);
+                        $response = array("response" => "${response}");
+                        header('Content-Type: application/json');
+                        echo json_encode($response);
+                    } else {
+                        http_response_code(400);
+                        $error = array("error" => "${response}");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    }
+            } else {
+                http_response_code(400);
+                $error = array("error" => "Missing username or passowrd field value(or both)");
+                header('Content-Type: application/json');
+                echo json_encode($error);
+            }
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Missing or malformed body");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+        
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('adminImportDatabase',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    $api_args_value = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach($headers as $header => $value){
+            if($header == 'Auth'){
+                $jwt = $value;
+            }
+            if($header == 'Api-Args'){
+                $api_args_value = $value;
+            }
+        }
+        if($api_args_value != null){
+            if($api_args_value == "Append"){
+                $requestBody = file_get_contents('php://input');
+                $csv_imported_file = file_put_contents('database_imported.csv',$requestBody);
+                if($requestBody != null){
+                    if($jwt != null){
+                        $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+                    } else {
+                        $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+                    }
+                    $response = Controller::getModel()->importDataCSV($username,"Append");
+                    if($response == 'Data imported'){
+                        http_response_code(200);
+                        $responseArray = json_encode($response);
+                        $response = array("response" => "${response}");
+                        header('Content-Type: application/json');
+                        echo json_encode($response);
+                    } else {
+                        http_response_code(401);
+                        $error = array("error" => "${response}");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    }
+                } else {
+                    http_response_code(400);
+                    $error = array("error" => "Missing body data");
+                    header('Content-Type: application/json');
+                    echo json_encode($error);
+                }
+            } else if($api_args_value == "Overwrite"){
+                $requestBody = file_get_contents('php://input');
+                $csv_imported_file = file_put_contents('database_imported.csv',$requestBody);
+                if($requestBody != null){
+                    if($jwt != null){
+                        $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+                    } else {
+                        $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+                    }
+                    
+                    $response = Controller::getModel()->importDataCSV($username,"Overwrite");
+                    if($response == 'Data imported'){
+                        http_response_code(200);
+                        $responseArray = json_encode($response);
+                        $response = array("response" => "${responseArray}");
+                        header('Content-Type: application/json');
+                        echo json_encode($response);
+                    } else {
+                        http_response_code(401);
+                        $responseArray = json_encode($response);
+                        $error = array("error" => "${responseArray}");
+                        header('Content-Type: application/json');
+                        echo json_encode($error);
+                    }
+                } else {
+                    http_response_code(400);
+                    $error = array("error" => "Missing body data");
+                    header('Content-Type: application/json');
+                    echo json_encode($error);
+                }
+            } else {
+                http_response_code(400);
+                $error = array("error" => "Missing Api-Args value or invalid");
+                header('Content-Type: application/json');
+                echo json_encode($error);
+            } 
+        } else {
+            http_response_code(400);
+            $error = array("error" => "Missing Api-Args header ");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
+Route::set('adminExportDatabase',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach($headers as $header => $value){
+            if($header == 'Auth'){
+                $jwt = $value;
+            }
+        }
+        if($jwt != null){
+            $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+        } else {
+            $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+        }
+        $response = Controller::getModel()->exportDataCSV($username);
+        if($response == 'Data exported'){
+            $file_to_download = $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/database_exported.csv' ;
+            $file_name = basename($file_to_download);
+            header("Content-Type: text/csv");
+            header("Content-Disposition: attachment; filename=${file_name}");
+            header("Content-Length: " . filesize($file_to_download));
+            readfile($file_to_download);
+            //unlink($file_to_download);
+        } else {
+            http_response_code(401);
+            $error = array("error" => "${response}");
+            header('Content-Type: application/json');
+            echo json_encode($error);
+        }
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
 
 ?>

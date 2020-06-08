@@ -12,5 +12,4 @@ class SessionHandlerModel{
         session_destroy();
     }
 }
-//https://stackoverflow.com/questions/10648984/php-sessions-that-have-already-been-started
 ?>
