@@ -570,11 +570,11 @@ class OneDrive extends Controller{
 
     private static function createFileAPI($fileName,$access_token){
         $path ='';
+        $fileName = str_replace ( ' ', '%20', $fileName );
         $url = "https://graph.microsoft.com/v1.0/me/drive/root:/". $fileName . ':/createUploadSession';
         $data= json_encode(array('item'=>array(
             '@microsoft.graph.conflictBehavior'=>'rename')
         ));
-        $fileName = str_replace ( ' ', '%20', $fileName );
         $create_curl=curl_init();
         curl_setopt_array($create_curl,[
             CURLOPT_URL=>$url,//'https://graph.microsoft.com/v1.0/me/drive/root:/Documents/'.$fileName.':/createUploadSession',

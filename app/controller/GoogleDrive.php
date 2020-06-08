@@ -258,7 +258,7 @@
             $token = $json_token['access_token'];
             $metadata=self::getMetadata($fileId);
             $dataArray=json_decode($metadata,true);
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&acknowledgeAbuse=true";
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
@@ -291,7 +291,7 @@
             while($fileSize-$startData>=$maxDownloadSize)
             {
                 $range="${startData}" . "-" . "${endDataFixed}";
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&acknowledgeAbuse=true";
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
@@ -316,7 +316,7 @@
             {
                 $endDataFixed=$fileSize-1;
                 $range="${startData}" . "-" . "${endDataFixed}";
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&acknowledgeAbuse=true";
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
@@ -643,7 +643,7 @@ public static function APIGetToken($code,$jwt){
             $token = $json_token['access_token'];
             $metadata=self::getMetadataAPI($fileId,$username);
             $dataArray=json_decode($metadata,true);
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&acknowledgeAbuse=true";
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
@@ -673,7 +673,7 @@ public static function APIGetToken($code,$jwt){
             while($fileSize-$startData>=$maxDownloadSize)
             {
                 $range="${startData}" . "-" . "${endDataFixed}";
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&acknowledgeAbuse=true";
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
@@ -698,7 +698,7 @@ public static function APIGetToken($code,$jwt){
             {
                 $endDataFixed=$fileSize-1;
                 $range="${startData}" . "-" . "${endDataFixed}";
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&acknowledgeAbuse=true";
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
