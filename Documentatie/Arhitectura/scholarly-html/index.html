@@ -1,0 +1,236 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>STOL</title>
+    <link rel="stylesheet" href="css/scholarly.min.css">
+    <script src="js/scholarly.min.js"></script>
+  </head>
+  <body prefix="schema: http://schema.org">
+    <header>
+      <div class="banner">
+        <img src="scholarly-html.svg" width="227" height="50" alt="Scholarly HTML logo">
+        <div class="status">Community Draft</div>
+      </div>
+      <h1>STOL</h1>
+    </header>
+
+    <div role="contentinfo">
+      <dl>
+        <dt>Authors</dt>
+        <dd>
+          Tugui Ioana Madalina<br>
+          Frentz Robert<br>
+          Cazan Alex<br>
+        </dd>
+      </dl>
+    </div>
+    <section typeof="sa:Abstract" id="abstract" role="doc-abstract">
+      <h2>Abstract</h2>
+      <p>
+        STOL este un API care pune la dispozitia clientilor posibilitatea de gestiona resurse de pe OneDrive, GoogleDrive si DropBox.
+      </p>
+    </section>
+    <section id="introduction" role="doc-introduction">
+      <h2>Introducere</h2>
+      <p>
+        STOL este una din aplicatiile care vine in ajutorul oricui prin imbinarea mai multor servicii cloud in unul singur.
+		
+      </p>
+      <p>
+        Scopurile acestei aplicatii web sunt:
+      </p>
+      <ul>
+        <li>Folosirea unei singure aplicatii pentru utilizarea mai multor servicii cloud.</li>
+        <li>O buna gestionare a memoriei in toate cele 3 drivere.</li>
+        <li>Fragmentarea si recompunerea fisierelor in functie de spatiul disponibil.</li>
+      </ul>
+    </section>
+    <section id="structura">
+      <h2>Structura</h2>
+      <section id="tehnologii">
+        <h3>Tehnologia utilizata</h3>
+        <p>
+          Partea de Backend presupune cod PHP, deoarece este un limbaj usor si care pune la dispozitie multe functionalitati care nu necesita utilizarea suplimentara de Framework-uri.
+        </p>
+        <p>
+         Stocarea se foloseste de baza de date pusa la dispozitie de XAMPP, MySql.
+        </p>
+        <p>
+          Suplimentar, sunt utilizare serviciile puse la dispozitie de OneDrive, DropBox si GoogleDrive. Astfel, aplicatia foloseste API-urile acestor servicii pentru gestionarea live
+            a tuturor cerintelor.
+        </p>
+      </section>
+      <section id="Architectura">
+        <h3><code>Arhitectura</code></h3>
+        <p>
+          <b>MVC:</b>
+        </p>
+		<a href="img/MVC.png"><img style="width: 70%;" src="img/MVC.png" alt="MVC SCHEMA"/></a>
+		<p>
+    <b>Baza de date:</b>
+    </p>
+    <a href="img/DB.png"><img style="width: 70%;" src="img/DB.png" alt="DataBase"/></a>
+
+      </section>
+        <h3>Diagrame</h3>
+        <section id="useCase">
+          <h3>Use Case:</h3>
+          <a href="img/USECase.png"><img style="width: 80%;" src="img/USECase.png" alt="Class"/></a>
+        </section>
+
+        <section id="UMLdiagram">
+          <h3>UML Diagram</h3>
+          <a href="img/Clase.png"><img style="width: 80%;" src="img/Clase.png" alt="Class"/></a>
+        </section>
+      </section>
+		<section id="steps">
+          <h3>Steps:</h3>
+          <section id="step1">
+            <h3>Crearea unei interfete:</h3>
+            <ul>
+              <li>
+                Am inceput prin a realiza o interfata cat mai user-friendly. Pentru inceput am facut paginile de start, login si sign up pentru care am implementat in js o simulare de logare.
+
+              </li>
+              <li>
+                Apoi am ales sa ne ocupam de partea de interfata la nivel de client logat. Aici am creat un menu prin care utilizatorul are access la toate functionalitatile oferite de STOL.
+              </li>
+              <li>
+                Pentru pargina principala avem 3 butoane, fiecare generand un cod de access pentru accesarea de resurse, dar si pt a avea posibilitatea de a face orice operatie pe fisiere.
+              </li>
+            </ul>
+          </section>
+          <section id="step2">
+            <h3>Crearea de server:</h3>
+            <ul>
+              <li>
+                Pentru partea de server am folosit arhitectura MVC. Am facut rutare si astfel fiecare request va fi gestionat de catre o ruta diferita pentru o mai buna modularizare.
+              </li>
+              <li>
+                Fiecare request va ajunge intr-o ruta principala de index, care mai apoi va gestiona requestul si il va trimite mai departe.
+              </li>
+              <li>
+                Fiecare request este gestionat de un controller separat, care are cate o functionalitate diferita.
+              </li>
+            </ul>
+          </section>
+          <section id="step3">
+            <h3>Accesarea drepturilor pt fiecare drive:</h3>
+            <ul>
+              <li>
+                Pentru fiecare drive am folosit API-urile puse la dispozitie.
+              </li>
+              <li>
+                Primul pas a fost sa gestionam accesul. Astfel fiecare drive trebuie sa obtina un cod de access valid si sa fie transmis mereu in fiecare request.
+              </li>
+            </ul>
+          </section>
+          <section id="step4">
+            <h3>Gestionarea de fisiere:</h3>
+            <ul>
+              <li>
+                La nivel de interfata s-a creat cate o pagina pt fiecare drive in care userul isi poate accesa si manageria resursele.
+              </li>
+              <li>
+                La nivel de backend s-a creat un controller pentru fiecare drive. Controllerul acopera toate operatiile de baza care pot fi facute asupra fisierelor.
+              </li>
+            </ul>
+          </section>
+          <section id="step5">
+            <h3>Crearea de rute speciale pentru API</h3>
+            <ul>
+              <li>
+                Pentru a putea gestiona accesul am creat rute speciale ce returneaza anumite credentiale (ex. jwt).
+              </li>
+            </ul>
+          </section>
+          <section id="step6">
+            <h3>Urcarea fragmentata de fisiere:</h3>
+            <ul>
+              <li>
+                Am pus la dispozitie posibilitatea de a urca fragmentat pe toate driverele un fisier.
+              </li>
+              <li>
+                Astfel daca un drive nu mai are memorie destula pentru un fisier, fisierul se va imparti pe bucati si va fi trimis catre alt drive.
+              </li>
+            </ul>
+          </section>
+        </section>
+        <section id="inspiration">
+          <h3>Link-uri:</h3>
+          <ul>
+            <li>
+              <a href="https://github.com/w3c/scholarly-html?fbclid=IwAR1XR3RV6cTc-1l1UzqSQfZKPwnpSRlQ8AriygKamPdroT_0rgpHtW1stwQ" target="_blank">https://github.com/w3c/scholarly-html?fbclid=IwAR1XR3RV6cTc-1l1UzqSQfZKPwnpSRlQ8AriygKamPdroT_0rgpHtW1stwQ</a> 
+            </li>
+            <li>
+              <a href="https://www.youtube.com/watch?v=DpbUqJcch0Y" target="_blank">https://www.youtube.com/watch?v=DpbUqJcch0Y</a>
+            </li>
+            <li>
+              <a href="https://www.youtube.com/watch?v=04aTM01Y3uQ&t=1s" target="_blank">https://www.youtube.com/watch?v=04aTM01Y3uQ&t=1s</a>
+            </li>
+            <li>
+              <a href="https://www.youtube.com/watch?v=aUvfzHHTKJU" target="_blank">https://www.youtube.com/watch?v=aUvfzHHTKJU</a>
+            </li>
+            <li>
+              <a href="https://www.youtube.com/watch?v=5Ilp18Z-WDI" target="_blank"> https://www.youtube.com/watch?v=5Ilp18Z-WDI</a>
+            </li>
+            <li>
+              <a href="https://stackoverflow.com/questions/10648984/php-sessions-that-have-already-been-started" target="_blank">https://stackoverflow.com/questions/10648984/php-sessions-that-have-already-been-started</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php">https://stackoverflow.com/questions/8945879/how-to-get-body-of-a-post-in-php</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://stackoverflow.com/questions/7282236/placing-an-image-to-the-top-right-corner-css"> https://stackoverflow.com/questions/7282236/placing-an-image-to-the-top-right-corner-css</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://stackoverflow.com/questions/20902400/how-to-make-custom-css-button-responsive/20902500">https://stackoverflow.com/questions/20902400/how-to-make-custom-css-button-responsive/20902500</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://stackoverflow.com/questions/10671174/changing-button-text-onclick">https://stackoverflow.com/questions/10671174/changing-button-text-onclick</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://stackoverflow.com/questions/34796085/how-to-stick-footer-to-bottom-not-fixed-even-with-scrolling/52432110">https://stackoverflow.com/questions/34796085/how-to-stick-footer-to-bottom-not-fixed-even-with-scrolling/52432110</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_fileupload_files">https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_fileupload_files</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://stackoverflow.com/questions/16210231/how-can-i-upload-a-new-file-on-click-of-image-button">https://stackoverflow.com/questions/16210231/how-can-i-upload-a-new-file-on-click-of-image-button</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://codepen.io/monjer/pen/JKRLzM">https://codepen.io/monjer/pen/JKRLzM</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944">https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file ">https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file </a>
+            </li>
+            <li>
+              <a target="_blank" href="https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944">https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944</a>
+            </li>
+            <li>
+              <a target="_blank" href="http://jsfiddle.net/SYwuP/">http://jsfiddle.net/SYwuP/</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://stackoverflow.com/questions/14438187/javascript-filereader-parsing-long-file-in-chunks">https://stackoverflow.com/questions/14438187/javascript-filereader-parsing-long-file-in-chunks</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://stackoverflow.com/questions/48327559/save-async-await-response-on-a-variable">https://stackoverflow.com/questions/48327559/save-async-await-response-on-a-variable</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://dev.to/shoupn/javascript-fetch-api-and-using-asyncawait-47mp">https://dev.to/shoupn/javascript-fetch-api-and-using-asyncawait-47mp</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://stackoverflow.com/questions/48969495/in-javascript-how-do-i-should-i-use-async-await-with-xmlhttprequest">https://stackoverflow.com/questions/48969495/in-javascript-how-do-i-should-i-use-async-await-with-xmlhttprequest</a>
+            </li>
+            <li>
+              <a target="_blank" href="https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_arrows">https://www.w3schools.com/howto/tryit.asp?filename=tryhow_css_arrows</a>
+            </li>
+          </ul>
+        </section>
+  </body>
+</html>
