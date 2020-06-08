@@ -218,10 +218,10 @@ async function responseCreateFolder(fileName,path) {
     var folderName = window.prompt('Folder name here');
     if(folderName!=null)
     {
-        /*var elements = document.getElementsByClassName('folder');
+        var elements = document.getElementsByClassName('folder');
         let path  = elements[0].id.split(elements[0].id.match('[\\/][A-za-z]+[\\s]*[\\(]*[0-9]*[\\)]*[\\.]+[a-zA-z]+'));
-        let pathWithoutComa  = path[0].split(',');*/
-        let result = await responseCreateFolder(folderName,"drive/root:/Documents");//pathWithoutCom
+        let pathWithoutComa  = path[0].split(',');
+        let result = await responseCreateFolder(folderName,pathWithoutComa);//pathWithoutCom
         let response = JSON.parse(result);
         if(response.status=='401'){
             alert("Error at creating Folder " + folderName);
