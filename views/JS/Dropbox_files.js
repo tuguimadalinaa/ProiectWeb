@@ -243,6 +243,12 @@ async function waitForResponse(reason,itemId,extraParameter) {
      } else if(reason == 'moveItem'){
         let result = makeRequestForMovingItem(itemId);
         return result;
+     } else if(reason == 'downloadFile'){
+        let result = makeRequestForDownloadFile(itemId);
+        return result;
+     } else if(reason == 'downloadFolder'){
+        let result = makeRequestForDownloadFolder(itemId);
+        return result;
      }
 }
 
@@ -325,18 +331,8 @@ async function upload(){
             });
         }
         item = document.getElementById('uploadFile');
-    } else { 
-        htmlString = '<input type="file" id="uploadFolder" multiple size="50" style="display: none;" webkitdirectory directory/>';
-        if(document.getElementById('uploadFolder') == null){
-            input.insertAdjacentHTML('afterend',htmlString);
-            document.getElementById('uploadFolder').addEventListener("change",async function(){
-                folder = document.getElementById('uploadFolder').value;
-                alert(folder);
-            });
-        }
-        item = document.getElementById('uploadFolder');
-    }
-    item.click();
+        item.click();
+    } 
 }
 
 
@@ -386,14 +382,55 @@ async function goBackToPreviousFolder(){
     location.reload();
 }
 
+function makeRequestForDownloadFile(itemId){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', 'downloadFileDropbox?file_id='+itemId, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+
+
+function makeRequestForDownloadFolder(itemId){
+    var request = new XMLHttpRequest();
+    request.open('POST', 'downloadFolderDropbox?folder_id='+itemId, true);
+    request.responseType = 'blob';
+    request.onload = function() {
+      if(request.status === 200) {
+        disposition = request.getResponseHeader('Content-Disposition');
+        aux = disposition.indexOf("filename");
+        filename = disposition.substr(aux + 9);
+
+        // The actual download
+        var blob = new Blob([request.response], { type: 'application/zip' });
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    };
+    request.send();
+}
+
+
 async function downloadItem(){
     if(clickedItemId != 0){
         item = document.getElementById(clickedItemId);
         typeOfItem = item.getAttribute('alt');
         if(typeOfItem == 'folderIcon'){
-            window.location = 'downloadFolderDropbox?folder_id=' + clickedItemId;
+            response = await waitForResponse('downloadFolder',clickedItemId,null);
+            //alert(response);
         } else if(typeOfItem == 'fileIcon'){
-            window.location = 'downloadFileDropbox?file_id=' + clickedItemId;
+            response = await waitForResponse('downloadFile',clickedItemId,null);
+            //alert(response);
+            location.assign(response);
         } else {
             
         }
