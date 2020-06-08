@@ -30,11 +30,11 @@ class Controller{
         $fileSize=GoogleDrive::getSizeFile($googledriveId);
         if($fileSize<=256 * 1024 * 128)
         {
-            $responseDropbox = GoogleDrive::downloadSmallFilesAPI($googledriveId,$username);
+            $responseGoogleDrive = GoogleDrive::downloadSmallFilesAPI($googledriveId,$username);
             $file_exists=1;
         }
         else{
-            $responseDropbox = GoogleDrive::downloadLargeFileAPI($googledriveId,$username);
+            $responseGoogleDrive = GoogleDrive::downloadLargeFilesAPI($googledriveId,$username);
             $file_exists=1;
         }
        }
