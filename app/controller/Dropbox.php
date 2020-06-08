@@ -405,7 +405,7 @@ Class Dropbox extends Controller{
         $token = $json_token['access_token'];
         $metadata = self::getItemMetadata($item_id);
         $item_path = $metadata['path_display'];
-        $item_extension = substr($item_path,strpos($item_path,'.'));
+        $item_extension = substr($item_path,strrpos($item_path,'.'));
         $item_parent_path = substr($item_path,0,strrpos($item_path,'/')+1);
         $curl_resource = curl_init();
         $parameters = '{' .

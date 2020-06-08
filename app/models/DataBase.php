@@ -102,7 +102,64 @@ class DataBase{
         }
     }
 
-    public static function getLoggedUsers($username){
+    public static function importDataCSV($username,$mode){
+        if($username == 'admin@app.com'){
+            if($mode == 'Overwrite'){
+                $database_data_delete = "DELETE FROM users";
+                $database_insert_row = "INSERT INTO users VALUES(?,?,?,?,?,?,?,?)";
+                $connection = DataBase::connect()->prepare($database_data_delete);
+                $connection->execute();
+                $csv_file = fopen('database_imported.csv',"r");
+                $rows = 0;
+                while(($data_read = fgetcsv($csv_file,1000000,",")) != false){
+                   $values = array();
+                   $size = count($data_read);
+                   $rows++;
+                   for($field = 0; $field < $size; $field++){
+                       array_push($values,$data_read[$field]);
+                   }
+                   $connection1 = Database::connect()->prepare($database_insert_row);
+                   $connection1->execute($values);
+                }
+            } else if($mode == 'Append'){
+                $database_insert_row = "INSERT INTO users VALUES(?,?,?,?,?,?,?,?)";
+                $csv_file = fopen('database_imported.csv',"r");
+                $rows = 0;
+                while(($data_read = fgetcsv($csv_file,1000000,",")) != false){
+                   $values = array();
+                   $size = count($data_read);
+                   $rows++;
+                   for($field = 0; $field < $size; $field++){
+                       array_push($values,$data_read[$field]);
+                   }
+                   $connection1 = Database::connect()->prepare($database_insert_row);
+                   $connection1->execute($values);
+                }
+            } 
+            return 'Data imported';
+        } else {
+            return 'Forbidden Access';
+        }
+    }
+
+    public static function exportDataCSV($username){
+        if($username == 'admin@app.com'){
+            $csv_file = fopen('database_exported.csv',"a");
+            $database_values = 'SELECT * FROM users';
+            $connection = DataBase::connect()->prepare($database_values);
+            $connection->execute();
+            $result = $connection->fetchAll();
+            foreach($result as $registration){
+                fputcsv($csv_file,array($registration[0],$registration[1],$registration[2],$registration[3],$registration[4],$registration[5],$registration[6],$registration[7]));
+            }
+            fclose($csv_file);
+            return 'Data exported';
+        } else {
+            return 'Forbidden Access';
+        }
+    }
+
+    public static function adminGetLoggedUsers($username){
         if($username == 'admin@app.com'){
             $updateLogged = 'SELECT username FROM users WHERE logged = ? ';
             $connection = DataBase::connect()->prepare($updateLogged);
@@ -213,7 +270,7 @@ class DataBase{
         }
     }
 
-    public static function getNumberOfUsersLogged($username){
+    public static function adminGetNumberOfUsersLogged($username){
         if($username == 'admin@app.com'){
             $updateLogged = 'SELECT count(*) FROM users WHERE logged = ? ';
             $connection = DataBase::connect()->prepare($updateLogged);
