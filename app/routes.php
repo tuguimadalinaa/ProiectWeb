@@ -1510,6 +1510,7 @@ Route::set('APIuploadFinish',function(){
         }
         if($file_args != null){
             $file_name = $file_args['name'];
+            $drive = $file_args['drive'];
             if($jwt != null){
                 $requestBody = file_get_contents('php://input');
                 $username=(Controller::getAuth()->jwtDecode($jwt))->username;
@@ -1521,15 +1522,50 @@ Route::set('APIuploadFinish',function(){
                 $file_name_custom = $username . $file_name;
                 $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
             }
-            $response = Controller::fileFragmentation($file_name_custom,$username);
-            if($response != 'No space for upload'){
-                http_response_code(200);
-                $response = array("response" => "File ${file_name} uploaded","googledrive_id" => "${response}");
-                header('Content-Type: application/json');
-                echo json_encode($response);
+            if($drive == 'Dropbox'){
+                $dropbox_size = filesize($file_name_custom);
+                $dropbox_data = file_get_contents($file_name_custom);
+                $dropbox_file_name = $file_name;
+                if($dropbox_size <= 1048576 * 40){
+                    Dropbox::uploadSmallFileAPI($dropbox_data,$dropbox_file_name,$username);
+                } else {
+                    Dropbox::uploadLargeFileAPI($dropbox_data,$dropbox_file_name,$username);
+                }    
+                return 'Uploaded Dropbox';
+            } else if($drive == 'OneDrive'){
+                $onedrive_size = filesize($file_name_custom);
+                $onedrive_data = file_get_contents($file_name_custom);
+                $onedrive_filename = $file_name;
+                $onedrive_response = OneDrive::UploadFileAPI($onedrive_filename,$onedrive_data,$onedrive_size,$username);
+                return 'Uploaded OneDrive';
+            } else if($drive == 'GoogleDrive'){
+                $googledrive_file_name = $file_name;
+                $googledrive_data = file_get_contents($file_name_custom);
+                $googledrive_size = filesize($file_name_custom);
+                if($googledrive_size<=256 * 1024 * 128)//32 mb
+                {
+                   $googledrive_id=GoogleDrive::uploadSmallFileAPI($googledrive_data,$googledrive_file_name,$username);
+                }
+                else
+                {
+                   $googledrive_id=GoogleDrive::uploadLargeFileAPI($googledrive_data,$googledrive_file_name,$username);
+                }
+            } else if($drive == 'AllDrives'){
+                $response = Controller::fileFragmentation($file_name_custom,$username);
+                if($response != 'No space for upload'){
+                    http_response_code(200);
+                    $response = array("response" => "File ${file_name} uploaded","googledrive_id" => "${response}");
+                    header('Content-Type: application/json');
+                    echo json_encode($response);
+                } else {
+                    http_response_code(507);
+                    $error = array("error" => "No space left for this file");
+                    header('Content-Type: application/json');
+                    echo json_encode($error);
+                }
             } else {
-                http_response_code(507);
-                $error = array("error" => "No space left for this file");
+                http_response_code(400);
+                $error = array("error" => "Drive value invalid");
                 header('Content-Type: application/json');
                 echo json_encode($error);
             }
