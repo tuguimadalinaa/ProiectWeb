@@ -139,12 +139,12 @@
 #create_folder_button{
     width: 150px;
     height: auto;
-    margin-right: 20%;
 }
 
 #go_back_button{
     width: 150px;
     height: auto;
+    margin-right: 20%;
 }
 .arrow {
     border: solid black;

@@ -165,6 +165,10 @@ class OneDrive extends Controller{
         if(strcmp($access_token,"fail")!=0){
             $response = self::createFile($fileName,$access_token);
             $json_response = json_decode($response,true);
+            if(!isset($json_response['uploadUrl']))
+            {
+                return json_encode(array("status"=>"Expired Token"));
+            }
             $graph_url = $json_response['uploadUrl'];
             $response = self::WriteFile($fileName,$fileData,$access_token,$fileSize,$graph_url);
             $decodedResponse = json_decode($response, true);
@@ -180,6 +184,10 @@ class OneDrive extends Controller{
             if(strcmp($access_token,"fail")!=0){
                 $response = self::createFile($fileName,$access_token);
                 $json_response = json_decode($response,true);
+                if(!isset($json_response['uploadUrl']))
+                {
+                    return json_encode(array("status"=>"Token expired"));
+                }
                 $graph_url = $json_response['uploadUrl'];
                 $response = self::WriteFile($fileName,$fileData,$access_token,$fileSize,$graph_url);
                 $decodedResponse = json_decode($response, true);
@@ -240,6 +248,10 @@ class OneDrive extends Controller{
         $response=curl_exec($create_curl);
         curl_close($create_curl);
         $decodedResponse = json_decode($response, true);
+        if(isset($decodedResponse['error']['code']))
+        {
+            return json_encode(array("status"=>"Expired Token"));
+        }
         if($fileNameToRender!='/drive/root' || $fileNameToRender!='\/drive\/root' ||  $fileNameToRender!='/drive' || $fileNameToRender!='\/drive')
         {
             $cookie_params_array = [
@@ -277,6 +289,10 @@ class OneDrive extends Controller{
         ]); 
         $response=curl_exec($create_curl);
         curl_close($create_curl);
+        if(isset($decodedResponse['error']['code']))
+        {
+            return json_encode(array("status"=>"Expired Token"));
+        }
         return $response;
     }
     public static function downloadDirectory($fileName)
@@ -306,8 +322,17 @@ class OneDrive extends Controller{
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $response  = self::makeRequestForFile($access_token,$fileName);
         $decodedResponse = json_decode($response, true);
+        if(isset($decodedResponse['error']['code']))
+        {
+            return json_encode(array("status"=>"Expired Token"));
+        }
         $id = $decodedResponse['id'];
         $response = self::deleteFileRequest($access_token,$id);
+        $decodedResponse = json_decode($response, true);
+        if(isset($decodedResponse['error']['code'])&& $decodedResponse!=null)
+        {
+            return json_encode(array("status"=>"Expired Token"));
+        }
         return $response;
 
     }
@@ -347,15 +372,17 @@ class OneDrive extends Controller{
     }
     public static function createFolder($fileName,$path)
     {
-        //de pus in cookie altfel nu merge daca e gol
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $response  = self::createFolderRequest($fileName,$path,$access_token);
-        return $response;
+        //return $response;
         $decodedResponse = json_decode($response, true);
         if(isset($decodedResponse['@odata.context']))
         {
             return json_encode(array("status"=>'200'));
+        }else if(isset($decodedResponse['error']['code']))
+        {
+            return json_encode(array("status"=>"Expired Token"));
         }
         else{
             return json_encode(array("status"=>'401'));
@@ -385,17 +412,25 @@ class OneDrive extends Controller{
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $response  = self::makeRequestForFile($access_token,$fileName);
         $decodedResponse = json_decode($response, true);
+        if(isset($decodedResponse['error']['code']))
+        {
+            return json_encode(array("status"=>"Expired Token"));
+        }
         $id = $decodedResponse['id'];
         $response  = self::updateFolderRequest($newFileName,$access_token,$id);
         if(isset($decodedResponse['@odata.context']))
         {
             return json_encode(array("status"=>'200'));
         }
+        else if(isset($decodedResponse['error']['code']))
+        {
+            return json_encode(array("status"=>"Expired Token"));
+        }
         else{
             return json_encode(array("status"=>'401'));
         }
     }
-    public static function makeRequestMoveFile($access_token,$fileName,$newPath)
+    /*public static function makeRequestMoveFile($access_token,$fileName,$newPath)
     {
         $response  = self::makeRequestForFile($access_token,$newPath);
         $decodedResponse = json_decode($response, true);
@@ -421,7 +456,6 @@ class OneDrive extends Controller{
         ]); 
         $response=curl_exec($create_curl);
         curl_close($create_curl);
-        //return json_encode(array("acc"=>$access_token,"raspuns"=>$response));
         return $response;
     }
     public static function moveFile($newPath,$fileName)
@@ -431,7 +465,7 @@ class OneDrive extends Controller{
         $response  = self::makeRequestMoveFile($access_token,$fileName,$newPath);
         return $response;
     }
-    
+    */
     public static function StartSessionUpload($fileName)
     {
         $fileName = str_replace ( ' ', '%20', $fileName);
@@ -454,6 +488,10 @@ class OneDrive extends Controller{
             $response=curl_exec($create_curl);
             curl_close($create_curl);
             $decode = json_decode($response,true);
+            if(isset($decodedResponse['error']['code']))
+            {
+                return json_encode(array("status"=>"Expired Token"));
+            }
             $urlToUpload  = $decode['uploadUrl'];
             return json_encode(array("status"=>'200',"response"=>$urlToUpload));
         }
@@ -484,6 +522,11 @@ class OneDrive extends Controller{
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $response = self::WriteFileBig($requestBody,$access_token,$fileSize,$url,$totalSize,$last_range);
+        $decode = json_decode($response,true);
+        if(isset($decodedResponse['error']['code']))
+        {
+            return json_encode(array("status"=>"Expired Token"));
+        }
         return $response;
     }
     private static function WriteFileFinish($fileData,$access_token,$fileSize,$graph_url,$totalSize,$last_range){
@@ -511,6 +554,11 @@ class OneDrive extends Controller{
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $response = self::WriteFileFinish($requestBody,$access_token,$fileSize,$url,$totalSize,$last_range);
+        $decode = json_decode($response,true);
+        if(isset($decodedResponse['error']['code']))
+        {
+            return json_encode(array("status"=>"Expired Token"));
+        }
         return $response;
     }
     public static function downloadByContent($fileName,$urlForDownload,$size,$access_token)
@@ -543,9 +591,18 @@ class OneDrive extends Controller{
         $response=curl_exec($create_curl);
         curl_close($create_curl);
         $decodedResponse = json_decode($response, true);
+        if(isset($decodedResponse['error']['code']))
+        {
+            return json_encode(array("status"=>"Expired Token"));
+        }
         $urlForDownload = $decodedResponse['@microsoft.graph.downloadUrl'];
         $size = $decodedResponse['size'];
         $response  = self::downloadByContent($fileName,$urlForDownload, $size, $access_token);
+        $decodedResponse = json_decode($response, true);
+        if(isset($decodedResponse['error']['code']))
+        {
+            return json_encode(array("status"=>"Expired Token"));
+        }
         return $response;
 
     }
@@ -565,6 +622,11 @@ class OneDrive extends Controller{
         ]);
         $response=curl_exec($upload_curl);
         curl_close($upload_curl);
+        $decodedResponse = json_decode($response,true);
+        if(isset($decodedResponse['error']['code']))
+        {
+            return json_encode(array("status"=>"Expired Token"));
+        }
         return $response;
     }
 
@@ -587,6 +649,11 @@ class OneDrive extends Controller{
         ]); 
         $response=curl_exec($create_curl);
         curl_close($create_curl);
+        $decodedResponse = json_decode($response,true);
+        if(isset($decodedResponse['error']['code']))
+        {
+            return json_encode(array("status"=>"Expired Token"));
+        }
         return $response;
     }
 
@@ -595,9 +662,18 @@ class OneDrive extends Controller{
         if(strcmp($access_token,"fail")!=0){
             $response = self::createFileAPI($fileName,$access_token);
             $json_response = json_decode($response,true);
+            if(!isset($json_response['uploadUrl']))
+            {
+                return json_encode(array("status"=>"Token expired"));
+            }
             $graph_url = $json_response['uploadUrl'];
+
             $response = self::WriteFileAPI($fileName,$fileData,$access_token,$fileSize,$graph_url);
             $decodedResponse = json_decode($response, true);
+            if(isset($decodedResponse['error']['code']))
+            {
+                return json_encode(array("status"=>"Expired Token"));
+            }
             $fileId = $decodedResponse['id'];
             return json_encode(array("status"=>'200',"id"=>$fileId));
         }
@@ -634,7 +710,11 @@ class OneDrive extends Controller{
             ]); 
             $response=curl_exec($create_curl);
             curl_close($create_curl);
-            $decodedResponse = json_decode($response,true);
+            $decodedResponse = json_decode($response, true);
+            if(isset($decodedResponse['error']['code']))
+            {
+                return json_encode(array("status"=>"Expired Token"));
+            }
             $remaining_size = $decodedResponse['value'][0]['quota']['remaining'];
             return $remaining_size;
         }
