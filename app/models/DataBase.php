@@ -28,9 +28,9 @@ class DataBase{
         return '1';
     }
     public static function getApprovalForLogin($userName, $password){
-        $checkUser = 'SELECT * from users where username='."'".$userName."'";
+        $checkUser = 'SELECT * from users where username=?';
         $connection  = DataBase::connect()->prepare($checkUser);
-        $connection->execute();
+        $connection->execute(array($userName));
         $result = $connection -> fetchAll();
         $response = -10;
         if($result == null){
@@ -65,9 +65,9 @@ class DataBase{
         //return $jsonResponse;
     }
     public static function addUser($userName, $password){
-        $checkUser = 'SELECT * from users where username='."'".$userName."'";
+        $checkUser = 'SELECT * from users where username=?';
         $connection  = DataBase::connect()->prepare($checkUser);
-        $connection->execute();
+        $connection->execute(array($userName));
         $result = $connection -> fetchAll();
         if(empty($result)==true){
             $checkUser = "INSERT INTO users VALUES(?,?,?,?,?,?)";
@@ -82,25 +82,25 @@ class DataBase{
     }
     public static function addAccessToken($access_token,$username,$drive){
         if($drive == 'Dropbox'){
-            $updateCommand = 'UPDATE users SET Dropbox_access_token = ' . "'" . $access_token . "'" . ' WHERE username = ' . "'" . $username . "'";
+            $updateCommand = 'UPDATE users SET Dropbox_access_token = ? WHERE username = ?';
         }
         if($drive == 'OneDrive'){
-            $updateCommand = 'UPDATE users SET OneDrive_access_token = ' . "'" . $access_token . "'" . ' WHERE username = ' . "'" . $username . "'";
+            $updateCommand = 'UPDATE users SET OneDrive_access_token = ? WHERE username = ?';
         }
         if($drive == 'GoogleDrive'){
-            $updateCommand = 'UPDATE users SET GoogleDrive_access_token = ' . "'" . $access_token . "'" . ' WHERE username = ' . "'" . $username . "'";
+            $updateCommand = 'UPDATE users SET GoogleDrive_access_token = ? WHERE username = ?';
         }
         $connection = DataBase::connect()->prepare($updateCommand);
-        if($connection->execute() == true){
+        if($connection->execute(array($access_token,$username)) == true){
             
         } else{
             
         }
     }
     public static function getAccessToken($userName,$drive){
-        $checkUser = 'SELECT * from users where username='."'".$userName."'";
+        $checkUser = 'SELECT * from users where username=?';
         $connection  = DataBase::connect()->prepare($checkUser);
-        $connection->execute();
+        $connection->execute(array($userName));
         $result = $connection -> fetchAll();
         if($drive == "OneDrive"){
             if($result[0][3] != '0'){                       
