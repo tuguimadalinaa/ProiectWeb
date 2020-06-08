@@ -27,14 +27,14 @@ class Controller{
        $file_in_googledrive=GoogleDrive::checkIfFileExistGoogleDrive($file_name,$username,$googledriveId);
        if($file_in_googledrive==1)
        {
-        $fileSize=GoogleDrive::getSizeFile($googledriveId);
+        $fileSize=GoogleDrive::getSizeFileAPI($googledriveId,$username);
         if($fileSize<=256 * 1024 * 128)
         {
-            $responseGoogleDrive = GoogleDrive::downloadSmallFilesAPI($googledriveId,$username);
+            $responseGoogleDrive = GoogleDrive::downloadSmallFilesAPI($googledriveId,$username,$file_name);
             $file_exists=1;
         }
         else{
-            $responseGoogleDrive = GoogleDrive::downloadLargeFilesAPI($googledriveId,$username);
+            $responseGoogleDrive = GoogleDrive::downloadLargeFilesAPI($googledriveId,$username,$file_name);
             $file_exists=1;
         }
        }

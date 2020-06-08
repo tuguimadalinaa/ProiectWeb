@@ -197,7 +197,7 @@
             $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
             $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
             $token = $json_token['access_token'];
-            echo $token;
+            //echo $token;
             $uri="https://www.googleapis.com/drive/v3/files?q='${fileId}'+in+parents";
             $curl_resource=curl_init();
             curl_setopt($curl_resource,CURLOPT_URL,$uri);
@@ -255,7 +255,7 @@
             $token = $json_token['access_token'];
             $metadata=self::getMetadata($fileId);
             $dataArray=json_decode($metadata,true);
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&acknowledgeAbuse=true";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
@@ -288,7 +288,7 @@
             while($fileSize-$startData>=$maxDownloadSize)
             {
                 $range="${startData}" . "-" . "${endDataFixed}";
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&acknowledgeAbuse=true";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
@@ -313,7 +313,7 @@
             {
                 $endDataFixed=$fileSize-1;
                 $range="${startData}" . "-" . "${endDataFixed}";
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&acknowledgeAbuse=true";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
@@ -497,7 +497,8 @@ public static function APIGetToken($code,$jwt){
         $token = $json_token['access_token'];
         $uri=self::obtainUriForResumable($token,$googledrive_file_name,null);
         $response=self::uploadSmallFileResumableAPI($uri,$googledrive_data,$username);
-        return $response;
+        $responseDecoded=json_decode($response,true);
+         return $responseDecoded['id'];
     }
     public static function uploadLargeFileAPI($googledrive_data,$googledrive_file_name,$username)
     {
@@ -572,7 +573,7 @@ public static function APIGetToken($code,$jwt){
 
     public static function checkIfFileExistGoogleDrive($file_name,$username,$googledriveId)
     {
-        $response=self::getMetadata($googledriveId);
+        $response=self::getMetadataAPI($googledriveId,$username);
         $responseDecoded=json_decode($response,true);
         $file_name_googledrive = '1' . $username . $file_name;
         $fileNameFromMetadata=$responseDecoded['title'];
@@ -592,7 +593,7 @@ public static function APIGetToken($code,$jwt){
         $response=self::downloadSmallFileAPI($googledriveId,$username,$file_name);
         return $response;
     }
-    public static function downloadLargeFilesAPI($googledriveId,$username,$file_name);
+    public static function downloadLargeFilesAPI($googledriveId,$username,$file_name)
     {
         $response=self::downloadLargeFileAPI($googledriveId,$username,$file_name);
         return $response;
@@ -601,9 +602,9 @@ public static function APIGetToken($code,$jwt){
         {
             $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
             $token = $json_token['access_token'];
-            $metadata=self::getMetadata($fileId);
+            $metadata=self::getMetadataAPI($fileId,$username);
             $dataArray=json_decode($metadata,true);
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&acknowledgeAbuse=true";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
@@ -623,18 +624,18 @@ public static function APIGetToken($code,$jwt){
         {
             $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
             $token = $json_token['access_token'];
-            $metadata=self::getMetadata($fileId);
+            $metadata=self::getMetadataAPI($fileId,$username);
             $dataArray=json_decode($metadata,true);
             $startData=0;
             $contor="Face ce trebuie";
             $fileSize=$dataArray['fileSize'];
-            $file_name=$dataArray['title'];
+            //$file_name=$dataArray['title'];
             $maxDownloadSize=256 * 1024 * 128;
             $endDataFixed=$maxDownloadSize-1;
             while($fileSize-$startData>=$maxDownloadSize)
             {
                 $range="${startData}" . "-" . "${endDataFixed}";
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&acknowledgeAbuse=true";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
@@ -659,7 +660,7 @@ public static function APIGetToken($code,$jwt){
             {
                 $endDataFixed=$fileSize-1;
                 $range="${startData}" . "-" . "${endDataFixed}";
-                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media";
+                $uri="https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&acknowledgeAbuse=true";
                 $curl_resource=curl_init();
                 curl_setopt($curl_resource,CURLOPT_URL,$uri);
                 curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
@@ -679,7 +680,30 @@ public static function APIGetToken($code,$jwt){
                 return $file_name;
             }
         }
-
+        public static function getMetadataAPI($fileId,$username)
+        {
+            $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
+            $token = $json_token['access_token'];
+            $uri="https://www.googleapis.com/drive/v2/files/${fileId}";
+            $curl_resource=curl_init();
+            curl_setopt($curl_resource,CURLOPT_URL,$uri);
+            curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
+            curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+                "Authorization: Bearer ${token}"
+            ));
+            curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+            curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+            $response=curl_exec($curl_resource);
+            curl_close($curl_resource); 
+            return  $response;
+        }
+        public static function getSizeFileAPI($fileId,$username)
+        {
+           
+            $response=self::getMetadataAPI($fileId,$username);
+            $responseArray=json_decode($response,true);
+            return $responseArray['fileSize'];
+        }
 
 
 
