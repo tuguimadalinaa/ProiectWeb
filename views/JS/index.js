@@ -264,11 +264,3 @@ function makeRequestForUploadSessionFinish(fileSlice,sizeOfDataSent,cursorId,url
       }    
  });*/
  checkUrl();
-//https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_fileupload_files
-//https://stackoverflow.com/questions/16210231/how-can-i-upload-a-new-file-on-click-of-image-button
-//https://codepen.io/monjer/pen/JKRLzM
-/*https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944 */
-/*https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file */
-/*https://stackoverflow.com/questions/32556664/getting-byte-array-through-input-type-file/32556944 */
-/*http://jsfiddle.net/SYwuP/*/
-/*https://stackoverflow.com/questions/14438187/javascript-filereader-parsing-long-file-in-chunks*/

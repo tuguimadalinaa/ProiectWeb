@@ -221,7 +221,7 @@ section{
         border-radius: 25px;
         outline: none;
     }
-    /*https://stackoverflow.com/questions/20902400/how-to-make-custom-css-button-responsive/20902500*/
+    
 }
 @media (max-width: 1024px) and (min-width: 801px)
 {
