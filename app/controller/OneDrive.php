@@ -111,13 +111,24 @@ class OneDrive extends Controller{
         }
     }
     private static function createFile($fileName,$access_token){
+        $path ='';
+        if($_COOKIE['OneDrive']=="/drive/" || $_COOKIE['OneDrive']=='\/drive')
+        {
+            $path = '/drive/root:'.$fileName;
+            $url = 'https://graph.microsoft.com/v1.0/me/'.$path.':/createUploadSession';
+        }
+        else{
+            $fileName= str_replace('/drive/root:/','',$fileName);
+            $path = $_COOKIE['OneDrive'].$fileName;
+            $url  = 'https://graph.microsoft.com/v1.0/me/'.$path.':/createUploadSession';
+        }
         $data= json_encode(array('item'=>array(
             '@microsoft.graph.conflictBehavior'=>'rename')
         ));
         $fileName = str_replace ( ' ', '%20', $fileName );
         $create_curl=curl_init();
         curl_setopt_array($create_curl,[
-            CURLOPT_URL=>'https://graph.microsoft.com/v1.0/me/drive/root:/Documents/'.$fileName.':/createUploadSession',
+            CURLOPT_URL=>$url,//'https://graph.microsoft.com/v1.0/me/drive/root:/Documents/'.$fileName.':/createUploadSession',
             CURLOPT_RETURNTRANSFER=>1,
             CURLOPT_POST=>1,
             CURLOPT_HTTPHEADER=>array("Authorization: Bearer ".$access_token,
@@ -229,7 +240,7 @@ class OneDrive extends Controller{
         $response=curl_exec($create_curl);
         curl_close($create_curl);
         $decodedResponse = json_decode($response, true);
-        if($fileNameToRender!='/drive/root' || $fileNameToRender!='\/drive\/root')
+        if($fileNameToRender!='/drive/root' || $fileNameToRender!='\/drive\/root' ||  $fileNameToRender!='/drive' || $fileNameToRender!='\/drive')
         {
             $cookie_params_array = [
                 'expires' => time() + 8600,
@@ -242,6 +253,7 @@ class OneDrive extends Controller{
             $end = end($splittedExplode);
             $split = explode($end,$decodedResponse['value'][0]["parentReference"]["path"]);
             self::getCookieHandler()->Cookie('OneDrive',$split[0],$cookie_params_array);
+            //self::getCookieHandler()->Cookie('OneDrive',$fileNameToRender,$cookie_params_array);
         }
         return $response;
     }
@@ -301,7 +313,17 @@ class OneDrive extends Controller{
     }
     public static function createFolderRequest($fileName,$path,$access_token)
     {
+        
+        if($_COOKIE['OneDrive']=="/drive/" || $_COOKIE['OneDrive']=='\/drive')
+        {
+            $path = '/drive/root/';
+            $url = 'https://graph.microsoft.com/v1.0/me/'.$path.'/children';
+        }
+        else{
+            $url  = 'https://graph.microsoft.com/v1.0/me/'.$path.':/children';
+        }
         $path= str_replace ( ' ', '%20', $path);
+        $fileName = str_replace(' ','%20',$fileName);
         $folder = '{'.$path.'}';
         $data=[
             "name"=>$fileName,
@@ -312,7 +334,7 @@ class OneDrive extends Controller{
         $curl = curl_init();
         curl_setopt_array($curl, [
             CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_URL => 'https://graph.microsoft.com/v1.0/me/'.$path.':/children',
+            CURLOPT_URL => $url,
             CURLOPT_USERAGENT => 'STOL2',
             CURLOPT_POST => 1,
             CURLOPT_HTTPHEADER => array("Authorization: Bearer ".$access_token,
@@ -329,6 +351,7 @@ class OneDrive extends Controller{
         $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         $response  = self::createFolderRequest($fileName,$path,$access_token);
+        return $response;
         $decodedResponse = json_decode($response, true);
         if(isset($decodedResponse['@odata.context']))
         {
@@ -544,10 +567,33 @@ class OneDrive extends Controller{
         curl_close($upload_curl);
         return $response;
     }
+
+    private static function createFileAPI($fileName,$access_token){
+        $path ='';
+        $url = "https://graph.microsoft.com/v1.0/me/drive/root:/". $fileName . ':/createUploadSession';
+        $data= json_encode(array('item'=>array(
+            '@microsoft.graph.conflictBehavior'=>'rename')
+        ));
+        $fileName = str_replace ( ' ', '%20', $fileName );
+        $create_curl=curl_init();
+        curl_setopt_array($create_curl,[
+            CURLOPT_URL=>$url,//'https://graph.microsoft.com/v1.0/me/drive/root:/Documents/'.$fileName.':/createUploadSession',
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_POST=>1,
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ".$access_token,
+            "Content-Type: application/json"),
+            CURLOPT_SSL_VERIFYPEER=>false,
+            CURLOPT_POSTFIELDS=>$data
+        ]); 
+        $response=curl_exec($create_curl);
+        curl_close($create_curl);
+        return $response;
+    }
+
     public static function UploadFileAPI($fileName, $fileData,$fileSize,$username){
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         if(strcmp($access_token,"fail")!=0){
-            $response = self::createFile($fileName,$access_token);
+            $response = self::createFileAPI($fileName,$access_token);
             $json_response = json_decode($response,true);
             $graph_url = $json_response['uploadUrl'];
             $response = self::WriteFileAPI($fileName,$fileData,$access_token,$fileSize,$graph_url);

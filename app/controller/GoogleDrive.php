@@ -654,7 +654,6 @@ public static function APIGetToken($code,$jwt){
                 curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
                 $response=curl_exec($curl_resource);
                 curl_close($curl_resource);
-                
                 file_put_contents("${file_name}",$response,FILE_APPEND);
                 return $file_name;
         }

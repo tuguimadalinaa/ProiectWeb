@@ -1,5 +1,6 @@
 var pressedButton = false;
 var selectedFile = '';
+var current_directory='';
 function openMenu()
 {
     document.getElementById("shownMenu").removeAttribute("hidden");
@@ -37,6 +38,7 @@ var nextFolder = function(event) {
     {
         goBackArrow[0].innerHTML='';
     }
+    current_directory = x;
     getDirectory(x,finished);
 };
 var selectFile  = function(event)
@@ -201,13 +203,14 @@ async function responseCreateFolder(fileName,path) {
     let path  = elements[0].id.split(elements[0].id.match('[\\/][A-za-z]+[\\s]*[\\(]*[0-9]*[\\)]*[\\.]+[a-zA-z]+'));
     let pathWithoutComa  = path[0].split(',');
     let result = await responseCreateFolder(folderName,pathWithoutComa);
-    let response = JSON.parse(result);
+    console.log(result);
+    /*let response = JSON.parse(result);
     if(response.status=='401'){
         alert("Error at creating Folder " + folderName);
     }
     else{
         alert("Folder " + folderName+" created")
-    }
+    }*/
  }
  function makeRequestMoveFolder(fileName,newpath){
     return new Promise(function (resolve) {
@@ -298,9 +301,18 @@ var goBack_ = async function()
     var element = document.getElementById('renderFolders');
     element.innerHTML='';
     let result = await responseGoBack();
-    console.log(result);
     let response = JSON.parse(result);
-    getDirectory(response.status,finished); //butonul de go back plus de pus dbClick doar pe foldere
+    console.log(response);
+    if(response.status=='/drive/' || response.status=='\/drive\/')
+    {
+        alert("Can't go back");
+        getDirectory("/drive/root",finished);
+    }
+    else{
+        getDirectory(response.status,finished);
+    }
+    
+     //butonul de go back plus de pus dbClick doar pe foldere
  }
  function makeRequestForFileTransfer(fileData,fileName,fileSize){
     return new Promise(function (resolve) {
@@ -383,14 +395,15 @@ async function responseForFileTransfer(fileData, fileName,fileSize){
                     currentFile = files[i];
                     console.log(currentFile.name);
                     if(currentFileSize < maxUploadSize){
-                        response =  await responseForFileTransfer(currentFile,currentFile.name,currentFileSize);
+                        
+                        response =  await responseForFileTransfer(currentFile,current_directory + '/'+currentFile.name,currentFileSize);
                         console.log(response);
                } else {
                    let sizeOfDataSent = 0;
                    let uploadSessionStarted = 0;
                    let cursorId = 0;
                    currentFile = files[i];
-                   response = await makeRequestForUploadSessionStart(currentFile.name);
+                   response = await makeRequestForUploadSessionStart(current_directory + '/'+currentFile.name);
                    console.log(response);
                    let urlToUpload = JSON.parse(response);
                    urlToUpload = urlToUpload.response;
@@ -434,7 +447,6 @@ async function responseForFileTransfer(fileData, fileName,fileSize){
                 while(i < numberOfFilesToUpload){
                     currentFileSize = files[i].size;
                     currentFile = files[i];
-                    console.log(currentFile.name);
                     if(currentFileSize < maxUploadSize){
                         response =  await responseForFileTransfer(currentFile,currentFile.name,currentFileSize);
                         console.log(response);

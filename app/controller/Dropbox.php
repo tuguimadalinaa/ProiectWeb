@@ -684,9 +684,9 @@ public static function getItemMetadataAPI($file_id,$username){
 }
 
 public static function checkIfFileExist($file_name,$username){
-    $file_name_dropbox = '/1' . $username . $file_name;
+    $file_name_dropbox = '/3' . $username . $file_name;
     $file_metadata = self::getItemMetadataAPI($file_name_dropbox,$username);
-    $file_name_drop = "1" . $username . $file_name;
+    $file_name_drop = "3" . $username . $file_name;
     if($file_metadata != null){
         if($file_metadata['name'] == $file_name_drop){
             return 1;
@@ -701,7 +701,7 @@ public static function downloadFileAPI($file_name,$username){
     $dropbox_download_url = "https://content.dropboxapi.com/2/files/download";
     $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
     $token = $json_token['access_token'];
-    $file_name_dropbox = "1" . $username . $file_name;
+    $file_name_dropbox = "3" . $username . $file_name;
     $curl_resource = curl_init();
     $parameter = '{' .
         '"path": "/' . $file_name_dropbox . '"' .
@@ -716,7 +716,7 @@ public static function downloadFileAPI($file_name,$username){
     curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
     $response = curl_exec($curl_resource);
     curl_close($curl_resource);
-    $file_created = file_put_contents($file_name,$response);
+    $file_created = file_put_contents($file_name,$response,FILE_APPEND);
     $responseDecoded = json_decode($response,true);
     return 'Peste';
 }

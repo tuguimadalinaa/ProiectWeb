@@ -38,31 +38,27 @@ class Controller{
             $file_exists=1;
         }
        }
-    //    $file_in_dropbox = Dropbox::checkIfFileExist($file_name,$username);
-    //    if($file_in_dropbox == 1){
-    //      $responseDropbox = Dropbox::downloadFileAPI($file_name,$username);
-    //      $file_exists = 1;
-    //    }
+       $file_in_onedrive  = OneDrive::checkFileExists('/drive/root:/2'.$username.$file_name,$username);
+       if($file_in_onedrive=="true")
+       {
+            $content = OneDrive::contentDownload('/2'.$username.$file_name,$username);
+            $file = file_put_contents($file_name,$content,FILE_APPEND);
+            $file_exists = 1;
+       }
+       $file_in_dropbox = Dropbox::checkIfFileExist($file_name,$username);
+       if($file_in_dropbox == 1){
+         $responseDropbox = Dropbox::downloadFileAPI($file_name,$username);
+         $file_exists = 1;
+       }
        if($file_exists == 1){
            $file_downloaded =  $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $file_name;
            return $file_downloaded;
        } else {
            return '0';
        }
-       $file_in_onedrive  = OneDrive::checkFileExists('/drive/root:/Documents/2'.$username.$file_name,$username);
-       if($file_in_onedrive=="true")
-       {
-            $content = OneDrive::contentDownload('Documents/2'.$username.$file_name,$username);
-            $file = file_put_contents($file_name,$content,FILE_APPEND);
-            return $file_name;
-       }
-       else if($file_in_onedrive=="false")
-       {
-            return '0';
-       }
     }
 
-    public static function fileFragmentation($file_name,$username){
+    public static function fileFragmentationDEMO($file_name,$username){
        $file_to_upload =  $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $file_name;
        $file_size = filesize($file_to_upload);
        $googledrive_size = floor($file_size / 3);
@@ -83,7 +79,7 @@ class Controller{
        }
 
        $offset = $offset + $googledrive_size;
-       $onedrive_filename = "2".$file_name;
+       $onedrive_filename = "/2".$file_name;
        $onedrive_data = file_get_contents($file_name,FALSE,null,$offset,$onedrive_size);
        $nebunie=OneDrive::UploadFileAPI($onedrive_filename,$onedrive_data,$onedrive_size,$username);
        $offset=$offset+$onedrive_size;
@@ -95,8 +91,8 @@ class Controller{
        } else {
             Dropbox::uploadLargeFileAPI($dropbox_data,$dropbox_file_name,$username);
        }
+       unlink($file_to_upload);
        return $googledrive_id;
-      
     }
     
 
