@@ -1101,7 +1101,6 @@ Route::set('APIgetCode',function(){
             
            } else if($drive == 'Dropbox'){
               $drive_response = Dropbox::APIGetCode();
-              
               http_response_code(200);
               $response = array("url" => "${drive_response}");
               header('Content-Type: application/json');
@@ -1140,20 +1139,6 @@ Route::set('APIgetCode',function(){
         header('Content-Type: application/json');
         echo json_encode($error);
     }
-});
-
-Route::Set('APIhome1',function(){
-      if(isset($_GET['code'])){
-          $code = $_GET['code'];
-          if(isset($_GET['scope'])){ // GoogleDrive
-            echo $code;
-            echo $scope;
-          } else {  
-            echo $code;
-          }
-      } else {
-        echo "Error";
-      }
 });
 
 Route::set('APIuploadStart',function(){
@@ -1303,7 +1288,10 @@ Route::set('APIuploadFinish',function(){
                 $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
             }
             $response = Controller::fileFragmentation($file_name_custom,$username);
-            echo $response;
+            http_response_code(200);
+            $response = array("response" => "File ${file_name} uploaded","googledrive_id" => "${response}");
+            header('Content-Type: application/json');
+            echo json_encode($response);
         } else {
             http_response_code(400);
             $error = array("error" => "Header File-Args invalid");
@@ -1454,14 +1442,15 @@ Route::set('APIdownloadFile',function(){
         }
         $requestBody = json_decode(file_get_contents('php://input'),true);
         if($requestBody != null){
-            if($requestBody['name'] != null){
+            if($requestBody['name'] != null && $requestBody['googledrive_id'] != null){
                 if($jwt != null){
                     $username=(Controller::getAuth()->jwtDecode($jwt))->username;
                 } else {
                     $username=(Controller::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
                 }
                 $file_name = $requestBody['name'];
-                $result = Controller::getFileForDownload($file_name,$username);
+                $googledrive_id = $requestBody['googledrive_id'];
+                $result = Controller::getFileForDownload($file_name,$username,$googledrive_id);
                 if($result != '0'){
                    echo file_get_contents($result);
                 } else {
@@ -1469,7 +1458,7 @@ Route::set('APIdownloadFile',function(){
                 }
             } else {
                 http_response_code(400);
-                $error = array("error" => "Missing name field");
+                $error = array("error" => "Missing name or googledrive_id field(or both)");
                 header('Content-Type: application/json');
                 echo json_encode($error); 
             }
@@ -1497,19 +1486,6 @@ Route::set('APIdownloadFile',function(){
     }
 });
 
-Route::Set('APIhome1',function(){
-    if(isset($_GET['code'])){
-        $code = $_GET['code'];
-        if(isset($_GET['scope'])){ // GoogleDrive
-          echo "Code: ".$code . "\n";
-          echo "Scope: ".$_GET['scope'];
-        } else {
-           echo "Code:".$code;
-        }
-    } else {
-      echo "Error";
-    }
-});
 /* ---------------------------------------- API routes Dropbox ---------------------------------------- */
 
 ?>

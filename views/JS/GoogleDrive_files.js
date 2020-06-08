@@ -261,7 +261,7 @@ async function waitForResponse(reason,fileId,fileName) {
 async function startUpload(files){
     let numberOfFilesToUpload = files.files.length;
     let i = 0;
-    let maxUploadSize = 256 * 1024 * 16; // aprox 4 MB
+    let maxUploadSize = 256 * 1024 * 128; // aprox 32 MB
     while(i < numberOfFilesToUpload){
        let currentFileSize = files.files[i].size;
        let currentFile = files.files[i];
@@ -295,7 +295,7 @@ async function startUpload(files){
     location.reload();
 }
 async function startDownload(fileId){
-    let maxDownloadSize = 256 * 1024 * 8;//2 mb
+    let maxDownloadSize = 256 * 1024 * 128;//32 mb
     let fileSize = await makeRequestForGettingSizeFile(fileId);
     let sizeOfDataSent = 0;
     if(fileSize-sizeOfDataSent<maxDownloadSize)
