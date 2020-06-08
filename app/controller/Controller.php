@@ -73,12 +73,12 @@ class Controller{
        $googledrive_data=file_get_contents($file_name,FALSE,null,$offset,$googledrive_size);
        if($googledrive_size<=256 * 1024 * 128)//32 mb
        {
-           $fileId=GoogleDrive::uploadSmallFileAPI($googledrive_data,$googledrive_file_name,$username);
+           $googledrive_id=GoogleDrive::uploadSmallFileAPI($googledrive_data,$googledrive_file_name,$username);
            //return "BUBU";
        }
        else
        {
-        $fileId=GoogleDrive::uploadLargeFileAPI($googledrive_data,$googledrive_file_name,$username);
+        $googledrive_id=GoogleDrive::uploadLargeFileAPI($googledrive_data,$googledrive_file_name,$username);
         //return $response;
        }
 
@@ -95,7 +95,7 @@ class Controller{
        } else {
             Dropbox::uploadLargeFileAPI($dropbox_data,$dropbox_file_name,$username);
        }
-       return $fileId;
+       return $googledrive_id;
       
     }
     
