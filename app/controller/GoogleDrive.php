@@ -223,7 +223,9 @@
         public static function getMetadaByName($fileName)
         {
             $token = self::getTokenUser();
-            $uri="https://www.googleapis.com/drive/v3/files?q=name='${fileName}'";
+            $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+            $filename_google_drive = "1" . $username . $fileName;
+            $uri="https://www.googleapis.com/drive/v3/files?q=name='${filename_google_drive}'";
             $curl_resource=curl_init();
             curl_setopt($curl_resource,CURLOPT_URL,$uri);
             curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
