@@ -902,7 +902,7 @@ Route::set('downloadFileDropbox',function(){
     if($response_jwt_validation == 'JWT valid'){
         $downloaded_item_id = $_REQUEST['file_id'];
         $response = Dropbox::downloadFileByLink($downloaded_item_id);
-        header("Location: ${response}");
+        echo $response;
     } else {
        http_response_code(401);
        echo 'Invalid JWT';
