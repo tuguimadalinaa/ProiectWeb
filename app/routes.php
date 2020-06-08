@@ -644,10 +644,27 @@ Route::set('moveFileGoogleDrive',function(){
        header('Location: logOut');
     } 
 });
-Route::set('test',function()
+Route::set('getIdByName',function()
 {
-    $response=GoogleDrive::getInfoToken();
-    echo $response;
+    $response_jwt_validation=Login::validateJwtCookie();
+    $response_token_time=GoogleDrive::getInfoToken();
+    if($response_jwt_validation == 'JWT valid'){
+        if($response_token_time!=0)
+        {
+            $response=GoogleDrive::getMetadaByName($_REQUEST['fileName']);
+            echo $response;
+        }
+        else
+        {
+            http_response_code(401);
+            echo 'Invalid token';
+            header('Location: getCode?	drive=GoogleDrive');
+        }
+    } else {
+       http_response_code(401);
+       echo 'Invalid JWT';
+       header('Location: logOut');
+    } 
 });
 /* --------------------------------------------- Dropbox --------------------------------------------- */
 

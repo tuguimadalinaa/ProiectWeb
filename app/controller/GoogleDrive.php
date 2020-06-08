@@ -220,7 +220,32 @@
             $responseDecoded = json_decode($response,true);
         }
 
-        
+        public static function getMetadaByName($fileName)
+        {
+            $token = self::getTokenUser();
+            $uri="https://www.googleapis.com/drive/v3/files?q=name='${fileName}'";
+            $curl_resource=curl_init();
+            curl_setopt($curl_resource,CURLOPT_URL,$uri);
+            curl_setopt($curl_resource,CURLOPT_HTTPGET,TRUE);
+            curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+                "Authorization: Bearer ${token}"
+            ));
+            curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+            curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+            $response=curl_exec($curl_resource);
+            curl_close($curl_resource); 
+            $responseDecoded=json_decode($response,true);
+            foreach($responseDecoded['files'] as $file)
+            {
+                if(empty($file))
+                {
+                    
+                }
+                else{
+                        return $file['id'];
+                }
+            }
+        }
         
         public static function listAllFiles($fileId)
         {
