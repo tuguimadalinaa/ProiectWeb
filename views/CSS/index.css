@@ -121,7 +121,8 @@ section{
     text-decoration: none;
     color: white;
     padding: 10px;
-    margin-top: 20%;
+    margin-top: 10%;
+    margin-bottom: 10%;
 }
  @media (max-width: 800px) and (min-width: 375px) {
     .imgWrapper{
