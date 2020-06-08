@@ -211,17 +211,16 @@ Route::set('getToken',function(){
 /* --------------------------------------------- GoogleDrive --------------------------------------------- */
 
 Route::set('createFolderGoogleDrive',function(){
-    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
-    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
-    $access_token_decoded = json_decode($access_token_json,true);
-    $access_token = $access_token_decoded['access_token'];
-    //echo $access_token;
-    if($access_token != null){
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
         $response = GoogleDrive::createFolder($_REQUEST['fileName'],$_COOKIE["GoogleDrive"]);
         echo $response;
-  } else {
-      header('Location: getCode?drive=GoogleDrive');
-  }
+     }
+    else {
+        http_response_code(401);
+        echo 'Invalid JWT';
+        header('Location: logOut');
+    }
 });
 // Route::set('test',function(){
 //     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
@@ -232,32 +231,27 @@ Route::set('createFolderGoogleDrive',function(){
 //     echo $response;
 // });
 Route::set('obtainUriForUploadGoogleDrive',function(){
-    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
-    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
-    $access_token_decoded = json_decode($access_token_json,true);
-    $access_token = $access_token_decoded['access_token'];
-    //echo $access_token;
-    if($access_token != null){
-        $response = GoogleDrive::obtainUriForResumable($access_token,$_REQUEST['fileName'],$_COOKIE['GoogleDrive']);
-        echo $response;
-  } else {
-      header('Location: getCode?drive=GoogleDrive');
-  }
+    $response_jwt_validation = Login::validateJwtCookie();
+    if($response_jwt_validation == 'JWT valid'){
+            $response = GoogleDrive::obtainUriForResumable($_REQUEST['fileName'],$_COOKIE['GoogleDrive']);
+            echo $response;
+     } 
+    else {
+        http_response_code(401);
+        echo 'Invalid JWT';
+        header('Location: logOut');
+    };
 });
-Route::set('uploadGoogleDrive',function()
-{
-    $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
-    $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
-    $access_token_decoded = json_decode($access_token_json,true);
-    $access_token = $access_token_decoded['access_token'];
-    //echo $access_token;
-    if($access_token != null){
-         $response = GoogleDrive::uploadFileResumable();
-         echo $response;
-  } else {
-      header('Location: getCode?drive=GoogleDrive');
-  }
-});
+// Route::set('uploadGoogleDrive',function()
+// {
+//     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;
+//     $access_token_json = Controller::getModel()->getAccessToken($username,'GoogleDrive');
+//     $access_token_decoded = json_decode($access_token_json,true);
+//     $access_token = $access_token_decoded['access_token'];
+//     $response = GoogleDrive::uploadFileResumable();
+//     echo $response;
+  
+// });
 Route::set('uploadSmallFilesGoogleDrive',function()
 {
     $username=(Controller::getAuth()->jwtDecode($_COOKIE['loggedIn']))->username;

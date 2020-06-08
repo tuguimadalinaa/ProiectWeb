@@ -267,10 +267,10 @@ async function startUpload(files){
        let currentFile = files.files[i];
        let sizeOfDataSent = 0;
        var getLink=await makeRequestForUploadUriFile(currentFile);
-       alert(getLink);
+       //alert(getLink);
        if(currentFileSize < maxUploadSize){
         response =  await makeRequestForUploadSmallFile(getLink,currentFile);
-        alert(response);
+        //alert(response);
         console.log(response);
         location.reload();
     }
@@ -394,7 +394,7 @@ async function uploadFiles(){
                 //alert(files.files[0].slice(0,10000,files.files[0]));
                 //console.log(files.files[0].name);
                 response = await startUpload(files);
-                alert(response);
+                //alert(response);
                 //location.reload();
             });
         }

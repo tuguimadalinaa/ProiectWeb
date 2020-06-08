@@ -75,8 +75,8 @@ async function uploadOneDrive(){
   
 }
 async function uploadGoogleDrive(){
-    response = await waitForResponse('upload','GoogleDrive');
-    alert(response);
+    response = await waitForResponse('Code','GoogleDrive');
+    //alert(response);
     location.assign(response);
 }
 
@@ -119,7 +119,7 @@ async function checkUrl(){
             //console.log(responseJson);
             //alert(responseJson);
             let response = JSON.parse(responseJson);
-            alert(response);
+            alert("Authorization granted");
             if(response.status=='401'){
                 alert("Authorization failed");
             }
@@ -132,7 +132,7 @@ async function checkUrl(){
                 var responseJson2 = await waitForResponse('Token','DropBox');
             }
             let response = JSON.parse(responseJson2);
-            alert(response);
+            //alert(response);
             /*if(response.status=='401'){
                 alert("Authorization failed");
             }*/
