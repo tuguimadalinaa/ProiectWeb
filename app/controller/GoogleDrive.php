@@ -53,7 +53,24 @@
             }
         
         }
-
+        public static function getStorageQuota()
+        {
+            $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
+            $json_token = json_decode(self::getModel()->getAccessToken($username,'GoogleDrive'),true);
+            $token = $json_token['access_token'];
+            $curl_resource = curl_init();
+            curl_setopt($curl_resource,CURLOPT_URL,"https://www.googleapis.com/drive/v3/about?fields=storageQuota");
+            curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'GET');
+            curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+               "Authorization: Bearer ${token}"
+            ));
+            curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+            curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+            $response=curl_exec($curl_resource);
+            curl_close($curl_resource); 
+            $responseDecoded=json_decode($response,true);
+            return $responseDecoded['storageQuota'];
+        }
         public static function obtainUriForResumable($fileName,$parent)
         {
             $username=(self::getAuth()->jwtDecode($_COOKIE["loggedIn"]))->username;
