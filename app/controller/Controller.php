@@ -22,13 +22,27 @@ class Controller{
         return $auth;
     }
 
-    public static function getFileForDownload($file_name,$username){
+    public static function getFileForDownload($file_name,$username,$googledriveId){
        $file_exists = 0;
-       $file_in_dropbox = Dropbox::checkIfFileExist($file_name,$username);
-       if($file_in_dropbox == 1){
-         $responseDropbox = Dropbox::downloadFileAPI($file_name,$username);
-         $file_exists = 1;
+       $file_in_googledrive=GoogleDrive::checkIfFileExistGoogleDrive($file_name,$username,$googledriveId);
+       if($file_in_googledrive==1)
+       {
+        $fileSize=GoogleDrive::getSizeFile($googledriveId);
+        if($fileSize<=256 * 1024 * 128)
+        {
+            $responseDropbox = GoogleDrive::downloadSmallFilesAPI($googledriveId,$username);
+            $file_exists=1;
+        }
+        else{
+            $responseDropbox = GoogleDrive::downloadLargeFileAPI($googledriveId,$username);
+            $file_exists=1;
+        }
        }
+    //    $file_in_dropbox = Dropbox::checkIfFileExist($file_name,$username);
+    //    if($file_in_dropbox == 1){
+    //      $responseDropbox = Dropbox::downloadFileAPI($file_name,$username);
+    //      $file_exists = 1;
+    //    }
        if($file_exists == 1){
            $file_downloaded =  $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $file_name;
            return $file_downloaded;
@@ -40,31 +54,38 @@ class Controller{
     public static function fileFragmentation($file_name,$username){
        $file_to_upload =  $_SERVER['DOCUMENT_ROOT'] . '/ProiectWeb/app/' . $file_name;
        $file_size = filesize($file_to_upload);
-       if($file_size % 2 == 0){
-        $dropbox_size = $file_size / 2;
-         $onedrive_size = $file_size - $dropbox_size;
-       } else {
-         $dropbox_size = $file_size / 2 + 0.5;
-         $onedrive_size = $file_size - $dropbox_size;
-       }
+       $googledrive_size = floor($file_size / 3);
+       $onedrive_size = floor($file_size / 3);
+       $dropbox_size=$file_size-$googledrive_size-$onedrive_size;
        $offset = 0;
+       $googledrive_file_name="1".$file_name;
+       $googledrive_data=file_get_contents($file_name,FALSE,null,$offset,$googledrive_size);
+       if($googledrive_size<=256 * 1024 * 128)//32 mb
+       {
+           $fileId=GoogleDrive::uploadSmallFileAPI($googledrive_data,$googledrive_file_name,$username);
+           //return "BUBU";
+       }
+       else
+       {
+        $fileId=GoogleDrive::uploadLargeFileAPI($googledrive_data,$googledrive_file_name,$username);
+        //return $response;
+       }
+
+       $offset = $offset + $googledrive_size;
+       $onedrive_filename = "2".$file_name;
+       $onedrive_data = file_get_contents($file_name,FALSE,null,$offset,$onedrive_size);
+       $nebunie=OneDrive::UploadFileAPI($onedrive_filename,$onedrive_data,$onedrive_size,$username);
+       $offset=$offset+$onedrive_size;
+
        $dropbox_data = file_get_contents($file_name,FALSE,null,$offset,$dropbox_size);
-       $dropbox_file_name = "1" . $file_name;
+       $dropbox_file_name = "3" . $file_name;
        if($dropbox_size <= 1048576 * 40){
             Dropbox::uploadSmallFileAPI($dropbox_data,$dropbox_file_name,$username);
        } else {
             Dropbox::uploadLargeFileAPI($dropbox_data,$dropbox_file_name,$username);
        }
-       $offset = $offset + $dropbox_size;
-       $onedrive_filename = "2".$file_name;
-       $onedrive_data = file_get_contents($file_name,FALSE,null,$offset,$onedrive_size);
-       return OneDrive::UploadFileAPI($onedrive_filename,$onedrive_data,$onedrive_size,$username);
+       return $fileId;
       
-    //    $file_to_put_togheter = 'PutTogheter' . $file_name;
-    //    $my_file = file_put_contents($file_to_put_togheter,$dropbox_data,FILE_APPEND);
-    //    $my_fule = file_put_contents($file_to_put_togheter,$onedrive_data,FILE_APPEND);
-    //    $googledrive_data = file_get_contents($file_name,FALSE,null,$offset,$googledrive_size);
-    //    $offset = $googledrive_size;
     }
 
 
