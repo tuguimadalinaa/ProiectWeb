@@ -179,7 +179,7 @@ var  deleteFile = async function()
         var div = document.getElementById(selectedFile).childNodes;
         var image =div[1].childNodes;
         let result = await responseDeleteFile(selectedFile);
-        if(result.type==undefined)
+        if(result.type!=undefined)
         {
             let response  = JSON.parse(result);
             if(response.status=="Expired Token")
@@ -189,6 +189,7 @@ var  deleteFile = async function()
         }
         else{
             alert("Deleted file! Please refresh");
+            location.reload();
         }
         pressedButton=false;
     }
@@ -215,20 +216,24 @@ async function responseCreateFolder(fileName,path) {
  var createFolder =  async function (){
 
     var folderName = window.prompt('Folder name here');
-    /*var elements = document.getElementsByClassName('folder');
-    let path  = elements[0].id.split(elements[0].id.match('[\\/][A-za-z]+[\\s]*[\\(]*[0-9]*[\\)]*[\\.]+[a-zA-z]+'));
-    let pathWithoutComa  = path[0].split(',');*/
-    let result = await responseCreateFolder(folderName,"drive/root:/Documents");//pathWithoutCom
-    let response = JSON.parse(result);
-    if(response.status=='401'){
-        alert("Error at creating Folder " + folderName);
-    } else if (response.status=="Expired Token")
+    if(folderName!=null)
     {
-        alert("Your token expired! Please Login again in home page!");
+        /*var elements = document.getElementsByClassName('folder');
+        let path  = elements[0].id.split(elements[0].id.match('[\\/][A-za-z]+[\\s]*[\\(]*[0-9]*[\\)]*[\\.]+[a-zA-z]+'));
+        let pathWithoutComa  = path[0].split(',');*/
+        let result = await responseCreateFolder(folderName,"drive/root:/Documents");//pathWithoutCom
+        let response = JSON.parse(result);
+        if(response.status=='401'){
+            alert("Error at creating Folder " + folderName);
+        } else if (response.status=="Expired Token")
+        {
+            alert("Your token expired! Please Login again in home page!");
+        }
+        else{
+            alert("Folder " + folderName+" created")
+        }
     }
-    else{
-        alert("Folder " + folderName+" created")
-    }
+    
  }
  function makeRequestMoveFolder(fileName,newpath){
     return new Promise(function (resolve) {
@@ -394,7 +399,7 @@ async function responseForFileTransfer(fileData, fileName,fileSize){
 }
  var uploadFile = async function ()
  {
-    if(confirm("Upload only one file?")){
+    if(confirm("Upload file?")){
         var buttonAdded = '<input type="file" id="fileOneDrive" multiple size="50" style="display: none;"/>';
         var placeToInsert =  document.getElementsByClassName("containerFlex");
         placeToInsert[0].insertAdjacentHTML('beforebegin',buttonAdded);
@@ -458,58 +463,7 @@ async function responseForFileTransfer(fileData, fileName,fileSize){
         element.click();
         element.remove();//?
     }
-    else{
-        var buttonAdded = '<input type="file" id="directoryOneDrive" multiple size="50" style="display: none;" webkitdirectory directory/>';
-        var placeToInsert =  document.getElementsByClassName("containerFlex");
-        placeToInsert[0].insertAdjacentHTML('beforebegin',buttonAdded);
-        var element = document.getElementById('directoryOneDrive');
-        if(element.getAttribute('listener')!=='true')
-        {
-            element.setAttribute('listener','false');
-        }
-        document.getElementById("directoryOneDrive").addEventListener("change", async function()
-        {
-            if(this.files && this.files[0])
-            {
-                let files = this.files;
-                let numberOfFilesToUpload = files.length;
-                let i = 0;
-                let maxUploadSize = 1048576 * 4; 
-                while(i < numberOfFilesToUpload){
-                    currentFileSize = files[i].size;
-                    currentFile = files[i];
-                    if(currentFileSize < maxUploadSize){
-                        response =  await responseForFileTransfer(currentFile,currentFile.name,currentFileSize);
-                        console.log(response);
-               } else {
-                   let sizeOfDataSent = 0;
-                   let uploadSessionStarted = 0;
-                   let cursorId = 0;
-                   currentFile = files[i];
-                   response = await makeRequestForUploadSessionStart(currentFile.name);
-                   console.log(response);
-                   let urlToUpload = JSON.parse(response);
-                   urlToUpload = urlToUpload.response;
-                   let last_range = 0;
-                   while(currentFileSize - sizeOfDataSent > maxUploadSize){
-                            last_range = sizeOfDataSent;
-                            fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
-                            response = await makeRequestForUploadSessionAppend(fileSliceToSend,sizeOfDataSent + maxUploadSize,cursorId,urlToUpload,currentFileSize,last_range);
-                            sizeOfDataSent = sizeOfDataSent + maxUploadSize;
-                   }
-                   if((currentFileSize - sizeOfDataSent) < maxUploadSize){
-                        last_range = sizeOfDataSent;
-                        fileSliceToSend = currentFile.slice(sizeOfDataSent,currentFileSize,currentFile);
-                        response = await makeRequestForUploadSessionFinish(fileSliceToSend,sizeOfDataSent,cursorId,urlToUpload,currentFileSize,last_range);
-                      alert(response);
-                   }
-               }
-               i++;
-            }
-        }});
-        element.click();
-        element.remove();//?
-    }
+        
  };
  function makeRequestForDownloadContent(filename){
     return new Promise(function (resolve) {

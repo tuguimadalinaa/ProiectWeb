@@ -22,7 +22,6 @@ async function waitForResponse() {
 async function goToIndex(callback)
 {
     let jsonResponse = await waitForResponse(true);
-    alert(jsonResponse);
     let response = JSON.parse(jsonResponse);
     if(response.status == '1'){
         alert("Username is wrong");

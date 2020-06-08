@@ -291,21 +291,64 @@ var upload = async function (){
             });
         }
         item = document.getElementById('uploadFile');
-    } else { 
-        htmlString = '<input type="file" id="uploadFolder" multiple size="50" style="display: none;" webkitdirectory directory/>';
-        if(document.getElementById('uploadFolder') == null){
-            input.insertAdjacentHTML('afterend',htmlString);
-            document.getElementById('uploadFolder').addEventListener("change",async function(){
-                folder = document.getElementById('uploadFolder').value;
-                alert(folder);
-            });
-        }
-        item = document.getElementById('uploadFolder');
-    }
-    item.click();
+        item.click();
+    } 
 }
+
+function makeRequestForDownload(receivedName,googleDriveId){
+    var request = new XMLHttpRequest();
+    request.open('POST', 'APIdownloadFile', true);
+    fileArgs = JSON.stringify({ name: receivedName, googledrive_id: googleDriveId });
+    request.setRequestHeader('Content-Type', 'application/json');
+    request.responseType = 'blob';
+    request.onload = function() {
+      if(request.status === 200) {
+        disposition = request.getResponseHeader('Content-Disposition');
+        aux = disposition.indexOf("filename");
+        filename = disposition.substr(aux + 9);
+
+        // The actual download
+        var blob = new Blob([request.response], { type: 'application/octet-stream' });
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    };
+    request.send(fileArgs);
+}
+
+function makeRequestForGoogleDriveID(receivedName){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', 'getIdByName?fileName='+receivedName, true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send();
+    });
+}
+
 var download = async function(){
-    alert("Hello");
+    while(true){
+        filename = window.prompt('Enter file name');
+        if(filename == null){
+            alert('Please enter a not null file name');
+        } else {
+            break;
+        }
+    }
+    googleDriveId = await makeRequestForGoogleDriveID(filename);
+    downloadResponse = await makeRequestForDownload(filename,googleDriveId);
+    alert(downloadResponse);
+    //Engleza35-36.txt
+    //response = await makeRequestForDownload(filename,googleDriveId);
+    //alert(response);
+    //window.location = 'downloadFolderDropbox?filename=' + filename;
 }
 document.getElementById("allCloudMethods").addEventListener('click',upload,false);
 document.getElementById("allCloudMethodsDownload").addEventListener('click',download,false);

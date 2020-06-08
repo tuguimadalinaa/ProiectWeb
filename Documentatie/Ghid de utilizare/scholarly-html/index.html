@@ -99,5 +99,118 @@
         <p>LogOut va deloga userul si ii va sterge cookie-urile.</p>
       </section>
     </section>
+    <section id="api">
+      <h2>Utilizare API</h2>
+      <p>Pentru API am creat anumite rute speciale care fac interactiunea si primirea de date mult mai usoara pentru utilizator</p>
+      <section id="logare">
+        <h2>Logarea</h2>
+        Pentru Logare userul va trimite in request in body un json
+        <pre>
+          <code>
+            {
+              "username":"user@gmail.com",
+              "password":"parola"
+            }
+          </code>
+        </pre>
+        Raspunsul va fi un JWT care va fi trimis ulterior in fiecare request:
+        <pre>
+          <code>
+            {
+              "JWT":"Asduend....potkKWL"
+            }
+          </code>
+        </pre>
+      </section>
+      <section id="signUp">
+        <h2>Inregistrarea</h2>
+        <p>Ruta: APIregisterUser</p>
+      </section>
+      <section id="code">
+        <h2>Obtinerea Codului</h2>
+        <p>Ruta: APIgetCode</p>
+        In header se vor pune 2 field-uri:
+        <ul>
+          <li>
+            Auth :  care va contine JWT-ul generat anterior
+          </li>
+          <li>
+            drive: care va contine un JSON in felul urmator drive : numele drive-ului
+            <pre>
+              <code>
+                {
+                  "drive":"OneDrive"
+                }
+              </code>
+            </pre>
+          </li>
+          Numele de drivere acceptate sunt
+          <ul>
+            <li>
+              OneDrive
+            </li>
+            <li>
+              GoogleDrive
+            </li>
+            <li>
+              DropBox
+            </li>
+          </ul>
+        </ul>
+        <p>Raspunsul va fi un json in care se va afla un link. Dupa accesarea acelui link se va gasi un cod si un scope.</p>
+      </section>
+      <section id="token">
+        <h2>Obtinerea tokenului de access</h2>
+        <p>Ruta: APIregisterToken</p>
+        Cu codul obtinut anterior se va face urmatorul request:
+        <p>In header se va pune Auth cu JWT-ul obtinut anterior </p>
+        <p>Body-ul requestului trebuie sa fie astfel:</p>
+        <pre>
+          <code>
+            {
+              "code":"COD_DIN_LINK",
+              "drive":"OneDrive",
+              "scope":null
+            }
+          </code>
+        </pre>
+        <p>Pentru driverele DropBox si OneDrive se accepta un scope null, altfel pentru GoogleDrive field-ul scope este obligatoriu.</p>
+      </section>
+      <section id="uploadStart">
+        <h2>Inceperea unei sesiuni de urcat:</h2>
+        <p>Ruta: APIuploadStart</p>
+        <p>In header se va pune Auth cu JWT-ul obtinut anterior si File-args</p> 
+        <p>File-args va fi un json cu numele fisierului si un field "drive" care va fi completat cu numele unui drive sau cu "alldrives" pentru upload fragmentat</p>
+        <p>Body-ul requestului trebuie sa contina primii 40MB din fisier
+      </section>
+      <section id="append">
+        <h2>Urcarea de fisiere</h2>
+        <p>Ruta: APIuploadAppend</p>
+        <p>In header se va pune Auth cu JWT-ul obtinut anterior </p>
+        <p>Body-ul requestului trebuie sa contina urmatorul chunck de date.
+      </section>
+      <section id="finish">
+        <h2>Urcarea de fisiere</h2>
+        <p>Ruta: APIuploadFinish</p>
+        <p>In header se va pune Auth cu JWT-ul obtinut anterior </p>
+        <p>File-args va fi un json cu numele fisierului</p>
+        <p>Body-ul requestului trebuie sa contina ultimii MB</p>
+      </section>
+      <section id="descarcare">
+        <h2>Descarcarea unui fisier</h2>
+        <p>Ruta: APIdownloadFile</p>
+        <p>In header se va pune Auth cu JWT-ul obtinut anterior </p>
+        <p>Body-ul requestului trebuie sa fie astfel:</p>
+        <pre>
+          <code>
+            {
+              "name":"nume_fisier",
+              "googledrive_id" : "",
+            }
+          </code>
+        </pre>
+        <p>googledrive_id va fi generat la uploadarea unui fisier.</p>
+      </section>
+    </section>
   </body>
 </html>

@@ -106,7 +106,7 @@ function makeRequestForMovingItem(itemId){
 function makeRequestForUploadingSmallItem(file){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        fileArgs = JSON.stringify({ path: file.name });
+        fileArgs = JSON.stringify({ path: file.name});
         xhr.open('POST', 'uploadSmallFileDropbox', true);
         xhr.setRequestHeader('File-Args',fileArgs);
         xhr.onreadystatechange = function () {
@@ -121,7 +121,7 @@ function makeRequestForUploadingSmallItem(file){
 function makeRequestForUploadingSmallItemAPI(file){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        fileArgs = JSON.stringify({ name: file.name });
+        fileArgs = JSON.stringify({ name: file.name, drive: "Dropbox" });
         xhr.open('POST', 'APIuploadFinish', true);
         xhr.setRequestHeader('File-Args',fileArgs);
         xhr.onreadystatechange = function () {
@@ -166,7 +166,7 @@ function makeRequestForUploadSessionAppendAPI(fileSlice,fileName){
 function makeRequestForUploadSessionFinishAPI(fileSlice,fileName){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        fileArgs = JSON.stringify({ name: fileName });
+        fileArgs = JSON.stringify({ name: fileName, drive: "Dropbox" });
         xhr.open('POST', 'APIuploadFinish', true);
         xhr.setRequestHeader('File-Args',fileArgs);
         xhr.onreadystatechange = function () {
@@ -278,7 +278,7 @@ async function prepareUpload(files){
        if(currentFileSize < maxUploadSize){
            //response =  await makeRequestForUploadingSmallItem(currentFile);
            response =  await makeRequestForUploadingSmallItemAPI(currentFile);
-           console.log(response);
+           location.reload();
        } else {
            let sizeOfDataSent = 0;
            let uploadSessionStarted = 0;
@@ -303,7 +303,7 @@ async function prepareUpload(files){
               fileSliceToSend = currentFile.slice(sizeOfDataSent,currentFileSize,currentFile);
               //response = await makeRequestForUploadSessionFinish(fileSliceToSend,sizeOfDataSent,cursorId,currentFile.name);
               response = await makeRequestForUploadSessionFinishAPI(fileSliceToSend,currentFile.name);
-              console.log(response);
+              location.reload();
            }
        }
        i++;
