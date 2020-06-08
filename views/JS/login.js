@@ -21,9 +21,6 @@ async function waitForResponse() {
 }
 async function goToIndex(callback)
 {
-    /*https://stackoverflow.com/questions/48327559/save-async-await-response-on-a-variable*/
-    /*https://dev.to/shoupn/javascript-fetch-api-and-using-asyncawait-47mp*/
-    /*https://stackoverflow.com/questions/48969495/in-javascript-how-do-i-should-i-use-async-await-with-xmlhttprequest*/
     let jsonResponse = await waitForResponse(true);
     alert(jsonResponse);
     let response = JSON.parse(jsonResponse);
