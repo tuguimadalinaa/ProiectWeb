@@ -56,13 +56,20 @@
             <div id="oneDrive">
                 <a href="#">
                     <img id="one-drive" src="../views/IMAGES/OneDrive-icon.png" alt="oneDrive" onclick="uploadOneDrive()" ><br>
-                    <!--<input type="file" id="fileOneDrive" multiple size="50" style="display: none;"/>-->  <!-- Robert: linia asta si cea de jos cred ca ar trebui adaugate din javascript in momentul in care avem nevoie -->
-                    <!--<input type="file" id="directoryOneDrive" multiple size="50" style="display: none;" webkitdirectory directory/>--> <!--Se poate folosind insertAdjacentHTML() in js-->
+                    
                 </a>
                 <h3 class="description3">One Drive</h3>
             </div>
         </div>
-        <button id="allCloudMethods" onclick="uploadAllDrivers()">Upload on all cloud options</button>  
+        <div id="buttons_all_cloud">
+            <div>
+                <button id="allCloudMethods" >Upload on all cloud options</button>
+            </div>
+            <div class="divider"></div>
+            <div>
+                <button id="allCloudMethodsDownload">Download fragmented File</button>
+            </div>
+        </div> 
     </div>
     <script src="../views/JS/index.js"></script>
  </body>   
