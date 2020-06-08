@@ -720,5 +720,25 @@ public static function downloadFileAPI($file_name,$username){
     $responseDecoded = json_decode($response,true);
     return 'Peste';
 }
+
+public static function getStorage($username){
+    $dropbox_storage_url = "https://api.dropboxapi.com/2/users/get_space_usage";
+    $json_token = json_decode(self::getModel()->getAccessToken($username,'Dropbox'),true);
+    $token = $json_token['access_token'];
+    $curl_resource = curl_init();
+    curl_setopt($curl_resource,CURLOPT_URL,$dropbox_storage_url);
+    curl_setopt($curl_resource,CURLOPT_CUSTOMREQUEST,'POST');
+    curl_setopt($curl_resource,CURLOPT_HTTPHEADER,array(
+        "Authorization: Bearer ${token}"
+    ));
+    curl_setopt($curl_resource,CURLOPT_RETURNTRANSFER,1);
+    curl_setopt($curl_resource,CURLOPT_SSL_VERIFYPEER,false);
+    $response = curl_exec($curl_resource);
+    curl_close($curl_resource);
+    //return $response;
+    $responseDecoded = json_decode($response,true);
+    $space_left = $responseDecoded['allocation']['allocated'] - $responseDecoded['used'];
+    return $space_left;
+}
 }
 ?>

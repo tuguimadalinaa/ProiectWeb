@@ -1484,4 +1484,40 @@ Route::set('APIdownloadFile',function(){
 
 /* ---------------------------------------- API routes Dropbox ---------------------------------------- */
 
+Route::set('getStorageDropbox',function(){
+    $headers = apache_request_headers();
+    $responseJWTheader = Login::validateJwtRequest($headers);
+    $responseJWTcookie = Login::validateJwtCookie();
+    $jwt = null;
+    if($responseJWTheader == 'JWT valid' || $responseJWTcookie == 'JWT valid'){
+        foreach ($headers as $header => $value) {
+            if($header == 'Auth'){
+                $jwt = $value;
+                break;
+            }
+        }
+        $username=(Controller::getAuth()->jwtDecode($jwt))->username;
+        $remaining_space = Dropbox::getStorage($username);
+        http_response_code(200);
+        $responseJson = array("space_left" => "${remaining_space}");
+        header('Content-Type: application/json');
+        echo json_encode($responseJson);
+    } else if($responseJWTheader == 'JWT invalid'){
+        http_response_code(401);
+        $error = array("error" => "Expired or invalid JWT");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'JWT is empty'){
+        http_response_code(400);
+        $error = array("error" => "Missing JWT value");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    } else if($responseJWTheader == 'No Auth Header') {
+        http_response_code(400);
+        $error = array("error" => "Missing JWT header");
+        header('Content-Type: application/json');
+        echo json_encode($error);
+    }
+});
+
 ?>
