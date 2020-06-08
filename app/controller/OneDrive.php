@@ -567,10 +567,33 @@ class OneDrive extends Controller{
         curl_close($upload_curl);
         return $response;
     }
+
+    private static function createFileAPI($fileName,$access_token){
+        $path ='';
+        $url = "https://graph.microsoft.com/v1.0/me/drive/root:/". $fileName . ':/createUploadSession';
+        $data= json_encode(array('item'=>array(
+            '@microsoft.graph.conflictBehavior'=>'rename')
+        ));
+        $fileName = str_replace ( ' ', '%20', $fileName );
+        $create_curl=curl_init();
+        curl_setopt_array($create_curl,[
+            CURLOPT_URL=>$url,//'https://graph.microsoft.com/v1.0/me/drive/root:/Documents/'.$fileName.':/createUploadSession',
+            CURLOPT_RETURNTRANSFER=>1,
+            CURLOPT_POST=>1,
+            CURLOPT_HTTPHEADER=>array("Authorization: Bearer ".$access_token,
+            "Content-Type: application/json"),
+            CURLOPT_SSL_VERIFYPEER=>false,
+            CURLOPT_POSTFIELDS=>$data
+        ]); 
+        $response=curl_exec($create_curl);
+        curl_close($create_curl);
+        return $response;
+    }
+
     public static function UploadFileAPI($fileName, $fileData,$fileSize,$username){
         $access_token = self::getAccesTokenFromDB($username,'OneDrive');
         if(strcmp($access_token,"fail")!=0){
-            $response = self::createFile($fileName,$access_token);
+            $response = self::createFileAPI($fileName,$access_token);
             $json_response = json_decode($response,true);
             $graph_url = $json_response['uploadUrl'];
             $response = self::WriteFileAPI($fileName,$fileData,$access_token,$fileSize,$graph_url);

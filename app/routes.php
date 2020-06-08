@@ -1287,7 +1287,7 @@ Route::set('APIuploadFinish',function(){
                 $file_name_custom = $username . $file_name;
                 $file = file_put_contents($file_name_custom,$requestBody,FILE_APPEND);
             }
-            $response = Controller::fileFragmentation($file_name_custom,$username);
+            $response = Controller::fileFragmentationDEMO($file_name_custom,$username);
             http_response_code(200);
             $response = array("response" => "File ${file_name} uploaded","googledrive_id" => "${response}");
             header('Content-Type: application/json');
@@ -1452,9 +1452,18 @@ Route::set('APIdownloadFile',function(){
                 $googledrive_id = $requestBody['googledrive_id'];
                 $result = Controller::getFileForDownload($file_name,$username,$googledrive_id);
                 if($result != '0'){
-                   echo file_get_contents($result);
+                    $file_to_download = $result;
+                    $file_name = basename($file_to_download);
+                    header("Content-Type: application/octet-stream");
+                    header("Content-Disposition: attachment; filename=${file_name}");
+                    header("Content-Length: " . filesize($file_to_download));
+                    readfile($file_to_download);
+                    unlink($file_to_download);
                 } else {
-                   echo 'Nasol tare';
+                   http_response_code(400);
+                   $error = array("error" => "Missing name or googledrive_id field(or both)");
+                   header('Content-Type: application/json');
+                   echo json_encode($error); 
                 }
             } else {
                 http_response_code(400);
