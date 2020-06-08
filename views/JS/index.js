@@ -187,7 +187,7 @@ function makeRequestForUploadSessionAppendAPI(fileSlice,fileName){
 function makeRequestForUploadSessionFinishAPI(fileSlice,fileName){
     return new Promise(function (resolve) {
         let xhr = new XMLHttpRequest();
-        fileArgs = JSON.stringify({ name: fileName });
+        fileArgs = JSON.stringify({ name: fileName, drive: "AllDrives" });
         xhr.open('POST', 'APIuploadFinish', true);
         xhr.setRequestHeader('File-Args',fileArgs);
         xhr.onreadystatechange = function () {
