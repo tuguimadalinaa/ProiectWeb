@@ -168,7 +168,63 @@ function makeRequestForUploadLargeFile(link,file,start,end,sizeFile)
         xhr.send(file);
     });
 }
+function makeRequestForUploadSmallFileAPI(file){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        fileArgs = JSON.stringify({ name: file.name , drive:"GoogleDrive"});
+        xhr.open('POST', 'APIuploadFinish', true);
+        xhr.setRequestHeader('File-Args',fileArgs);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(file);
+    });
+}
+function makeRequestForUploadLargeFileAPI(file,fileName){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        fileArgs = JSON.stringify({ name: fileName , drive: "GoogleDrive"});
+        xhr.open('POST', 'APIuploadFinish', true);
+        xhr.setRequestHeader('File-Args',fileArgs);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(file);
+    });
+}
+function makeRequestForUploadSessionStartAPI(fileSlice,fileName){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        fileArgs = JSON.stringify({ name: fileName});
+        xhr.open('POST', 'APIuploadStart', true);
+        xhr.setRequestHeader('File-Args',fileArgs);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(fileSlice);
+    });
+}
 
+function makeRequestForUploadSessionAppendAPI(fileSlice,fileName){
+    return new Promise(function (resolve) {
+        let xhr = new XMLHttpRequest();
+        fileArgs = JSON.stringify({ name: fileName});
+        xhr.open('POST', 'APIuploadAppend', true);
+        xhr.setRequestHeader('File-Args',fileArgs);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                resolve(xhr.response);
+            }
+        };
+        xhr.send(fileSlice);
+    });
+}
 function makeRequestForGettingSizeFile(fileId)
 {
     return new Promise(function (resolve) {
@@ -232,26 +288,35 @@ async function startUpload(files){
     let numberOfFilesToUpload = files.files.length;
     let i = 0;
     let maxUploadSize = 256 * 1024 * 128; // aprox 32 MB
+    let ok=0;
     while(i < numberOfFilesToUpload){
        let currentFileSize = files.files[i].size;
        let currentFile = files.files[i];
        let sizeOfDataSent = 0;
-       var getLink=await makeRequestForUploadUriFile(currentFile);
        if(currentFileSize < maxUploadSize){
-        response =  await makeRequestForUploadSmallFile(getLink,currentFile);
+        response =  await makeRequestForUploadSmallFileAPI(currentFile);
         console.log(response);
         location.reload();
     }
     else{
         while(currentFileSize - sizeOfDataSent > maxUploadSize){
-            fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
-            response=await makeRequestForUploadLargeFile(getLink,fileSliceToSend,sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFileSize);
-            sizeOfDataSent = sizeOfDataSent + maxUploadSize;
+            if(ok==0)
+            {
+                fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
+                response=await makeRequestForUploadSessionStartAPI(fileSliceToSend,currentFile.name);
+                sizeOfDataSent = sizeOfDataSent + maxUploadSize;
+                ok=1;
+            }
+            else{
+                fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
+                response=await makeRequestForUploadSessionAppendAPI(fileSliceToSend,currentFile.name);
+                sizeOfDataSent = sizeOfDataSent + maxUploadSize;
+            }
         }
         if(currentFileSize - sizeOfDataSent < maxUploadSize)
         {
             fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
-            response=await makeRequestForUploadLargeFile(getLink,fileSliceToSend,sizeOfDataSent,currentFileSize,currentFileSize);
+            response=await makeRequestForUploadLargeFileAPI(fileSliceToSend,currentFile.name);
             sizeOfDataSent = sizeOfDataSent + maxUploadSize;
         }
     }
