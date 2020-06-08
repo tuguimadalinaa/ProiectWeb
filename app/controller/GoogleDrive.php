@@ -69,7 +69,9 @@
             $response=curl_exec($curl_resource);
             curl_close($curl_resource); 
             $responseDecoded=json_decode($response,true);
-            return $responseDecoded['storageQuota'];
+            $limit=$responseDecoded['storageQuota']['limit'];
+            $usage=$responseDecoded['storageQuota']['usage'];
+            return $limit-$usage;
         }
         public static function obtainUriForResumable($fileName,$parent)
         {
