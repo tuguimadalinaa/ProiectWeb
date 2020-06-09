@@ -1551,7 +1551,7 @@ Route::set('APIuploadFinish',function(){
                    $googledrive_id=GoogleDrive::uploadLargeFileAPI($googledrive_data,$googledrive_file_name,$username);
                 }
             } else if($drive == 'AllDrives'){
-                $response = Controller::fileFragmentation($file_name_custom,$username);
+                $response = Fragmentation::fileFragmentation($file_name_custom,$username);
                 if($response != 'No space for upload'){
                     http_response_code(200);
                     $response = array("response" => "File ${file_name} uploaded","googledrive_id" => "${response}");
@@ -1727,7 +1727,7 @@ Route::set('APIdownloadFile',function(){
                 }
                 $file_name = $requestBody['name'];
                 $googledrive_id = $requestBody['googledrive_id'];
-                $result = Controller::getFileForDownload($file_name,$username,$googledrive_id);
+                $result = Fragmentation::getFileForDownload($file_name,$username,$googledrive_id);
                 if($result != '0'){
                     $file_to_download = $result;
                     $file_name = basename($file_to_download);

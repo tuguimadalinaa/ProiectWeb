@@ -244,6 +244,7 @@ var upload = async function (){
             document.getElementById('uploadFile').addEventListener("change",async function(){
                 files = document.getElementById('uploadFile');
                 response = await prepareUpload(files);
+                alert("Upload done!");
                 //alert(response);
             });
         }
@@ -291,16 +292,15 @@ function makeRequestForGoogleDriveID(receivedName){
 }
 
 var download = async function(){
-    while(true){
-        filename = window.prompt('Enter file name');
-        if(filename == null){
-            alert('Please enter a not null file name');
-        } else {
-            break;
-        }
+    filename = window.prompt('Enter file name');
+    if(filename == null){
+        alert('Please enter a not null file name');
+        return;
+    }else{
+        googleDriveId = await makeRequestForGoogleDriveID(filename);
+        downloadResponse = await makeRequestForDownload(filename,googleDriveId);
     }
-    googleDriveId = await makeRequestForGoogleDriveID(filename);
-    downloadResponse = await makeRequestForDownload(filename,googleDriveId);
+    
     //alert(downloadResponse);
     //Engleza35-36.txt
     //response = await makeRequestForDownload(filename,googleDriveId);
