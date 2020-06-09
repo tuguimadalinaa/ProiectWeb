@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="ro">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
@@ -133,35 +133,9 @@
           <li>
             Auth : care va contine JWT-ul pentru verificarea user-ului
           </li>
-          <pre>
-            <code>
-              {
-                "Auth":"Asduend....potkKWL"
-              }
-            </code>
-          </pre>
           <li>
             drive: care va contine un JSON cu numele drive-urului la care se doreste a obtine codul
-            <pre>
-              <code>
-                {
-                  "drive":"OneDrive"
-                }
-              </code>
-            </pre>
           </li>
-          Numele de drivere acceptate sunt
-          <ul>
-            <li>
-              OneDrive
-            </li>
-            <li>
-              GoogleDrive
-            </li>
-            <li>
-              DropBox
-            </li>
-          </ul>
         </ul>
         <p>Raspunsul va fi un json in care se va afla un link. Dupa accesarea acelui link se va gasi un cod si un scope.</p>
         <p>In cazul nereturnarii unui json cu link-ul, se va returna un raspuns cu eroarea intampinata </p>
