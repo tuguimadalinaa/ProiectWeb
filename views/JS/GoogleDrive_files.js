@@ -289,7 +289,7 @@ async function highlightItem(item){
 }
 async function getFolderFiles(folder){
     folderId = folder.getAttribute('id');
-    alert(folderId);
+    //alert(folderId);
     response = await waitForResponse('visualizeFolder',folderId,null);
     location.reload();
 }
@@ -336,9 +336,11 @@ async function startUpload(files){
        let currentFileSize = files.files[i].size;
        let currentFile = files.files[i];
        let sizeOfDataSent = 0;
+       var getLink=await makeRequestForUploadUriFile(currentFile);
        if(currentFileSize < maxUploadSize){
-        response =  await makeRequestForUploadSmallFileAPI(currentFile);
-        console.log(response);
+        //response =  await makeRequestForUploadSmallFileAPI(currentFile);
+        response =  await makeRequestForUploadSmallFile(getLink,currentFile);
+
         location.reload();
     }
     else{
@@ -346,20 +348,23 @@ async function startUpload(files){
             if(ok==0)
             {
                 fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
-                response=await makeRequestForUploadSessionStartAPI(fileSliceToSend,currentFile.name);
+                response =  await makeRequestForUploadLargeFile(getLink,fileSliceToSend,sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFileSize);
+                //response=await makeRequestForUploadSessionStartAPI(fileSliceToSend,currentFile.name);
                 sizeOfDataSent = sizeOfDataSent + maxUploadSize;
                 ok=1;
             }
             else{
                 fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
-                response=await makeRequestForUploadSessionAppendAPI(fileSliceToSend,currentFile.name);
+                response =  await makeRequestForUploadLargeFile(getLink,fileSliceToSend,sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFileSize);
+                //response=await makeRequestForUploadSessionAppendAPI(fileSliceToSend,currentFile.name);
                 sizeOfDataSent = sizeOfDataSent + maxUploadSize;
             }
         }
         if(currentFileSize - sizeOfDataSent < maxUploadSize)
         {
             fileSliceToSend = currentFile.slice(sizeOfDataSent,sizeOfDataSent + maxUploadSize,currentFile);
-            response=await makeRequestForUploadLargeFileAPI(fileSliceToSend,currentFile.name);
+            response =  await makeRequestForUploadLargeFile(getLink,fileSliceToSend,sizeOfDataSent,currentFileSize,currentFileSize);
+            //response=await makeRequestForUploadLargeFileAPI(fileSliceToSend,currentFile.name);
             sizeOfDataSent = sizeOfDataSent + maxUploadSize;
         }
     }

@@ -298,7 +298,7 @@ Route::set('uploadSmallFilesGoogleDrive',function()
             }
              $fileLinkArray=json_decode($fileLink,true);
              $fileBody=file_get_contents('php://input');
-             $response = GoogleDrive::uploadSmallFileResumable($fileLinkArray["linkusor"],$fileBody);
+             $response = GoogleDrive::uploadSmallFileResumableGoogleDrive($fileLinkArray["linkusor"],$fileBody);
             echo $response;
         }
         else

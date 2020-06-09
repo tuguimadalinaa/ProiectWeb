@@ -98,16 +98,10 @@
         public static function obtainUriForResumable($fileName,$parent)
         {
             $token = self::getTokenUser();
-        $metadata=array(
-            "name"=>"${fileName}",
-            "parents"=>array("${parent}")
-        );
-        if($parent==null)
-        {
-            $metadata=array(
-                "name"=>"${fileName}"
-            );
-        }
+                $metadata=array(
+                    "name"=>"${fileName}",
+                    "parents"=>array("${parent}")
+                    );
         $metadatajson=json_encode($metadata);
         $size=strlen($metadatajson);
         $curl_resource = curl_init();
@@ -130,7 +124,7 @@
         $redirect_uri=substr($uri,0,$pos_uri-2);
         return  $redirect_uri;
         }
-        public static function uploadSmallFileResumable($uri,$fileData)
+        public static function uploadSmallFileResumableGoogleDrive($uri,$fileData)
         {
             $token = self::getTokenUser();
         $size=strlen($fileData);
