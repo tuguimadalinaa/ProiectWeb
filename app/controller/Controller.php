@@ -169,7 +169,7 @@ class Controller{
        $offset = $offset + $googledrive_size;
        $onedrive_filename = "/2".$file_name;
        $onedrive_data = file_get_contents($file_name,FALSE,null,$offset,$onedrive_size);
-       $nebunie=OneDrive::UploadFileAPI($onedrive_filename,$onedrive_data,$onedrive_size,$username);
+       OneDrive::UploadFileAPI($onedrive_filename,$onedrive_data,$onedrive_size,$username);
        $offset=$offset+$onedrive_size;
 
        $dropbox_data = file_get_contents($file_name,FALSE,null,$offset,$dropbox_size);
