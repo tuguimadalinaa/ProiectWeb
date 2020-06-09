@@ -1617,7 +1617,7 @@ Route::set('APIregisterToken',function(){
 
                             $response = OneDrive::GetTokenApi($requestBody['code'],$jwt);
                             http_response_code(200);
-                            $response = array("access_token" => $response);
+                            $response = array("response" => $response);
                             header('Content-Type: application/json');
                             echo json_encode($response); 
 

@@ -101,10 +101,11 @@
     </section>
     <section id="api">
       <h2>Utilizare API</h2>
-      <p>Pentru API am creat anumite rute speciale care fac interactiunea si primirea de date mult mai usoara pentru utilizator</p>
+      <p>Pentru API am creat rute speciale care realizeaza interactiunea si primirea de date mult mai usoara pentru utilizator</p>
       <section id="logare">
-        <h2>Logarea</h2>
-        Pentru Logare userul va trimite in request in body un json
+        <h2>Inregistrare</h2>
+        Pentru inregistrare, userul va trimite in request in body un json
+        <br>Ruta: APIregisterToken
         <pre>
           <code>
             {
@@ -121,21 +122,26 @@
             }
           </code>
         </pre>
-      </section>
-      <section id="signUp">
-        <h2>Inregistrarea</h2>
-        <p>Ruta: APIregisterUser</p>
+        <br>
+        <p>In cazul in care nu se returneaza un json cu field-ul JWT, se returneaza un raspuns cu eroarea intampinata</p>
       </section>
       <section id="code">
         <h2>Obtinerea Codului</h2>
         <p>Ruta: APIgetCode</p>
-        In header se vor pune 2 field-uri:
+        Request-ul va contine 2 headere:
         <ul>
           <li>
-            Auth :  care va contine JWT-ul generat anterior
+            Auth : care va contine JWT-ul pentru verificarea user-ului
           </li>
+          <pre>
+            <code>
+              {
+                "Auth":"Asduend....potkKWL"
+              }
+            </code>
+          </pre>
           <li>
-            drive: care va contine un JSON in felul urmator drive : numele drive-ului
+            drive: care va contine un JSON cu numele drive-urului la care se doreste a obtine codul
             <pre>
               <code>
                 {
@@ -158,58 +164,100 @@
           </ul>
         </ul>
         <p>Raspunsul va fi un json in care se va afla un link. Dupa accesarea acelui link se va gasi un cod si un scope.</p>
+        <p>In cazul nereturnarii unui json cu link-ul, se va returna un raspuns cu eroarea intampinata </p>
       </section>
       <section id="token">
         <h2>Obtinerea tokenului de access</h2>
         <p>Ruta: APIregisterToken</p>
-        Cu codul obtinut anterior se va face urmatorul request:
-        <p>In header se va pune Auth cu JWT-ul obtinut anterior </p>
+        Cu codul (si eventual scope-ul) obtinut anterior se va face urmatorul request:
+        <p>In header se va pune Auth cu JWT-ul user-ului </p>
         <p>Body-ul requestului trebuie sa fie astfel:</p>
         <pre>
           <code>
             {
               "code":"COD_DIN_LINK",
               "drive":"OneDrive",
-              "scope":null
+              "scope": "null"
             }
           </code>
         </pre>
-        <p>Pentru driverele DropBox si OneDrive se accepta un scope null, altfel pentru GoogleDrive field-ul scope este obligatoriu.</p>
+        <p>Pentru driverele DropBox si OneDrive se accepta un scope cu valoarea "null", altfel pentru GoogleDrive field-ul scope este obligatoriu.</p>
+        <p>In cazul unei erori, se returneaza un raspuns ce descrie eroarea intampinata</p>
       </section>
       <section id="uploadStart">
-        <h2>Inceperea unei sesiuni de urcat:</h2>
+        <h2>Inceperea unei sesiuni de upload:</h2>
         <p>Ruta: APIuploadStart</p>
-        <p>In header se va pune Auth cu JWT-ul obtinut anterior si File-args</p> 
-        <p>File-args va fi un json cu numele fisierului si un field "drive" care va fi completat cu numele unui drive sau cu "AllDrives" pentru upload fragmentat</p>
-        <p>Body-ul requestului trebuie sa contina primii 40MB din fisier
+        <p>Pentru upload se pot trimite pana la 40MB de date per request</p>
+        <p>In header se va pune Auth cu JWT-ul user-ului si header-ul File-Args</p> 
+        <p>File-Args va contine un json cu numele fisierului</p>
+        <pre>
+          <code>
+            {
+              "name":"File.txt"
+            }
+          </code>
+        </pre>
+        <p>Body-ul requestului trebuie sa contina primul chunk din fisier</p>
+        <p>In cazul unei erori, se returneaza un raspuns ce descrie eroarea intampinata</p>
       </section>
       <section id="append">
         <h2>Urcarea de fisiere</h2>
         <p>Ruta: APIuploadAppend</p>
-        <p>In header se va pune Auth cu JWT-ul obtinut anterior </p>
-        <p>Body-ul requestului trebuie sa contina urmatorul chunck de date.
+        <p>Se va pune un header Auth cu JWT-ul user-ului si header-ul File-Args</p>
+        <p>File-Args va contine un json cu numele trimis prin header la ruta APIuploadStart</p>
+        <p>Body-ul requestului trebuie sa contina urmatorul chunk de date(maxim 40MB dimensiunea chunk-ului).</p>
+        <p>In cazul unei erori, se returneaza un raspuns ce descrie eroarea intampinata</p>
       </section>
       <section id="finish">
-        <h2>Urcarea de fisiere</h2>
+        <h2>Terminarea sesiunii de upload</h2>
         <p>Ruta: APIuploadFinish</p>
-        <p>In header se va pune Auth cu JWT-ul obtinut anterior </p>
-        <p>File-args va fi un json cu numele fisierului</p>
-        <p>Body-ul requestului trebuie sa contina ultimii MB</p>
+        <p>Se va pune un header Auth cu JWT-ul user-ului si header-ul File-Args</p>
+        <p>File-args va fi un json cu numele fisierului si numele driver-ului pe care se doreste uploadat</p>
+        <p>Daca se doreste a fi fragmentat pe toate cele 3 drivere, field-ul drive va avea valoarea "AllDrives"</p>
+        <pre>
+          <code>
+            {
+              "name":"File.txt",
+              "drive": "Dropbox"
+            }
+          </code>
+        </pre>
+        <p>Body-ul requestului trebuie sa contina ultimul chunck de date</p>
+        <p>In cazul unei erori, se returneaza un raspuns ce descrie eroarea intampinata</p>
+      </section>
+      <section id="smallFile">
+        <h2>Urcarea de fisiere de dimensiuni mici</h2>
+        <p>Ruta: APIuploadFinish</p>
+        <p>Daca fisierul are o dimensiune mai mica de 40MB, nu se necesita o sesiune si se face request direct la ruta aceasta </p>
+        <p>Se va pune un header Auth cu JWT-ul user-ului si header-ul File-Args</p>
+        <p>File-args va fi un json cu numele fisierului si numele driver-ului pe care se doreste uploadat</p>
+        <p>Daca se doreste a fi fragmentat pe toate cele 3 drivere, field-ul drive va avea valoarea "AllDrives"</p>
+        <pre>
+          <code>
+            {
+              "name":"File.txt",
+              "drive": "Dropbox"
+            }
+          </code>
+        </pre>
+        <p>Body-ul requestului trebuie sa contina continutul fisierului</p>
+        <p>In cazul unei erori, se returneaza un raspuns ce descrie eroarea intampinata</p>
       </section>
       <section id="descarcare">
         <h2>Descarcarea unui fisier</h2>
         <p>Ruta: APIdownloadFile</p>
-        <p>In header se va pune Auth cu JWT-ul obtinut anterior </p>
+        <p>Se va pune un header Auth cu JWT-ul user-ului </p>
         <p>Body-ul requestului trebuie sa fie astfel:</p>
+        <p>In cazul in care field-ul drive la ruta APIuploadFinish avea valoarea "Dropbox" sau "AllDrives" field-ul drive va avea valoarea "null"</p>
         <pre>
           <code>
             {
               "name":"nume_fisier",
-              "googledrive_id" : "",
+              "googledrive_id" : "null"
             }
           </code>
         </pre>
-        <p>googledrive_id va fi generat la uploadarea unui fisier.</p>
+        <p>In cazul unei erori, se returneaza un raspuns ce descrie eroarea intampinata</p>
       </section>
     </section>
   </body>
