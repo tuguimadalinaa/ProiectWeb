@@ -238,7 +238,50 @@ function makeRequestForGettingSizeFile(fileId)
         xhr.send();
     });
 }
+function makeRequestForDownloadSmallFile(fileId){
+    var request = new XMLHttpRequest();
+    request.open('GET', 'downloadSmallFileGoogleDrive?fileId=' +fileId, true);
+    request.responseType = 'blob';
+    request.onload = function() {
+      if(request.status === 200) {
+        disposition = request.getResponseHeader('Content-Disposition');
+        aux = disposition.indexOf("filename");
+        filename = disposition.substr(aux + 9);
 
+        // The actual download
+        var blob = new Blob([request.response], { type: 'application/octet-stream' });
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    };
+    request.send();
+}
+function makeRequestForDownloadLargeFile(fileId){
+    var request = new XMLHttpRequest();
+    request.open('GET', 'downloadLargeFileGoogleDrive?fileId=' +fileId, true);
+    request.responseType = 'blob';
+    request.onload = function() {
+      if(request.status === 200) {
+        disposition = request.getResponseHeader('Content-Disposition');
+        aux = disposition.indexOf("filename");
+        filename = disposition.substr(aux + 9);
+
+        // The actual download
+        var blob = new Blob([request.response], { type: 'application/octet-stream' });
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    };
+    request.send();
+}
 async function highlightItem(item){
     itemId = item.getAttribute('id');
     checkedFileId = itemId;
@@ -331,13 +374,13 @@ async function startDownload(fileId){
     let sizeOfDataSent = 0;
     if(fileSize-sizeOfDataSent<maxDownloadSize)
     {
-        window.location='downloadSmallFileGoogleDrive?fileId=' +fileId;
+        response=makeRequestForDownloadSmallFile(fileId);
     }
     else
     {
-        window.location='downloadLargeFileGoogleDrive?fileId=' +fileId;
+        response=makeRequestForDownloadLargeFile(fileId);
     }
-    return "Done";
+    //return "Done";
 }
 async function downloadFileAndFolder(){
     if(checkedFileId == 0){
@@ -354,7 +397,7 @@ async function downloadFileAndFolder(){
 
         }
     }
-    return "Download done";
+    //return "Download done";
 }
 
 async function moveFileOrFolder(){
@@ -396,6 +439,7 @@ async function deleteFile(){
         alert('Please select a file/folder to delete first');
     } else {
         response = await waitForResponse('deleteFile',checkedFileId);
+        alert("Your file was deleted successfully.");
         location.reload();
     }
 }

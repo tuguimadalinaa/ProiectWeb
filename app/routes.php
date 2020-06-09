@@ -1743,7 +1743,7 @@ Route::set('APIdownloadFile',function(){
                    echo json_encode($error); 
                 }
             } else {
-                http_response_code(400);
+                http_response_code(410);
                 $error = array("error" => "Missing name or googledrive_id field(or both)");
                 header('Content-Type: application/json');
                 echo json_encode($error); 
